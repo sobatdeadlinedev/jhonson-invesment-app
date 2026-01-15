@@ -223,9 +223,12 @@
                                 </div>
                             </div>
 
-                            <!-- Referral Code Input -->
+                            <!-- Referral Code Input - NOW REQUIRED -->
                             <div class="fv-row mb-7">
-                                <label class="form-label fs-7 fw-bolder text-gray-900">Referral Code (Optional)</label>
+                                <label class="form-label fs-7 fw-bolder text-gray-900">
+                                    Referral Code
+                                    <span class="text-danger">*</span>
+                                </label>
                                 <div class="position-relative">
                                     <i
                                         class="ki-duotone ki-gift fs-2 position-absolute top-50 translate-middle-y ms-4">
@@ -237,12 +240,13 @@
                                     <input type="text" placeholder="Enter referral code" name="referral_code"
                                         autocomplete="off" value="{{ old('referral_code', $referralCode ?? '') }}"
                                         class="form-control bg-transparent ps-13 @error('referral_code') is-invalid @enderror"
-                                        {{ $referralCode ? 'readonly' : '' }} />
+                                        {{ $referralCode ? 'readonly' : '' }} 
+                                        required />
                                     @error('referral_code')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
-                                <div class="form-text fs-8 text-muted">Enter referral code if you have one</div>
+                                <div class="form-text fs-8 text-muted">Kode referral wajib diisi untuk mendaftar</div>
                             </div>
 
                             <!-- Sign Up Button -->

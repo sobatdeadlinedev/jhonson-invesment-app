@@ -38,14 +38,14 @@ class RegisterController extends Controller
         // Merge formatted phone back to request for validation
         $request->merge(['phone' => $phone]);
 
-        // Validate with custom phone unique check
+        // Validate with referral_code as REQUIRED
         $request->validate([
             'name' => 'required|string|max:255',
             'username' => 'required|string|max:255|unique:users,username|alpha_dash',
             'email' => 'required|email|max:255|unique:users,email',
             'phone' => 'required|string|max:20|unique:users,phone|regex:/^[0-9]+$/',
             'password' => ['required', 'confirmed', Password::min(8)],
-            'referral_code' => 'nullable|string|exists:users,refferal_code',
+            'referral_code' => 'required|string|exists:users,refferal_code', // Changed from 'nullable' to 'required'
         ], [
             'name.required' => 'Nama lengkap harus diisi',
             'username.required' => 'Username harus diisi',
@@ -60,6 +60,7 @@ class RegisterController extends Controller
             'password.required' => 'Password harus diisi',
             'password.confirmed' => 'Konfirmasi password tidak cocok',
             'password.min' => 'Password minimal 8 karakter',
+            'referral_code.required' => 'Kode referral harus diisi', // New error message
             'referral_code.exists' => 'Kode referral tidak valid',
         ]);
 
@@ -75,18 +76,14 @@ class RegisterController extends Controller
         // Assign default role 'member'
         $user->assignRole('member');
 
-        // Save referral usage if referral code is provided
-        if ($request->referral_code) {
-            $referrer = User::where('refferal_code', $request->referral_code)->first();
-            if ($referrer) {
-                ReferralUsage::create([
-                    'referrer_id' => $referrer->id,
-                    'referred_id' => $user->id,
-                    'referral_code' => $request->referral_code,
-                    'used_at' => now(),
-                ]);
-            }
-        }
+        // Save referral usage - referral_code is now guaranteed to exist
+        $referrer = User::where('refferal_code', $request->referral_code)->first();
+        ReferralUsage::create([
+            'referrer_id' => $referrer->id,
+            'referred_id' => $user->id,
+            'referral_code' => $request->referral_code,
+            'used_at' => now(),
+        ]);
 
         // Auto login setelah register
         Auth::login($user);
