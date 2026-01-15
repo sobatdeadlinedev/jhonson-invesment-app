@@ -324,7 +324,7 @@
                                     </i>
                                 </span>
                             </div>
-                            <span class="text-white fw-semibold fs-6">Low Trading Fees</span>
+                            <span class="text-white fw-semibold fs-6">Low Trading Fee</span>
                         </div>
                     </div>
                 </div>
