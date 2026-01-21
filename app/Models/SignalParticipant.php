@@ -36,11 +36,9 @@ class SignalParticipant extends Model
 
         // Protect joined_at from being updated after initial set
         static::updating(function ($participant) {
-            $original = $participant->getOriginal('joined_at');
-
-            // Always restore original joined_at if it was already set
-            if ($original !== null) {
-                $participant->joined_at = $original;
+            // Jangan biarkan joined_at berubah setelah diset pertama kali
+            if ($participant->isDirty('joined_at') && $participant->getOriginal('joined_at') !== null) {
+                $participant->joined_at = $participant->getOriginal('joined_at');
             }
         });
     }

@@ -208,6 +208,36 @@
                                         </td>
                                     </tr>
                                     <tr>
+                                        <td class="text-gray-500">Bet Type:</td>
+                                        <td>
+                                            @if ($signal->bet_type == 'percentage')
+                                                <span class="badge badge-light-primary">Percentage</span>
+                                            @else
+                                                <span class="badge badge-light-info">Fixed Amount</span>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-gray-500">Bet Value:</td>
+                                        <td class="text-gray-800 fw-bold">
+                                            {{ $signal->bet_display }}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-gray-500">Access:</td>
+                                        <td>
+                                            @if ($signal->is_public)
+                                                <span class="badge badge-light-success">
+                                                    <i class="ki-outline ki-people fs-5"></i> Public
+                                                </span>
+                                            @else
+                                                <span class="badge badge-light-warning">
+                                                    <i class="ki-outline ki-lock fs-5"></i> Private
+                                                </span>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                    <tr>
                                         <td class="text-gray-500">Created By:</td>
                                         <td class="text-gray-800">{{ $signal->creator->name }}</td>
                                     </tr>
@@ -239,12 +269,6 @@
                                             <td class="text-success">$ {{ number_format($signal->target_price, 2) }}</td>
                                         </tr>
                                     @endif
-                                    {{-- @if ($signal->stop_loss)
-                                        <tr>
-                                            <td class="text-gray-500">Stop Loss:</td>
-                                            <td class="text-danger">$ {{ number_format($signal->stop_loss, 2) }}</td>
-                                        </tr>
-                                    @endif --}}
                                 </table>
                             </div>
                             <!--end::Section-->
@@ -252,6 +276,43 @@
                             <!--begin::Separator-->
                             <div class="separator separator-dashed mb-7"></div>
                             <!--end::Separator-->
+
+                            <!--begin::Section - Allowed Users (Only for Private Signals)-->
+                            @if (!$signal->is_public)
+                                <div class="mb-7">
+                                    <h5 class="mb-4">Allowed Users ({{ $signal->allowedUsers->count() }})</h5>
+
+                                    @if ($signal->allowedUsers->count() > 0)
+                                        <div class="scroll-y mh-300px">
+                                            @foreach ($signal->allowedUsers as $allowedUser)
+                                                <div class="d-flex align-items-center py-2">
+                                                    <div class="symbol symbol-35px me-3">
+                                                        <div class="symbol-label bg-light-primary">
+                                                            <i class="ki-outline ki-user fs-2 text-primary"></i>
+                                                        </div>
+                                                    </div>
+                                                    <div class="d-flex flex-column">
+                                                        <span
+                                                            class="text-gray-800 fw-bold fs-7">{{ $allowedUser->user->name }}</span>
+                                                        <span
+                                                            class="text-muted fs-8">{{ $allowedUser->user->email }}</span>
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    @else
+                                        <div class="text-center text-muted py-5">
+                                            <i class="ki-outline ki-information fs-2x"></i>
+                                            <p class="mt-2">No users selected</p>
+                                        </div>
+                                    @endif
+                                </div>
+
+                                <!--begin::Separator-->
+                                <div class="separator separator-dashed mb-7"></div>
+                                <!--end::Separator-->
+                            @endif
+                            <!--end::Section-->
 
                             <!--begin::Section - Statistics-->
                             <div class="mb-7">
@@ -289,10 +350,10 @@
                                             </td>
                                         </tr>
                                     @endif
-                                    @if ($signal->clossed_at)
+                                    @if ($signal->closed_at)
                                         <tr>
                                             <td class="text-gray-500">Settled At:</td>
-                                            <td class="text-gray-800">{{ $signal->clossed_at->format('d M Y, H:i:s') }}
+                                            <td class="text-gray-800">{{ $signal->closed_at->format('d M Y, H:i:s') }}
                                             </td>
                                         </tr>
                                     @endif
@@ -383,10 +444,10 @@
                     <div class="modal-body">
                         <div class="mb-5">
                             <label class="form-label required">Result</label>
-                            <select name="result" class="form-select" required>
+                            <select name="admin_choice" class="form-select" required>
                                 <option value="">Select Result</option>
-                                <option value="win">Call</option>
-                                <option value="loss">Put</option>
+                                <option value="call">Call (Price UP ↑)</option>
+                                <option value="put">Put (Price DOWN ↓)</option>
                             </select>
                         </div>
                         <div class="mb-5">

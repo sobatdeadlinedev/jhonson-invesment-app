@@ -277,13 +277,11 @@
                             <li>Minimum $100.00 available balance required</li>
                             <li>Your bet will be locked until signal settlement</li>
                             <li><strong class="text-success">No losses! No fees!</strong> You always win rewards</li>
-                            <li>Reward amount depends on the win rate set by admin</li>
                             <li>Call/Put indicates market direction (both receive rewards)</li>
                         </ul>
                     </div>
                 </div>
             </div>
-
         </div>
     </div>
 

@@ -76,16 +76,127 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
+                        <!-- Bet Configuration Section -->
+                        <div class="card mb-10">
+                            <div class="card-header">
+                                <h3 class="card-title">Bet Configuration</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-7">
+                                    <label class="form-label required">Bet Type</label>
+                                    <div class="d-flex gap-5">
+                                        <label class="form-check form-check-custom form-check-solid">
+                                            <input class="form-check-input" type="radio" name="bet_type"
+                                                value="percentage" id="bet_type_percentage"
+                                                {{ old('bet_type', $signal->bet_type) == 'percentage' ? 'checked' : '' }}
+                                                required>
+                                            <span class="form-check-label">
+                                                <span class="fw-bold">Percentage (%)</span>
+                                                <span class="text-muted d-block fs-7">Bet amount based on user's trade
+                                                    balance</span>
+                                            </span>
+                                        </label>
+                                        <label class="form-check form-check-custom form-check-solid">
+                                            <input class="form-check-input" type="radio" name="bet_type" value="fixed"
+                                                id="bet_type_fixed"
+                                                {{ old('bet_type', $signal->bet_type) == 'fixed' ? 'checked' : '' }}
+                                                required>
+                                            <span class="form-check-label">
+                                                <span class="fw-bold">Fixed Amount (USDT)</span>
+                                                <span class="text-muted d-block fs-7">Fixed bet amount for all users</span>
+                                            </span>
+                                        </label>
+                                    </div>
+                                    @error('bet_type')
+                                        <div class="text-danger fs-7 mt-2">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                <div class="mb-5">
+                                    <label class="form-label required">Bet Value</label>
+                                    <div class="input-group">
+                                        <input type="number" name="bet_value" id="bet_value"
+                                            class="form-control @error('bet_value') is-invalid @enderror" min="0.01"
+                                            step="0.01" value="{{ old('bet_value', $signal->bet_value) }}" required>
+                                        <span class="input-group-text" id="bet_value_unit">
+                                            {{ $signal->bet_type == 'percentage' ? '%' : 'USDT' }}
+                                        </span>
+                                    </div>
+                                    @error('bet_value')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                    <div class="form-text" id="bet_value_help">
+                                        @if ($signal->bet_type == 'percentage')
+                                            Enter percentage of user's trade balance
+                                        @else
+                                            Enter fixed amount in USDT
+                                        @endif
+                                    </div>
+                                </div>
+
+                                <div class="alert alert-primary d-flex align-items-center p-5">
+                                    <i class="ki-outline ki-information-5 fs-2hx text-primary me-4"></i>
+                                    <div class="d-flex flex-column">
+                                        <span id="bet_info_text"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- User Access Control Section -->
+                        <div class="card mb-10">
+                            <div class="card-header">
+                                <h3 class="card-title">User Access Control</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-7">
+                                    <label class="form-check form-check-custom form-check-solid">
+                                        <input class="form-check-input" type="checkbox" name="is_public" value="1"
+                                            id="is_public" {{ old('is_public', $signal->is_public) ? 'checked' : '' }}>
+                                        <span class="form-check-label fw-bold">
+                                            Public Signal (All Users Can Access)
+                                        </span>
+                                    </label>
+                                    <div class="form-text">If unchecked, only selected users below can access this signal
+                                    </div>
+                                </div>
+
+                                <div id="user_selector"
+                                    style="display: {{ old('is_public', $signal->is_public) ? 'none' : 'block' }};">
+                                    <label class="form-label required">Select Allowed Users</label>
+                                    <select name="allowed_user_ids[]" id="allowed_user_ids"
+                                        class="form-select @error('allowed_user_ids') is-invalid @enderror" multiple
+                                        data-control="select2" data-placeholder="Search by name, email, or phone..."
+                                        data-allow-clear="true">
+                                        @foreach ($users as $user)
+                                            <option value="{{ $user->id }}"
+                                                {{ in_array($user->id, old('allowed_user_ids', $signal->allowed_user_ids)) ? 'selected' : '' }}>
+                                                {{ $user->name }} - {{ $user->email }}
+                                                @if ($user->phone)
+                                                    ({{ $user->phone }})
+                                                @endif
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    @error('allowed_user_ids')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                    <div class="form-text">Select one or more users who can access this private signal
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
                         <div class="row mb-10">
                             <div class="col-md-6">
                                 <label class="form-label required">Opening Price (USDT)</label>
                                 <!-- Hidden input for actual value -->
-                                <input type="hidden" name="entry_price" id="entry_price_hidden" value="{{ old('entry_price', $signal->entry_price) }}">
+                                <input type="hidden" name="entry_price" id="entry_price_hidden"
+                                    value="{{ old('entry_price', $signal->entry_price) }}">
                                 <!-- Display input with formatting -->
-                                <input type="text" id="entry_price_display" 
+                                <input type="text" id="entry_price_display"
                                     class="form-control @error('entry_price') is-invalid @enderror"
-                                    placeholder="92,920.80" 
+                                    placeholder="92,920.80"
                                     value="{{ old('entry_price') ? number_format(old('entry_price'), 2) : number_format($signal->entry_price, 2) }}"
                                     required>
                                 @error('entry_price')
@@ -96,7 +207,8 @@
                             <div class="col-md-6">
                                 <label class="form-label required">Settlement Price (USDT)</label>
                                 <!-- Hidden input for actual value -->
-                                <input type="hidden" name="target_price" id="target_price_hidden" value="{{ old('target_price', $signal->target_price) }}">
+                                <input type="hidden" name="target_price" id="target_price_hidden"
+                                    value="{{ old('target_price', $signal->target_price) }}">
                                 <!-- Display input with formatting -->
                                 <input type="text" id="target_price_display"
                                     class="form-control @error('target_price') is-invalid @enderror"
@@ -133,22 +245,90 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Bet Type Toggle
+            const betTypePercentage = document.getElementById('bet_type_percentage');
+            const betTypeFixed = document.getElementById('bet_type_fixed');
+            const betValueUnit = document.getElementById('bet_value_unit');
+            const betValueHelp = document.getElementById('bet_value_help');
+            const betInfoText = document.getElementById('bet_info_text');
+            const betValueInput = document.getElementById('bet_value');
+
+            function updateBetType() {
+                if (betTypePercentage.checked) {
+                    betValueUnit.textContent = '%';
+                    betValueHelp.innerHTML =
+                        'Enter percentage of user\'s trade balance (e.g., 1.00 = 1%, 5.00 = 5%)';
+                    betInfoText.innerHTML =
+                        '<strong>Percentage:</strong> Users with 10,000 USDT trade balance will bet ' +
+                        (betValueInput.value * 100).toFixed(0) + ' USDT (' + betValueInput.value + '%)<br>' +
+                        'Example: 1% = 100 USDT, 2% = 200 USDT, 5% = 500 USDT';
+                } else {
+                    betValueUnit.textContent = 'USDT';
+                    betValueHelp.innerHTML = 'Enter fixed amount in USDT (e.g., 100.00 = all users bet 100 USDT)';
+                    betInfoText.innerHTML = '<strong>Fixed:</strong> All users will bet exactly ' +
+                        parseFloat(betValueInput.value).toFixed(2) + ' USDT regardless of their balance<br>' +
+                        'Make sure users have sufficient balance to join';
+                }
+            }
+
+            betTypePercentage.addEventListener('change', updateBetType);
+            betTypeFixed.addEventListener('change', updateBetType);
+            betValueInput.addEventListener('input', updateBetType);
+
+            // Initial update
+            updateBetType();
+
+            // Public/Private Toggle
+            const isPublicCheckbox = document.getElementById('is_public');
+            const userSelector = document.getElementById('user_selector');
+            const allowedUserIds = document.getElementById('allowed_user_ids');
+
+            function toggleUserSelector() {
+                if (isPublicCheckbox.checked) {
+                    userSelector.style.display = 'none';
+                    allowedUserIds.removeAttribute('required');
+                } else {
+                    userSelector.style.display = 'block';
+                    allowedUserIds.setAttribute('required', 'required');
+                }
+            }
+
+            isPublicCheckbox.addEventListener('change', toggleUserSelector);
+            toggleUserSelector(); // Initial state
+
+            // Initialize Select2 with search
+            $('#allowed_user_ids').select2({
+                width: '100%',
+                placeholder: 'Search by name, email, or phone...',
+                allowClear: true,
+                matcher: function(params, data) {
+                    if ($.trim(params.term) === '') {
+                        return data;
+                    }
+                    if (data.text.toLowerCase().indexOf(params.term.toLowerCase()) > -1) {
+                        return data;
+                    }
+                    return null;
+                }
+            });
+        });
+        document.addEventListener('DOMContentLoaded', function() {
             // Function to format number with commas
             function formatNumber(value) {
                 // Remove all non-digit and non-decimal characters
                 let num = value.replace(/[^\d.]/g, '');
-                
+
                 // Split by decimal point
                 let parts = num.split('.');
-                
+
                 // Format integer part with commas
                 parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-                
+
                 // Limit decimal places to 2
                 if (parts[1]) {
                     parts[1] = parts[1].substring(0, 2);
                 }
-                
+
                 return parts.join('.');
             }
 
@@ -165,7 +345,7 @@
                 let cursorPosition = e.target.selectionStart;
                 let oldValue = e.target.value;
                 let formatted = formatNumber(e.target.value);
-                
+
                 e.target.value = formatted;
                 entryPriceHidden.value = parseFormattedNumber(formatted);
 
@@ -194,7 +374,7 @@
                 let cursorPosition = e.target.selectionStart;
                 let oldValue = e.target.value;
                 let formatted = formatNumber(e.target.value);
-                
+
                 e.target.value = formatted;
                 targetPriceHidden.value = parseFormattedNumber(formatted);
 

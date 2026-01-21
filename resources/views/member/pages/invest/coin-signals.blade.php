@@ -174,7 +174,6 @@
                             <li>Bet amount is 1% of your Trade Balance</li>
                             <li>Minimum $ 100.00 available balance required</li>
                             <li>Your bet will be locked until settlement</li>
-                            <li><strong class="text-success">You always win rewards!</strong> No losses, no fees</li>
                         </ul>
                     </div>
                 </div>

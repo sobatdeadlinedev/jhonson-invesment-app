@@ -16,6 +16,9 @@ class TradingSignal extends Model
         'entry_price',
         'target_price',
         'stop_loss',
+        'bet_type',
+        'bet_value',
+        'is_public',
         'status',
         'result',
         'rate_of_return',
@@ -29,6 +32,8 @@ class TradingSignal extends Model
         'entry_price' => 'decimal:2',
         'target_price' => 'decimal:2',
         'stop_loss' => 'decimal:2',
+        'bet_value' => 'decimal:2',
+        'is_public' => 'boolean',
         'rate_of_return' => 'decimal:2',
         'opened_at' => 'datetime',
         'closed_at' => 'datetime',
@@ -37,9 +42,6 @@ class TradingSignal extends Model
 
     // ==================== COIN CONFIGURATION ====================
 
-    /**
-     * Available coins for trading signals
-     */
     public static function getAvailableCoins()
     {
         return [
@@ -219,18 +221,12 @@ class TradingSignal extends Model
         ];
     }
 
-    /**
-     * Get coin info
-     */
     public function getCoinInfo()
     {
         $coins = self::getAvailableCoins();
         return $coins[$this->coin] ?? $coins['BTCUSDT'];
     }
 
-    /**
-     * Get TradingView symbol for this signal
-     */
     public function getTradingViewSymbol()
     {
         $coinInfo = $this->getCoinInfo();
@@ -247,6 +243,11 @@ class TradingSignal extends Model
     public function participants()
     {
         return $this->hasMany(SignalParticipant::class, 'signal_id');
+    }
+
+    public function allowedUsers()
+    {
+        return $this->hasMany(SignalAllowedUser::class, 'signal_id');
     }
 
     // ==================== SCOPES ====================
@@ -269,6 +270,30 @@ class TradingSignal extends Model
     public function scopeForCoin($query, $coin)
     {
         return $query->where('coin', strtoupper($coin));
+    }
+
+    public function scopePublic($query)
+    {
+        return $query->where('is_public', true);
+    }
+
+    public function scopePrivate($query)
+    {
+        return $query->where('is_public', false);
+    }
+
+    /**
+     * Scope: signals yang bisa diakses oleh user tertentu
+     */
+    public function scopeAccessibleBy($query, $userId)
+    {
+        return $query->where(function ($q) use ($userId) {
+            // Public signals ATAU private signals yang user ada di allowed list
+            $q->where('is_public', true)
+                ->orWhereHas('allowedUsers', function ($subQuery) use ($userId) {
+                    $subQuery->where('user_id', $userId);
+                });
+        });
     }
 
     // ==================== HELPER METHODS ====================
@@ -296,6 +321,54 @@ class TradingSignal extends Model
     public function getTotalBetAmountAttribute()
     {
         return $this->participants()->sum('bet_amount');
+    }
+
+    /**
+     * Check if user is allowed to access this signal
+     */
+    public function isUserAllowed($userId)
+    {
+        // Jika public, semua user bisa akses
+        if ($this->is_public) {
+            return true;
+        }
+
+        // Jika private, cek di allowed users
+        return SignalAllowedUser::isUserAllowed($this->id, $userId);
+    }
+
+    /**
+     * Calculate bet amount for specific user based on signal configuration
+     */
+    public function calculateUserBetAmount($user)
+    {
+        if ($this->bet_type === 'percentage') {
+            // Percentage dari trade balance
+            return $user->trade_balance * ($this->bet_value / 100);
+        } else {
+            // Fixed amount
+            return $this->bet_value;
+        }
+    }
+
+    /**
+     * Get bet display text
+     */
+    public function getBetDisplayAttribute()
+    {
+        if ($this->bet_type === 'percentage') {
+            return number_format($this->bet_value, 2) . '% of Trade Balance';
+        } else {
+            return number_format($this->bet_value, 2) . ' USDT (Fixed)';
+        }
+    }
+
+    /**
+     * Get allowed user IDs array
+     */
+    public function getAllowedUserIdsAttribute()
+    {
+        return $this->allowedUsers()->pluck('user_id')->toArray();
     }
 
     /**

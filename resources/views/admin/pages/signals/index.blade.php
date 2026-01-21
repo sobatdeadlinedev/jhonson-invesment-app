@@ -62,9 +62,10 @@
                         <thead>
                             <tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0">
                                 <th class="min-w-200px">Signal</th>
+                                <th class="min-w-100px">Bet Config</th>
+                                <th class="min-w-100px">Access</th>
                                 <th class="min-w-100px">Opening Price</th>
                                 <th class="min-w-100px">Settlement Price</th>
-                                {{-- <th class="min-w-100px">Stop Loss</th> --}}
                                 <th class="min-w-100px">Status</th>
                                 <th class="min-w-100px">Participants</th>
                                 <th class="min-w-125px">Created</th>
@@ -74,6 +75,7 @@
                         <tbody class="text-gray-600 fw-semibold">
                             @forelse($signals as $signal)
                                 <tr>
+                                    <!-- Signal -->
                                     <td>
                                         <div class="d-flex flex-column">
                                             <span class="text-gray-800 fw-bold mb-1">{{ $signal->title }}</span>
@@ -83,6 +85,38 @@
                                             @endif
                                         </div>
                                     </td>
+
+                                    <!-- Bet Config -->
+                                    <td>
+                                        <div class="d-flex flex-column">
+                                            @if ($signal->bet_type == 'percentage')
+                                                <span
+                                                    class="badge badge-light-primary mb-1">{{ number_format($signal->bet_value, 2) }}%</span>
+                                            @else
+                                                <span
+                                                    class="badge badge-light-info mb-1">{{ number_format($signal->bet_value, 2) }}
+                                                    USDT</span>
+                                            @endif
+                                            <span class="text-muted fs-8">{{ ucfirst($signal->bet_type) }}</span>
+                                        </div>
+                                    </td>
+
+                                    <!-- Access -->
+                                    <td>
+                                        @if ($signal->is_public)
+                                            <span class="badge badge-light-success">
+                                                <i class="ki-outline ki-people fs-6"></i> Public
+                                            </span>
+                                        @else
+                                            <span class="badge badge-light-warning">
+                                                <i class="ki-outline ki-lock fs-6"></i> Private
+                                            </span>
+                                            <div class="text-muted fs-8 mt-1">{{ $signal->allowedUsers->count() }} users
+                                            </div>
+                                        @endif
+                                    </td>
+
+                                    <!-- Opening Price -->
                                     <td>
                                         @if ($signal->entry_price)
                                             <span class="text-gray-800">$
@@ -91,6 +125,8 @@
                                             <span class="text-muted">-</span>
                                         @endif
                                     </td>
+
+                                    <!-- Settlement Price -->
                                     <td>
                                         @if ($signal->target_price)
                                             <span class="text-success">$
@@ -99,13 +135,8 @@
                                             <span class="text-muted">-</span>
                                         @endif
                                     </td>
-                                    {{-- <td>
-                                        @if ($signal->stop_loss)
-                                            <span class="text-danger">$ {{ number_format($signal->stop_loss, 2) }}</span>
-                                        @else
-                                            <span class="text-muted">-</span>
-                                        @endif
-                                    </td> --}}
+
+                                    <!-- Status -->
                                     <td>
                                         @if ($signal->status === 'open')
                                             <span class="badge badge-light-success">
@@ -121,10 +152,16 @@
                                             </span>
                                         @endif
                                     </td>
+
+                                    <!-- Participants -->
                                     <td>
                                         <span class="badge badge-light-info">{{ $signal->participants_count }} Users</span>
                                     </td>
+
+                                    <!-- Created -->
                                     <td>{{ $signal->created_at->format('d M Y, H:i:s') }}</td>
+
+                                    <!-- Action -->
                                     <td class="text-end">
                                         <a href="{{ route('admin.signals.show', $signal->id) }}"
                                             class="btn btn-light btn-active-light-primary btn-sm">
@@ -134,7 +171,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="8" class="text-center py-10">
+                                    <td colspan="9" class="text-center py-10">
                                         <div class="text-gray-600">No signals found</div>
                                     </td>
                                 </tr>

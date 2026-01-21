@@ -19,6 +19,13 @@ class SignalController extends Controller
         $signal = TradingSignal::findOrFail($id);
         $user = auth()->user();
 
+        // UPDATED: Check if user has access to this signal
+        if (!$signal->isUserAllowed($user->id)) {
+            return redirect()
+                ->back()
+                ->with('error', 'You do not have access to this signal.');
+        }
+
         // Validasi signal status
         if ($signal->status !== 'open') {
             return redirect()
@@ -37,18 +44,28 @@ class SignalController extends Controller
                 ->with('error', 'You have already joined this signal.');
         }
 
-        // Check minimum balance (100 USDT available trade balance)
-        if (!$user->canJoinSignal()) {
-            return redirect()
-                ->back()
-                ->with('error', 'Minimum available Trade Balance to join signal is 100 USDT. Your available balance: ' . number_format($user->getAvailableTradeBalance(), 2) . ' USDT.');
+        // UPDATED: Calculate bet amount based on signal configuration
+        $betAmount = $signal->calculateUserBetAmount($user);
+
+        // UPDATED: Validate minimum balance
+        if ($signal->bet_type === 'percentage') {
+            // For percentage, check minimum 100 USDT available trade balance
+            if (!$user->canJoinSignal()) {
+                return redirect()
+                    ->back()
+                    ->with('error', 'Minimum available Trade Balance to join signal is 100 USDT. Your available balance: ' . number_format($user->getAvailableTradeBalance(), 2) . ' USDT.');
+            }
+        } else {
+            // For fixed amount, check if user has sufficient balance
+            if ($user->getAvailableTradeBalance() < $betAmount) {
+                return redirect()
+                    ->back()
+                    ->with('error', 'Insufficient available Trade Balance. Required: ' . number_format($betAmount, 2) . ' USDT. Your available balance: ' . number_format($user->getAvailableTradeBalance(), 2) . ' USDT.');
+            }
         }
 
         try {
             DB::beginTransaction();
-
-            // Calculate bet amount (1% dari trade balance)
-            $betAmount = $user->calculateBetAmount();
 
             // Lock the bet amount
             $user->lockBalance($betAmount);
@@ -67,7 +84,9 @@ class SignalController extends Controller
             Log::info('User joined signal', [
                 'user_id' => $user->id,
                 'signal_id' => $signal->id,
-                'bet_amount' => $betAmount,
+                'bet_type' => $signal->bet_type,
+                'bet_value' => $signal->bet_value,
+                'calculated_bet_amount' => $betAmount,
                 'locked_balance' => $user->locked_balance,
             ]);
 
