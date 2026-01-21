@@ -208,12 +208,12 @@
 
                     <!-- Calculation Explanation -->
                     @if ($signal->bet_type == 'percentage')
-                        <div class="alert"
+                        {{-- <div class="alert"
                             style="background-color: rgba(59, 130, 246, 0.1); border: 1px solid #3b82f6; color: #60a5fa; font-size: 11px;">
                             <i class="bi bi-calculator me-2"></i>
                             <strong>Calculation:</strong> Your bet = {{ number_format(auth()->user()->trade_balance, 2) }}
                             × {{ number_format($signal->bet_value, 2) }}% = {{ number_format($betAmountPreview, 2) }} USDT
-                        </div>
+                        </div> --}}
                     @else
                         <div class="alert"
                             style="background-color: rgba(59, 130, 246, 0.1); border: 1px solid #3b82f6; color: #60a5fa; font-size: 11px;">
@@ -223,12 +223,12 @@
                         </div>
                     @endif
 
-                    <div class="alert"
+                    {{-- <div class="alert"
                         style="background-color: rgba(34, 197, 94, 0.1); border: 1px solid #22c55e; color: #22c55e; font-size: 12px;">
                         <i class="bi bi-info-circle me-2"></i>
                         <strong>Good news!</strong> You will always receive rewards based on the win rate. No losses, no
                         fees! Your bet is just locked temporarily for volume tracking.
-                    </div>
+                    </div> --}}
                 </div>
             @endif
 
