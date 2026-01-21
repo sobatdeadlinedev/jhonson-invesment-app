@@ -161,27 +161,73 @@
                 </div>
             @endif
 
+            <!-- REPLACE "Your Bet Calculation" CARD IN detail.blade.php -->
+
             @if (!$hasJoined && $signal->status === 'open')
                 <div class="card-dark shadow-sm p-3 mb-3">
                     <h6 class="text-white mb-3">Your Bet Calculation</h6>
+
+                    <!-- Signal Bet Configuration -->
                     <div class="row g-3 mb-3">
                         <div class="col-6">
-                            <p class="text-muted mb-1 small">Current Trade Balance</p>
+                            <p class="text-muted mb-1 small">Signal Bet Type</p>
+                            @if ($signal->bet_type == 'percentage')
+                                <span class="badge badge-light-primary">{{ number_format($signal->bet_value, 2) }}% of
+                                    Balance</span>
+                            @else
+                                <span class="badge badge-light-info">{{ number_format($signal->bet_value, 2) }} USDT
+                                    Fixed</span>
+                            @endif
+                        </div>
+                        <div class="col-6">
+                            <p class="text-muted mb-1 small">Signal Access</p>
+                            @if ($signal->is_public)
+                                <span class="badge badge-light-success">
+                                    <i class="bi bi-people"></i> Public
+                                </span>
+                            @else
+                                <span class="badge badge-light-warning">
+                                    <i class="bi bi-lock"></i> Private
+                                </span>
+                            @endif
+                        </div>
+                    </div>
+
+                    <!-- Your Bet Preview -->
+                    <div class="row g-3 mb-3">
+                        <div class="col-6">
+                            <p class="text-muted mb-1 small">Your Trade Balance</p>
                             <h6 class="text-white mb-0 fw-bold">$ {{ number_format(auth()->user()->trade_balance, 2) }}
                             </h6>
                         </div>
                         <div class="col-6">
-                            <p class="text-muted mb-1 small">Bet Amount</p>
-                            <h6 class="text-gold mb-0 fw-bold">$
-                                {{ number_format(auth()->user()->calculateBetAmount(), 2) }}</h6>
+                            <p class="text-muted mb-1 small">Your Bet Amount</p>
+                            <h6 class="text-gold mb-0 fw-bold">$ {{ number_format($betAmountPreview, 2) }}</h6>
                         </div>
                     </div>
+
+                    <!-- Calculation Explanation -->
+                    @if ($signal->bet_type == 'percentage')
+                        <div class="alert"
+                            style="background-color: rgba(59, 130, 246, 0.1); border: 1px solid #3b82f6; color: #60a5fa; font-size: 11px;">
+                            <i class="bi bi-calculator me-2"></i>
+                            <strong>Calculation:</strong> Your bet = {{ number_format(auth()->user()->trade_balance, 2) }}
+                            × {{ number_format($signal->bet_value, 2) }}% = {{ number_format($betAmountPreview, 2) }} USDT
+                        </div>
+                    @else
+                        <div class="alert"
+                            style="background-color: rgba(59, 130, 246, 0.1); border: 1px solid #3b82f6; color: #60a5fa; font-size: 11px;">
+                            <i class="bi bi-info-circle me-2"></i>
+                            <strong>Fixed Bet:</strong> All participants bet exactly
+                            {{ number_format($signal->bet_value, 2) }} USDT regardless of balance
+                        </div>
+                    @endif
+
                     <div class="alert"
                         style="background-color: rgba(34, 197, 94, 0.1); border: 1px solid #22c55e; color: #22c55e; font-size: 12px;">
                         <i class="bi bi-info-circle me-2"></i>
                         <strong>Good news!</strong> You will always receive rewards based on the win rate. No losses, no
-                        fees!
-                        Your bet is just locked temporarily for volume tracking.
+                        fees! Your bet is just locked temporarily for volume tracking.
                     </div>
                 </div>
             @endif
@@ -240,18 +286,35 @@
             </div>
 
             @if (!$hasJoined && $signal->status === 'open')
-                @if (auth()->user()->canJoinSignal())
+                @php
+                    // Check sufficient balance based on bet type
+                    $hasSufficientBalance =
+                        $signal->bet_type == 'percentage'
+                            ? auth()->user()->canJoinSignal()
+                            : auth()->user()->getAvailableTradeBalance() >= $betAmountPreview;
+                @endphp
+
+                @if ($hasSufficientBalance)
                     <form action="{{ route('member.signals.join', $signal->id) }}" method="POST">
                         @csrf
                         <button type="submit" class="btn btn-call w-100"
-                            onclick="return confirm('Join this signal?\n\nYour bet: ${{ number_format(auth()->user()->calculateBetAmount(), 2) }} will be locked until settlement.\n\nYou will receive rewards based on the win rate set by admin.\n\nDo you want to continue?')">
+                            onclick="return confirm('Join this signal?\n\n' + 
+                    'Bet Type: {{ $signal->bet_type == 'percentage' ? number_format($signal->bet_value, 2) . '% of your balance' : 'Fixed ' . number_format($signal->bet_value, 2) . ' USDT' }}\n' +
+                    'Your bet: ${{ number_format($betAmountPreview, 2) }} will be locked until settlement.\n\n' +
+                    'You will receive rewards based on the win rate set by admin.\n\n' +
+                    'Do you want to continue?')">
                             <i class="bi bi-check-circle me-2"></i>JOIN THIS SIGNAL
                         </button>
                     </form>
                 @else
                     <div class="alert alert-danger">
                         <i class="bi bi-exclamation-triangle me-2"></i>
-                        <strong>Insufficient Balance:</strong> Minimum $100.00 available Trade Balance required.
+                        <strong>Insufficient Balance:</strong>
+                        @if ($signal->bet_type == 'percentage')
+                            Minimum $100.00 available Trade Balance required.
+                        @else
+                            You need at least ${{ number_format($betAmountPreview, 2) }} available Trade Balance.
+                        @endif
                         <a href="{{ route('member.balance.transfer') }}" class="text-white"><u>Transfer funds now</u></a>
                     </div>
                 @endif
@@ -273,15 +336,28 @@
                     <div>
                         <h6 class="text-white mb-1" style="font-size: 13px;">Important Information</h6>
                         <ul class="small text-muted mb-0 ps-3" style="font-size: 12px;">
-                            <li>Bet is automatically calculated as 1% of Trade Balance</li>
-                            <li>Minimum $100.00 available balance required</li>
+                            <li>Bet amount is determined by signal configuration (percentage or fixed)</li>
+                            @if ($signal->bet_type == 'percentage')
+                                <li>This signal uses <strong>{{ number_format($signal->bet_value, 2) }}%</strong> of your
+                                    Trade Balance</li>
+                            @else
+                                <li>This signal uses a <strong>fixed amount of {{ number_format($signal->bet_value, 2) }}
+                                        USDT</strong></li>
+                            @endif
+                            @if (!$signal->is_public)
+                                <li><strong class="text-warning">Private Signal:</strong> Only selected users can access
+                                </li>
+                            @endif
+                            <li>Minimum $100.00 available balance required (for percentage-based signals)</li>
                             <li>Your bet will be locked until signal settlement</li>
                             <li><strong class="text-success">No losses! No fees!</strong> You always win rewards</li>
+                            <li>Reward amount depends on the win rate set by admin</li>
                             <li>Call/Put indicates market direction (both receive rewards)</li>
                         </ul>
                     </div>
                 </div>
             </div>
+
         </div>
     </div>
 
