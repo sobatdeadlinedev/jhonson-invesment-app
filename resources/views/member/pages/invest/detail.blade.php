@@ -169,7 +169,7 @@
 
                     <!-- Signal Bet Configuration -->
                     <div class="row g-3 mb-3">
-                        <div class="col-6">
+                        {{-- <div class="col-6">
                             <p class="text-muted mb-1 small">Signal Bet Type</p>
                             @if ($signal->bet_type == 'percentage')
                                 <span class="badge badge-light-primary">{{ number_format($signal->bet_value, 2) }}% of
@@ -178,8 +178,8 @@
                                 <span class="badge badge-light-info">{{ number_format($signal->bet_value, 2) }} USDT
                                     Fixed</span>
                             @endif
-                        </div>
-                        <div class="col-6">
+                        </div> --}}
+                        {{-- <div class="col-6">
                             <p class="text-muted mb-1 small">Signal Access</p>
                             @if ($signal->is_public)
                                 <span class="badge badge-light-success">
@@ -190,7 +190,7 @@
                                     <i class="bi bi-lock"></i> Private
                                 </span>
                             @endif
-                        </div>
+                        </div> --}}
                     </div>
 
                     <!-- Your Bet Preview -->
@@ -350,9 +350,6 @@
                             @endif
                             <li>Minimum $100.00 available balance required (for percentage-based signals)</li>
                             <li>Your bet will be locked until signal settlement</li>
-                            <li><strong class="text-success">No losses! No fees!</strong> You always win rewards</li>
-                            <li>Reward amount depends on the win rate set by admin</li>
-                            <li>Call/Put indicates market direction (both receive rewards)</li>
                         </ul>
                     </div>
                 </div>
