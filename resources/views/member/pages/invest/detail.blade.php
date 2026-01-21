@@ -171,7 +171,7 @@
                             </h6>
                         </div>
                         <div class="col-6">
-                            <p class="text-muted mb-1 small">Bet Amount (1%)</p>
+                            <p class="text-muted mb-1 small">Bet Amount</p>
                             <h6 class="text-gold mb-0 fw-bold">$
                                 {{ number_format(auth()->user()->calculateBetAmount(), 2) }}</h6>
                         </div>
