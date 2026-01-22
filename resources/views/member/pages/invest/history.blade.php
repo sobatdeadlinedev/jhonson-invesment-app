@@ -72,6 +72,48 @@
 
                         // Determine if final result is positive (after fees)
                         $isFinalProfit = $netResult > 0;
+
+                        // ========================================
+                        // Tampilkan ADMIN CHOICE (apa yang admin pilih)
+                        // ========================================
+                        $direction = '';
+                        $directionIcon = '';
+                        $textColor = 'text-muted';
+                        $userOutcome = '';
+
+                        if ($isPending) {
+                            $direction = 'PENDING';
+                            $directionIcon = '';
+                            $textColor = 'text-warning';
+                        } else {
+                            // Tampilkan apa yang ADMIN PILIH (bukan actual market)
+                            $adminChoice = strtolower($signal->admin_choice ?? '');
+
+                            if ($adminChoice === 'call') {
+                                $direction = 'CALL';
+                                $directionIcon = '↑';
+                                $textColor = 'text-success';
+                            } elseif ($adminChoice === 'put') {
+                                $direction = 'PUT';
+                                $directionIcon = '↓';
+                                $textColor = 'text-danger';
+                            } else {
+                                // Fallback jika admin_choice tidak ada (old data)
+                                $direction = 'N/A';
+                                $textColor = 'text-muted';
+                            }
+
+                            // Show user outcome
+                            if ($isSettled) {
+                                if ($signal->result === 'win') {
+                                    $userOutcome =
+                                        '<i class="bi bi-check-circle-fill text-success ms-1" style="font-size: 10px;"></i>';
+                                } else {
+                                    $userOutcome =
+                                        '<i class="bi bi-x-circle-fill text-danger ms-1" style="font-size: 10px;"></i>';
+                                }
+                            }
+                        }
                     @endphp
 
                     <div class="card-dark shadow-sm p-3 mb-3">
@@ -87,26 +129,9 @@
                                 <span class="text-white fw-bold">{{ $coinInfo['symbol'] }}</span>
                             </div>
 
-                            <!-- Right side: CALL/PUT text only -->
-                            @php
-                                // Tentukan CALL atau PUT berdasarkan result
-                                $direction = '';
-                                $textColor = 'text-muted';
-
-                                if ($isPending) {
-                                    $direction = 'PENDING';
-                                    $textColor = 'text-warning';
-                                } elseif ($signal->result === 'win') {
-                                    $direction = 'CALL';
-                                    $textColor = 'text-success';
-                                } elseif ($signal->result === 'loss') {
-                                    $direction = 'PUT';
-                                    $textColor = 'text-danger';
-                                }
-                            @endphp
-
+                            <!-- Right side: CALL/PUT with direction icon and outcome -->
                             <span class="fw-bold {{ $textColor }}" style="font-size: 12px;">
-                                {{ $direction }}
+                                {{ $direction }} {{ $directionIcon }} {!! $userOutcome !!}
                             </span>
                         </div>
 
@@ -199,15 +224,6 @@
                                     {{ $participant->joined_at->format('Y-m-d H:i:s') }}
                                 </span>
                             </div>
-
-                            @if ($isPending)
-                                <!-- Pending Notice -->
-                                {{-- <div class="mt-2 pt-2" style="border-top: 1px solid var(--border-color);">
-                                    <small class="text-warning">
-                                        <i class="bi bi-info-circle me-1"></i>Waiting for admin to settle this signal
-                                    </small>
-                                </div> --}}
-                            @endif
                         </div>
                     </div>
                 @empty
@@ -233,8 +249,7 @@
                     <div>
                         <h6 class="text-white mb-1" style="font-size: 13px;">About Results</h6>
                         <ul class="small text-muted mb-0 ps-3" style="font-size: 12px;">
-                            <li>Signal result (WIN/LOSS) is determined by admin</li>
-                            <li>Gross P/L = Your profit/loss before fees</li>
+                            <li>CALL/PUT shows what admin predicted (not actual market movement)</li>
                             <li>Trading Fee = 1% of your bet amount (deducted on win only)</li>
                             <li>Net P/L = Final result after deducting fees</li>
                             <li>Win Rate is calculated from settled signals only</li>

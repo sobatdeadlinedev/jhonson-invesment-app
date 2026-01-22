@@ -20,6 +20,7 @@ class TradingSignal extends Model
         'bet_value',
         'is_public',
         'status',
+        'admin_choice',
         'result',
         'rate_of_return',
         'opened_at',
@@ -374,11 +375,15 @@ class TradingSignal extends Model
     /**
      * Close signal - set opened_at saat status closed
      */
-    public function closeSignal($result, $rateOfReturn)
+    /**
+     * Close signal - set opened_at saat status closed
+     */
+    public function closeSignal($result, $rateOfReturn, $adminChoice)
     {
         $this->update([
             'status' => 'closed',
             'result' => $result,
+            'admin_choice' => $adminChoice,
             'rate_of_return' => $rateOfReturn,
             'opened_at' => now(),
         ]);
