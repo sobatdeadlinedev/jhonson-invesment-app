@@ -299,7 +299,7 @@
                         @csrf
                         <button type="submit" class="btn btn-call w-100"
                             onclick="return confirm('Join this signal?\n\n' + 
-                    'Bet Type: {{ $signal->bet_type == 'percentage' ? number_format($signal->bet_value, 2) . '% of your balance' : 'Fixed ' . number_format($signal->bet_value, 2) . ' USDT' }}\n' +
+                    // 'Bet Type: {{ $signal->bet_type == 'percentage' ? number_format($signal->bet_value, 2) . '% of your balance' : 'Fixed ' . number_format($signal->bet_value, 2) . ' USDT' }}\n' +
                     'Your bet: ${{ number_format($betAmountPreview, 2) }} will be locked until settlement.\n\n' +
                     'Do you want to continue?')">
                             <i class="bi bi-check-circle me-2"></i>JOIN THIS SIGNAL
@@ -318,10 +318,10 @@
                     </div>
                 @endif
             @elseif($hasJoined)
-                <div class="alert alert-success">
+                {{-- <div class="alert alert-success">
                     <i class="bi bi-check-circle me-2"></i>
                     You have joined this signal. Wait for admin to settle and receive your rewards!
-                </div>
+                </div> --}}
             @else
                 <div class="alert alert-secondary">
                     <i class="bi bi-lock me-2"></i>
