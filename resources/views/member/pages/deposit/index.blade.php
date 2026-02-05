@@ -53,17 +53,8 @@
                             <input type="number" id="deposit-amount" class="form-control-dark with-icon"
                                 placeholder="Enter amount manually" value="" step="0.01" min="10">
                         </div>
-                        <small class="text-muted d-block mt-1">Minimum deposit: 10 USDT</small>
                     </div>
-                    <div class="mb-2">
-                        <label class="text-muted small mb-2 d-block">Or choose quick amount:</label>
-                    </div>
-                    <div class="amount-quick-select">
-                        <button class="quick-amount-btn" type="button" onclick="setAmount(50)">50 USDT</button>
-                        <button class="quick-amount-btn" type="button" onclick="setAmount(100)">100 USDT</button>
-                        <button class="quick-amount-btn" type="button" onclick="setAmount(250)">250 USDT</button>
-                        <button class="quick-amount-btn" type="button" onclick="setAmount(500)">500 USDT</button>
-                    </div>
+                    
                 </div>
 
                 <!-- Continue Button -->
