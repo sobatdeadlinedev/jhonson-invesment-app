@@ -145,18 +145,7 @@
                     </div>
                 </div>
 
-                <!-- Info Card -->
-                <div class="card-dark shadow-sm p-3 mb-3">
-                    <div class="d-flex align-items-start gap-2">
-                        <i class="bi bi-info-circle-fill text-gold" style="font-size: 18px; margin-top: 2px;"></i>
-                        <div>
-                            <h6 class="text-white mb-1" style="font-size: 13px;">Withdrawal Information</h6>
-                            <p class="small text-muted mb-0" style="font-size: 12px;">
-                                Withdrawal akan diproses dalam 1-3 hari kerja. Pastikan data wallet Anda sudah benar.
-                            </p>
-                        </div>
-                    </div>
-                </div>
+                
 
                 <!-- Submit Button -->
                 <button type="button" class="btn btn-gold w-100" onclick="submitWithdraw()"
