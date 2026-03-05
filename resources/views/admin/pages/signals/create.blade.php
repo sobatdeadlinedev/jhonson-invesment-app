@@ -75,6 +75,7 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
+
                         <!-- Bet Configuration Section -->
                         <div class="card mb-10">
                             <div class="card-header">
@@ -159,7 +160,78 @@
 
                                 <div id="user_selector"
                                     style="display: {{ old('is_public', true) ? 'none' : 'block' }};">
-                                    <label class="form-label required">Select Allowed Users</label>
+
+                                    {{-- Quick Action Buttons --}}
+                                    <div class="d-flex align-items-center gap-3 mb-4 p-4 bg-light-primary rounded">
+                                        <span class="fw-bold text-gray-700 me-2">Quick Select:</span>
+
+                                        {{-- Select All button --}}
+                                        <button type="button" class="btn btn-sm btn-primary" id="btn_select_all">
+                                            <i class="ki-outline ki-check-square fs-4 me-1"></i>
+                                            Select All Users
+                                        </button>
+
+                                        {{-- Select All Except mode toggle --}}
+                                        <button type="button" class="btn btn-sm btn-light-warning" id="btn_select_all_except_mode">
+                                            <i class="ki-outline ki-minus-square fs-4 me-1"></i>
+                                            Select All Except...
+                                        </button>
+
+                                        {{-- Clear All button --}}
+                                        <button type="button" class="btn btn-sm btn-light-danger" id="btn_clear_all">
+                                            <i class="ki-outline ki-cross-square fs-4 me-1"></i>
+                                            Clear All
+                                        </button>
+
+                                        {{-- Counter badge --}}
+                                        <span class="ms-auto badge badge-light-primary fs-7" id="selected_count_badge">
+                                            0 users selected
+                                        </span>
+                                    </div>
+
+                                    {{-- "Select All Except" exclusion panel --}}
+                                    <div id="exclude_panel" style="display:none;" class="mb-4 p-4 border border-warning border-dashed rounded bg-light-warning">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <i class="ki-outline ki-information-5 fs-4 text-warning me-2"></i>
+                                            <span class="fw-bold text-warning-emphasis">Select All Except Mode</span>
+                                            <span class="text-muted fs-7 ms-2">— All users will be selected. Uncheck the users you want to <strong>exclude</strong>.</span>
+                                            <button type="button" class="btn btn-sm btn-icon btn-light-warning ms-auto" id="btn_close_except_mode" title="Close">
+                                                <i class="ki-outline ki-cross fs-4"></i>
+                                            </button>
+                                        </div>
+
+                                        {{-- Search box for exclusion list --}}
+                                        <input type="text" id="exclude_search" class="form-control form-control-sm mb-3" placeholder="Search user to exclude...">
+
+                                        {{-- Scrollable user checklist --}}
+                                        <div id="exclude_user_list" style="max-height: 220px; overflow-y: auto;" class="border rounded bg-white p-3">
+                                            @foreach ($users as $user)
+                                                <label class="d-flex align-items-center gap-2 py-1 px-2 rounded user-exclude-item cursor-pointer hover-bg-light"
+                                                    data-name="{{ strtolower($user->name) }}"
+                                                    data-email="{{ strtolower($user->email) }}"
+                                                    data-phone="{{ strtolower($user->phone ?? '') }}">
+                                                    <input type="checkbox" class="form-check-input exclude-user-checkbox"
+                                                        data-user-id="{{ $user->id }}" checked>
+                                                    <span>
+                                                        <span class="fw-semibold">{{ $user->name }}</span>
+                                                        <span class="text-muted fs-7 ms-1">{{ $user->email }}</span>
+                                                        @if ($user->phone)
+                                                            <span class="text-muted fs-7">({{ $user->phone }})</span>
+                                                        @endif
+                                                    </span>
+                                                </label>
+                                            @endforeach
+                                        </div>
+
+                                        <div class="d-flex align-items-center justify-content-between mt-3">
+                                            <span class="text-muted fs-7" id="exclude_summary">All users included</span>
+                                            <button type="button" class="btn btn-sm btn-warning" id="btn_apply_except">
+                                                <i class="ki-outline ki-check fs-4 me-1"></i>Apply Selection
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <label class="form-label required">Selected Allowed Users</label>
                                     <select name="allowed_user_ids[]" id="allowed_user_ids"
                                         class="form-select @error('allowed_user_ids') is-invalid @enderror" multiple
                                         data-control="select2" data-placeholder="Search by name, email, or phone..."
@@ -182,13 +254,12 @@
                                 </div>
                             </div>
                         </div>
+
                         <div class="row mb-10">
                             <div class="col-md-6">
                                 <label class="form-label required">Opening Price (USDT)</label>
-                                <!-- Hidden input for actual value -->
                                 <input type="hidden" name="entry_price" id="entry_price_hidden"
                                     value="{{ old('entry_price') }}">
-                                <!-- Display input with formatting -->
                                 <input type="text" id="entry_price_display"
                                     class="form-control @error('entry_price') is-invalid @enderror"
                                     placeholder="92,920.80"
@@ -200,10 +271,8 @@
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label required">Settlement Price (USDT)</label>
-                                <!-- Hidden input for actual value -->
                                 <input type="hidden" name="target_price" id="target_price_hidden"
                                     value="{{ old('target_price') }}">
-                                <!-- Display input with formatting -->
                                 <input type="text" id="target_price_display"
                                     class="form-control @error('target_price') is-invalid @enderror"
                                     placeholder="95,840.50"
@@ -242,28 +311,29 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Bet Type Toggle
+        document.addEventListener('DOMContentLoaded', function () {
+
+            // ─── Bet Type Toggle ──────────────────────────────────────────────────────
             const betTypePercentage = document.getElementById('bet_type_percentage');
-            const betTypeFixed = document.getElementById('bet_type_fixed');
-            const betValueUnit = document.getElementById('bet_value_unit');
-            const betValueHelp = document.getElementById('bet_value_help');
-            const betInfoText = document.getElementById('bet_info_text');
-            const betValueInput = document.getElementById('bet_value');
+            const betTypeFixed      = document.getElementById('bet_type_fixed');
+            const betValueUnit      = document.getElementById('bet_value_unit');
+            const betValueHelp      = document.getElementById('bet_value_help');
+            const betInfoText       = document.getElementById('bet_info_text');
+            const betValueInput     = document.getElementById('bet_value');
 
             function updateBetType() {
                 if (betTypePercentage.checked) {
                     betValueUnit.textContent = '%';
-                    betValueHelp.innerHTML =
-                        'Enter percentage of user\'s trade balance (e.g., 1.00 = 1%, 5.00 = 5%)';
-                    betInfoText.innerHTML =
+                    betValueHelp.innerHTML   = 'Enter percentage of user\'s trade balance (e.g., 1.00 = 1%, 5.00 = 5%)';
+                    betInfoText.innerHTML    =
                         '<strong>Percentage:</strong> Users with 10,000 USDT trade balance will bet ' +
                         (betValueInput.value * 100).toFixed(0) + ' USDT (' + betValueInput.value + '%)<br>' +
                         'Example: 1% = 100 USDT, 2% = 200 USDT, 5% = 500 USDT';
                 } else {
                     betValueUnit.textContent = 'USDT';
-                    betValueHelp.innerHTML = 'Enter fixed amount in USDT (e.g., 100.00 = all users bet 100 USDT)';
-                    betInfoText.innerHTML = '<strong>Fixed:</strong> All users will bet exactly ' +
+                    betValueHelp.innerHTML   = 'Enter fixed amount in USDT (e.g., 100.00 = all users bet 100 USDT)';
+                    betInfoText.innerHTML    =
+                        '<strong>Fixed:</strong> All users will bet exactly ' +
                         parseFloat(betValueInput.value).toFixed(2) + ' USDT regardless of their balance<br>' +
                         'Make sure users have sufficient balance to join';
                 }
@@ -272,14 +342,12 @@
             betTypePercentage.addEventListener('change', updateBetType);
             betTypeFixed.addEventListener('change', updateBetType);
             betValueInput.addEventListener('input', updateBetType);
-
-            // Initial update
             updateBetType();
 
-            // Public/Private Toggle
+            // ─── Public / Private Toggle ──────────────────────────────────────────────
             const isPublicCheckbox = document.getElementById('is_public');
-            const userSelector = document.getElementById('user_selector');
-            const allowedUserIds = document.getElementById('allowed_user_ids');
+            const userSelector     = document.getElementById('user_selector');
+            const allowedUserIds   = document.getElementById('allowed_user_ids');
 
             function toggleUserSelector() {
                 if (isPublicCheckbox.checked) {
@@ -292,114 +360,164 @@
             }
 
             isPublicCheckbox.addEventListener('change', toggleUserSelector);
-            toggleUserSelector(); // Initial state
+            toggleUserSelector();
 
-            // Initialize Select2 with search
-            $('#allowed_user_ids').select2({
+            // ─── Initialize Select2 ───────────────────────────────────────────────────
+            const $select = $('#allowed_user_ids');
+
+            $select.select2({
                 width: '100%',
                 placeholder: 'Search by name, email, or phone...',
                 allowClear: true,
-                matcher: function(params, data) {
-                    // If there are no search terms, return all data
-                    if ($.trim(params.term) === '') {
-                        return data;
-                    }
-
-                    // Search in the text (which includes name, email, and phone)
-                    if (data.text.toLowerCase().indexOf(params.term.toLowerCase()) > -1) {
-                        return data;
-                    }
-
-                    return null;
+                matcher: function (params, data) {
+                    if ($.trim(params.term) === '') return data;
+                    return data.text.toLowerCase().indexOf(params.term.toLowerCase()) > -1 ? data : null;
                 }
             });
-        });
-        document.addEventListener('DOMContentLoaded', function() {
-            // Function to format number with commas
+
+            // ─── Selected count badge ─────────────────────────────────────────────────
+            function updateBadge() {
+                const count = $select.val() ? $select.val().length : 0;
+                document.getElementById('selected_count_badge').textContent =
+                    count + (count === 1 ? ' user selected' : ' users selected');
+            }
+
+            $select.on('change', updateBadge);
+            updateBadge();
+
+            // ─── Select All ───────────────────────────────────────────────────────────
+            document.getElementById('btn_select_all').addEventListener('click', function () {
+                $select.find('option').prop('selected', true);
+                $select.trigger('change');
+            });
+
+            // ─── Clear All ────────────────────────────────────────────────────────────
+            document.getElementById('btn_clear_all').addEventListener('click', function () {
+                $select.val(null).trigger('change');
+            });
+
+            // ─── Select All Except Mode ───────────────────────────────────────────────
+            const excludePanel      = document.getElementById('exclude_panel');
+            const excludeSearch     = document.getElementById('exclude_search');
+            const excludeSummary    = document.getElementById('exclude_summary');
+            const excludeCheckboxes = document.querySelectorAll('.exclude-user-checkbox');
+
+            // Open panel
+            document.getElementById('btn_select_all_except_mode').addEventListener('click', function () {
+                // Reset all checkboxes to "included" (checked)
+                excludeCheckboxes.forEach(cb => cb.checked = true);
+                updateExcludeSummary();
+                excludeSearch.value = '';
+                filterExcludeList('');
+                excludePanel.style.display = 'block';
+            });
+
+            // Close panel
+            document.getElementById('btn_close_except_mode').addEventListener('click', function () {
+                excludePanel.style.display = 'none';
+            });
+
+            // Live search inside exclusion panel
+            excludeSearch.addEventListener('input', function () {
+                filterExcludeList(this.value.toLowerCase());
+            });
+
+            function filterExcludeList(term) {
+                document.querySelectorAll('.user-exclude-item').forEach(function (item) {
+                    const name  = item.dataset.name  || '';
+                    const email = item.dataset.email || '';
+                    const phone = item.dataset.phone || '';
+                    item.style.display = (!term || name.includes(term) || email.includes(term) || phone.includes(term))
+                        ? '' : 'none';
+                });
+            }
+
+            // Update summary text as user checks/unchecks
+            excludeCheckboxes.forEach(function (cb) {
+                cb.addEventListener('change', updateExcludeSummary);
+            });
+
+            function updateExcludeSummary() {
+                const total    = excludeCheckboxes.length;
+                const excluded = Array.from(excludeCheckboxes).filter(cb => !cb.checked).length;
+                const included = total - excluded;
+                excludeSummary.textContent = excluded === 0
+                    ? 'All ' + total + ' users included'
+                    : included + ' users included, ' + excluded + ' excluded';
+            }
+
+            // Apply: select all except unchecked users
+            document.getElementById('btn_apply_except').addEventListener('click', function () {
+                const includedIds = Array.from(excludeCheckboxes)
+                    .filter(cb => cb.checked)
+                    .map(cb => cb.dataset.userId);
+
+                // Select only included users in the Select2
+                $select.val(includedIds).trigger('change');
+
+                excludePanel.style.display = 'none';
+            });
+
+            // ─── Price Formatting ─────────────────────────────────────────────────────
             function formatNumber(value) {
-                // Remove all non-digit and non-decimal characters
-                let num = value.replace(/[^\d.]/g, '');
-
-                // Split by decimal point
+                let num   = value.replace(/[^\d.]/g, '');
                 let parts = num.split('.');
-
-                // Format integer part with commas
-                parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-
-                // Limit decimal places to 2
-                if (parts[1]) {
-                    parts[1] = parts[1].substring(0, 2);
-                }
-
+                parts[0]  = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                if (parts[1]) parts[1] = parts[1].substring(0, 2);
                 return parts.join('.');
             }
 
-            // Function to parse formatted number to float
             function parseFormattedNumber(value) {
                 return value.replace(/,/g, '');
             }
 
-            // Entry Price formatting
             const entryPriceDisplay = document.getElementById('entry_price_display');
-            const entryPriceHidden = document.getElementById('entry_price_hidden');
+            const entryPriceHidden  = document.getElementById('entry_price_hidden');
 
-            entryPriceDisplay.addEventListener('input', function(e) {
-                let cursorPosition = e.target.selectionStart;
-                let oldValue = e.target.value;
+            entryPriceDisplay.addEventListener('input', function (e) {
+                let cursor    = e.target.selectionStart;
+                let old       = e.target.value;
                 let formatted = formatNumber(e.target.value);
-
-                e.target.value = formatted;
-                entryPriceHidden.value = parseFormattedNumber(formatted);
-
-                // Adjust cursor position after formatting
-                let diff = formatted.length - oldValue.length;
-                e.target.selectionStart = e.target.selectionEnd = cursorPosition + diff;
+                e.target.value              = formatted;
+                entryPriceHidden.value      = parseFormattedNumber(formatted);
+                let diff = formatted.length - old.length;
+                e.target.selectionStart = e.target.selectionEnd = cursor + diff;
             });
 
-            entryPriceDisplay.addEventListener('blur', function(e) {
+            entryPriceDisplay.addEventListener('blur', function (e) {
                 let value = parseFormattedNumber(e.target.value);
                 if (value && !isNaN(value)) {
                     let num = parseFloat(value);
-                    e.target.value = num.toLocaleString('en-US', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                    });
+                    e.target.value         = num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                     entryPriceHidden.value = num;
                 }
             });
 
-            // Target Price formatting
             const targetPriceDisplay = document.getElementById('target_price_display');
-            const targetPriceHidden = document.getElementById('target_price_hidden');
+            const targetPriceHidden  = document.getElementById('target_price_hidden');
 
-            targetPriceDisplay.addEventListener('input', function(e) {
-                let cursorPosition = e.target.selectionStart;
-                let oldValue = e.target.value;
+            targetPriceDisplay.addEventListener('input', function (e) {
+                let cursor    = e.target.selectionStart;
+                let old       = e.target.value;
                 let formatted = formatNumber(e.target.value);
-
-                e.target.value = formatted;
-                targetPriceHidden.value = parseFormattedNumber(formatted);
-
-                // Adjust cursor position after formatting
-                let diff = formatted.length - oldValue.length;
-                e.target.selectionStart = e.target.selectionEnd = cursorPosition + diff;
+                e.target.value               = formatted;
+                targetPriceHidden.value      = parseFormattedNumber(formatted);
+                let diff = formatted.length - old.length;
+                e.target.selectionStart = e.target.selectionEnd = cursor + diff;
             });
 
-            targetPriceDisplay.addEventListener('blur', function(e) {
+            targetPriceDisplay.addEventListener('blur', function (e) {
                 let value = parseFormattedNumber(e.target.value);
                 if (value && !isNaN(value)) {
                     let num = parseFloat(value);
-                    e.target.value = num.toLocaleString('en-US', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                    });
+                    e.target.value          = num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                     targetPriceHidden.value = num;
                 }
             });
 
-            // Form validation before submit
-            document.getElementById('signalForm').addEventListener('submit', function(e) {
-                const entryPrice = parseFloat(entryPriceHidden.value);
+            // ─── Form Validation ──────────────────────────────────────────────────────
+            document.getElementById('signalForm').addEventListener('submit', function (e) {
+                const entryPrice  = parseFloat(entryPriceHidden.value);
                 const targetPrice = parseFloat(targetPriceHidden.value);
 
                 if (isNaN(entryPrice) || entryPrice <= 0) {
