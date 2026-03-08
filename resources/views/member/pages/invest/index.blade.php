@@ -37,6 +37,60 @@
                 </div>
             </div>
 
+            <!-- Daily PnL Card -->
+            <div class="card-dark shadow-sm p-3 mb-3">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h6 class="text-white mb-0 fw-bold">
+                        <i class="bi bi-bar-chart-line-fill text-gold me-2"></i>Today's Performance
+                    </h6>
+                    <small class="text-muted">{{ now()->format('d M Y') }}</small>
+                </div>
+
+                {{-- PnL Utama --}}
+                <div class="text-center mb-3 p-3"
+                    style="background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid {{ $dailyPnl >= 0 ? 'rgba(0,255,136,0.2)' : 'rgba(255,71,87,0.2)' }}">
+                    <p class="text-muted small mb-1">Daily PnL</p>
+                    <h3 class="fw-bold mb-0 {{ $dailyPnl >= 0 ? 'text-success' : 'text-danger' }}">
+                        {{ $dailyPnl >= 0 ? '+' : '' }}{{ number_format($dailyPnl, 2) }} USDT
+                    </h3>
+                    @if ($dailyFees > 0)
+                        <small class="text-muted">Fee: -{{ number_format($dailyFees, 2) }} USDT</small>
+                    @endif
+                </div>
+
+                {{-- Stats Grid --}}
+                <div class="row g-2">
+                    <div class="col-4 text-center">
+                        <div class="p-2" style="background: rgba(255,255,255,0.05); border-radius: 8px;">
+                            <h6 class="text-white fw-bold mb-0">{{ $dailyTrades }}</h6>
+                            <small class="text-muted" style="font-size: 10px;">Trades</small>
+                        </div>
+                    </div>
+                    <div class="col-4 text-center">
+                        <div class="p-2" style="background: rgba(0,255,136,0.08); border-radius: 8px;">
+                            <h6 class="text-success fw-bold mb-0">{{ $dailyWins }}</h6>
+                            <small class="text-muted" style="font-size: 10px;">Wins</small>
+                        </div>
+                    </div>
+                    <div class="col-4 text-center">
+                        <div class="p-2" style="background: rgba(255,71,87,0.08); border-radius: 8px;">
+                            <h6 class="text-danger fw-bold mb-0">{{ $dailyLosses }}</h6>
+                            <small class="text-muted" style="font-size: 10px;">Losses</small>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Active Signals --}}
+                @if ($activeSignals > 0)
+                    <div class="mt-2 p-2 d-flex align-items-center gap-2"
+                        style="background: rgba(255,193,7,0.08); border-radius: 8px; border: 1px solid rgba(255,193,7,0.2)">
+                        <i class="bi bi-broadcast text-warning"></i>
+                        <small class="text-warning">{{ $activeSignals }} active
+                            signal{{ $activeSignals > 1 ? 's' : '' }} currently running</small>
+                    </div>
+                @endif
+            </div>
+
             <!-- Quick Actions -->
             <div class="row g-2 mb-3">
                 <div class="col-6">

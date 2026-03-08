@@ -13,21 +13,58 @@ class InvestController extends Controller
      * Show coins list with signal count
      */
     public function index()
-    {
-        $user = auth()->user();
-        $coins = TradingSignal::getAvailableCoins();
+{
+    $user = auth()->user();
+    $coins = TradingSignal::getAvailableCoins();
 
-        // Count open signals per coin yang user bisa akses
-        $signalCounts = [];
-        foreach (array_keys($coins) as $coinSymbol) {
-            $signalCounts[$coinSymbol] = TradingSignal::forCoin($coinSymbol)
-                ->open()
-                ->accessibleBy($user->id) // UPDATED: Filter by access
-                ->count();
-        }
-
-        return view('member.pages.invest.index', compact('coins', 'signalCounts'));
+    // Count open signals per coin yang user bisa akses
+    $signalCounts = [];
+    foreach (array_keys($coins) as $coinSymbol) {
+        $signalCounts[$coinSymbol] = TradingSignal::forCoin($coinSymbol)
+            ->open()
+            ->accessibleBy($user->id)
+            ->count();
     }
+
+    // === TAMBAHAN: Daily PnL ===
+    $today = now()->toDateString();
+
+    $dailyStats = SignalParticipant::where('user_id', $user->id)
+        ->whereDate('updated_at', $today) // atau 'settled_at' jika ada kolom itu
+        ->whereIn('status', ['win', 'loss', 'settled'])
+        ->selectRaw('
+            COUNT(*) as total_trades,
+            SUM(CASE WHEN profit_loss > 0 THEN 1 ELSE 0 END) as wins,
+            SUM(CASE WHEN profit_loss < 0 THEN 1 ELSE 0 END) as losses,
+            SUM(profit_loss) as total_pnl,
+            SUM(fee_amount) as total_fees
+        ')
+        ->first();
+
+    $dailyPnl = $dailyStats->total_pnl ?? 0;
+    $dailyTrades = $dailyStats->total_trades ?? 0;
+    $dailyWins = $dailyStats->wins ?? 0;
+    $dailyLosses = $dailyStats->losses ?? 0;
+    $dailyFees = $dailyStats->total_fees ?? 0;
+    $dailyWinRate = $dailyTrades > 0 ? ($dailyWins / $dailyTrades) * 100 : 0;
+
+    // Active/joined signals hari ini (belum settled)
+    $activeSignals = SignalParticipant::where('user_id', $user->id)
+        ->where('status', 'joined')
+        ->count();
+
+    return view('member.pages.invest.index', compact(
+        'coins',
+        'signalCounts',
+        'dailyPnl',
+        'dailyTrades',
+        'dailyWins',
+        'dailyLosses',
+        'dailyFees',
+        'dailyWinRate',
+        'activeSignals'
+    ));
+}
 
     /**
      * Show signals for specific coin
