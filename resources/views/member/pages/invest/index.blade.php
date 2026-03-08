@@ -37,56 +37,110 @@
                 </div>
             </div>
 
-            <!-- Daily PnL Card -->
-            <div class="card-dark shadow-sm p-3 mb-3">
-                <div class="d-flex align-items-center justify-content-between mb-3">
-                    <h6 class="text-white mb-0 fw-bold">
-                        <i class="bi bi-bar-chart-line-fill text-gold me-2"></i>Today's Performance
-                    </h6>
-                    <small class="text-muted">{{ now()->format('d M Y') }}</small>
+            <!-- Daily PnL Card — Exchange Style -->
+            <div class="card-dark shadow-sm mb-3" style="overflow:hidden;">
+
+                {{-- Header --}}
+                <div class="d-flex align-items-center justify-content-between px-3 pt-3 pb-2"
+                    style="border-bottom: 1px solid rgba(255,255,255,0.06);">
+                    <div class="d-flex align-items-center gap-2">
+                        <span style="
+                            width: 7px; height: 7px; border-radius: 50%; flex-shrink:0;
+                            background: {{ $dailyPnl >= 0 ? '#0ecb81' : '#f6465d' }};
+                            box-shadow: 0 0 7px {{ $dailyPnl >= 0 ? '#0ecb81' : '#f6465d' }};
+                            animation: xi-blink 1.8s infinite;
+                        "></span>
+                        <span class="text-white fw-semibold" style="font-size:13px; letter-spacing:.3px;">STARS INVESTMENT</span>
+                    </div>
+                    <small class="text-muted" style="font-size:11px;">{{ now()->format('d M Y') }}</small>
                 </div>
 
                 {{-- PnL Utama --}}
-                <div class="text-center mb-3 p-3"
-                    style="background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid {{ $dailyPnl >= 0 ? 'rgba(0,255,136,0.2)' : 'rgba(255,71,87,0.2)' }}">
-                    <p class="text-muted small mb-1">Daily PnL</p>
-                    <h3 class="fw-bold mb-0 {{ $dailyPnl >= 0 ? 'text-success' : 'text-danger' }}">
-                        {{ $dailyPnl >= 0 ? '+' : '' }}{{ number_format($dailyPnl, 2) }} USDT
-                    </h3>
+                <div class="text-center px-3 pt-3 pb-2">
+                    <p class="text-muted mb-1" style="font-size:11px; letter-spacing:.5px; text-transform:uppercase;">Daily P&L</p>
+                    <div class="fw-bold {{ $dailyPnl >= 0 ? 'text-success' : 'text-danger' }}"
+                        style="font-size: 30px; letter-spacing: -0.5px; font-variant-numeric: tabular-nums; line-height:1.1;">
+                        {{ $dailyPnl >= 0 ? '+' : '' }}{{ number_format($dailyPnl, 2) }}
+                        <span style="font-size:14px; font-weight:500; color:#707a8a; margin-left:2px;">USDT</span>
+                    </div>
                     @if ($dailyFees > 0)
-                        <small class="text-muted">Fee: -{{ number_format($dailyFees, 2) }} USDT</small>
+                        <small style="font-size:11px; color:#707a8a;">
+                            <i class="bi bi-lightning-charge-fill me-1" style="color:#f6465d;"></i>Fee: -{{ number_format($dailyFees, 2) }} USDT
+                        </small>
                     @endif
                 </div>
 
-                {{-- Stats Grid --}}
-                <div class="row g-2">
-                    <div class="col-4 text-center">
-                        <div class="p-2" style="background: rgba(255,255,255,0.05); border-radius: 8px;">
-                            <h6 class="text-white fw-bold mb-0">{{ $dailyTrades }}</h6>
-                            <small class="text-muted" style="font-size: 10px;">Trades</small>
+                {{-- Divider --}}
+                <div style="height:1px; background:rgba(255,255,255,0.06); margin: 4px 16px 0;"></div>
+
+                {{-- Stats Row --}}
+                <div class="d-flex align-items-center px-2 py-2">
+
+                    {{-- Total Trades --}}
+                    <div class="flex-fill text-center py-1">
+                        <div class="d-flex justify-content-center mb-1">
+                            <span style="width:26px;height:26px;border-radius:7px;background:rgba(59,130,246,0.15);display:flex;align-items:center;justify-content:center;font-size:13px;color:#60a5fa;">
+                                <i class="bi bi-activity"></i>
+                            </span>
                         </div>
+                        <div class="text-white fw-bold" style="font-size:16px; line-height:1; font-variant-numeric:tabular-nums;">{{ $dailyTrades }}</div>
+                        <div style="font-size:10px; color:#707a8a; margin-top:2px;">Trades</div>
                     </div>
-                    <div class="col-4 text-center">
-                        <div class="p-2" style="background: rgba(0,255,136,0.08); border-radius: 8px;">
-                            <h6 class="text-success fw-bold mb-0">{{ $dailyWins }}</h6>
-                            <small class="text-muted" style="font-size: 10px;">Wins</small>
+
+                    <div style="width:1px; height:36px; background:rgba(255,255,255,0.07);"></div>
+
+                    {{-- Win --}}
+                    <div class="flex-fill text-center py-1">
+                        <div class="d-flex justify-content-center mb-1">
+                            <span style="width:26px;height:26px;border-radius:7px;background:rgba(14,203,129,0.12);display:flex;align-items:center;justify-content:center;font-size:15px;color:#0ecb81;">
+                                <i class="bi bi-arrow-up-short"></i>
+                            </span>
                         </div>
+                        <div class="text-success fw-bold" style="font-size:16px; line-height:1; font-variant-numeric:tabular-nums;">{{ $dailyWins }}</div>
+                        <div style="font-size:10px; color:#707a8a; margin-top:2px;">Win</div>
                     </div>
-                    <div class="col-4 text-center">
-                        <div class="p-2" style="background: rgba(255,71,87,0.08); border-radius: 8px;">
-                            <h6 class="text-danger fw-bold mb-0">{{ $dailyLosses }}</h6>
-                            <small class="text-muted" style="font-size: 10px;">Losses</small>
+
+                    <div style="width:1px; height:36px; background:rgba(255,255,255,0.07);"></div>
+
+                    {{-- Loss --}}
+                    <div class="flex-fill text-center py-1">
+                        <div class="d-flex justify-content-center mb-1">
+                            <span style="width:26px;height:26px;border-radius:7px;background:rgba(246,70,93,0.12);display:flex;align-items:center;justify-content:center;font-size:15px;color:#f6465d;">
+                                <i class="bi bi-arrow-down-short"></i>
+                            </span>
                         </div>
+                        <div class="text-danger fw-bold" style="font-size:16px; line-height:1; font-variant-numeric:tabular-nums;">{{ $dailyLosses }}</div>
+                        <div style="font-size:10px; color:#707a8a; margin-top:2px;">Loss</div>
+                    </div>
+
+                    <div style="width:1px; height:36px; background:rgba(255,255,255,0.07);"></div>
+
+                    {{-- Win Rate --}}
+                    @php $winRate = $dailyTrades > 0 ? round(($dailyWins / $dailyTrades) * 100) : 0; @endphp
+                    <div class="flex-fill text-center py-1">
+                        <div class="d-flex justify-content-center mb-1">
+                            <span style="width:26px;height:26px;border-radius:7px;background:rgba(240,185,11,0.12);display:flex;align-items:center;justify-content:center;font-size:12px;color:#f0b90b;">
+                                <i class="bi bi-percent"></i>
+                            </span>
+                        </div>
+                        <div style="font-size:16px; line-height:1; font-variant-numeric:tabular-nums; font-weight:700; color:#f0b90b;">{{ $winRate }}%</div>
+                        <div style="font-size:10px; color:#707a8a; margin-top:2px;">Win Rate</div>
                     </div>
                 </div>
 
-                {{-- Active Signals --}}
+                {{-- Active Signals Banner --}}
                 @if ($activeSignals > 0)
-                    <div class="mt-2 p-2 d-flex align-items-center gap-2"
-                        style="background: rgba(255,193,7,0.08); border-radius: 8px; border: 1px solid rgba(255,193,7,0.2)">
-                        <i class="bi bi-broadcast text-warning"></i>
-                        <small class="text-warning">{{ $activeSignals }} active
-                            signal{{ $activeSignals > 1 ? 's' : '' }} currently running</small>
+                    <div class="d-flex align-items-center gap-2 px-3 py-2"
+                        style="background:rgba(240,185,11,0.07); border-top:1px solid rgba(240,185,11,0.15);">
+                        <span style="
+                            width:8px; height:8px; border-radius:50%; background:#f0b90b; flex-shrink:0;
+                            animation: xi-pulse 1.5s infinite;
+                            box-shadow: 0 0 0 0 rgba(240,185,11,0.5);
+                        "></span>
+                        <small class="text-warning fw-semibold" style="font-size:12px;">
+                            {{ $activeSignals }} Active Signal{{ $activeSignals > 1 ? 's' : '' }} Running
+                        </small>
+                        <span class="ms-auto text-muted" style="font-size:10px; letter-spacing:.5px;">LIVE</span>
                     </div>
                 @endif
             </div>
@@ -168,5 +222,16 @@
                 $('.alert').fadeOut('slow');
             }, 5000);
         </script>
+        <style>
+            @keyframes xi-blink {
+                0%, 100% { opacity: 1; }
+                50%       { opacity: 0.25; }
+            }
+            @keyframes xi-pulse {
+                0%   { box-shadow: 0 0 0 0 rgba(240,185,11,0.55); }
+                70%  { box-shadow: 0 0 0 7px rgba(240,185,11,0); }
+                100% { box-shadow: 0 0 0 0 rgba(240,185,11,0); }
+            }
+        </style>
     @endpush
 @endsection
