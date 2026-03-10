@@ -31,7 +31,7 @@ class DashboardController extends Controller
     {
         try {
             // Call Binance API untuk ambil harga
-            $response = Http::timeout(5)->get('https://api.binance.com/api/v3/ticker/24hr', [
+            $response = Http::timeout(5)->get('https://api.binance.us/api/v3/ticker/24hr', [
                 'symbols' => json_encode(['BTCUSDT', 'ETHUSDT', 'DOGEUSDT', 'BNBUSDT', 'SOLUSDT'])
             ]);
 
