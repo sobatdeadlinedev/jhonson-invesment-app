@@ -23,16 +23,32 @@
 
             {{-- ── BALANCE CARD ────────────────────────────────── --}}
             <div class="mb-3" style="background:linear-gradient(135deg,#0f1c2e 0%,#0d1420 60%,#0a1118 100%);border:1px solid #1a2235;border-radius:20px;padding:20px;position:relative;overflow:hidden;">
+                {{-- grid overlay --}}
                 <div style="position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(rgba(0,212,138,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,138,.03) 1px,transparent 1px);background-size:28px 28px;"></div>
-                <div style="position:absolute;top:-30px;right:-30px;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,rgba(0,212,138,.12) 0%,transparent 65%);pointer-events:none;"></div>
-                <div style="font-size:10px;font-weight:600;color:#3a4d66;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:10px;">Total Balance</div>
-                <div style="font-family:monospace;font-size:34px;font-weight:700;color:#f5a623;letter-spacing:-1.5px;line-height:1;margin-bottom:4px;">
-                    <sup style="font-size:16px;font-weight:500;color:#3a4d66;vertical-align:super;margin-right:2px;">$</sup>{{ number_format($userBalance, 2) }}<sub style="font-size:13px;font-weight:500;color:#3a4d66;vertical-align:baseline;margin-left:5px;letter-spacing:.5px;">USDT</sub>
+                {{-- glow sudut kanan atas --}}
+                <div style="position:absolute;top:-30px;right:-30px;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,rgba(0,212,138,.10) 0%,transparent 65%);pointer-events:none;"></div>
+
+                {{-- Baris 1: Penilaian Aset (kiri) | USD (kanan) --}}
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+                    <div style="display:flex;align-items:center;gap:5px;">
+                        <span style="font-size:12px;color:#7a8fad;letter-spacing:.3px;">Penilaian Aset</span>
+                        <i class="bi bi-eye" style="font-size:11px;color:#3a4d66;cursor:pointer;"></i>
+                    </div>
+                    <span style="font-size:12px;color:#7a8fad;letter-spacing:.5px;">USDT</span>
                 </div>
-                <div style="font-size:11px;color:#3a4d66;display:flex;align-items:center;gap:5px;margin-bottom:16px;">
-                    <span style="width:6px;height:6px;border-radius:50%;background:#00d48a;display:inline-block;animation:xi-pulse-g 2s infinite;flex-shrink:0;"></span>
-                    Estimated portfolio value
+
+                {{-- Angka besar --}}
+                <div style="font-family:monospace;font-size:36px;font-weight:700;color:#f5a623;letter-spacing:-1px;line-height:1;margin-bottom:4px;">
+                    {{ number_format($userBalance, 2) }}
                 </div>
+
+                {{-- Baris 2: ≈$ (kiri) | Penghasilan hari ini (kanan) --}}
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+                    <span style="font-size:12px;color:#3a4d66;">≈${{ number_format($userBalance, 2) }}</span>
+                    <span style="font-size:12px;color:#3a4d66;">Penghasilan hari ini: <span style="color:#f5a623;font-family:monospace;">0.00</span></span>
+                </div>
+
+                {{-- Sub balances (tidak diubah) --}}
                 <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
                     <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:10px 10px 8px;">
                         <div style="font-size:9px;color:#3a4d66;letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px;">Trade</div>
