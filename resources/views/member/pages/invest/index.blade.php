@@ -1,214 +1,186 @@
 @extends('member.layouts.app')
 @section('content')
-    <!-- Scrollable Content Area -->
     <div class="scrollable-content">
         <div class="content-section">
 
+            {{-- ── SESSION ALERTS ───────────────────────────────── --}}
             @if (session('success'))
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                <div style="background:rgba(0,212,138,.08);border:1px solid rgba(0,212,138,.25);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+                    <i class="bi bi-check-circle-fill" style="color:#00d48a;font-size:15px;flex-shrink:0;"></i>
+                    <span style="font-size:13px;color:#00d48a;">{{ session('success') }}</span>
                 </div>
             @endif
-
             @if (session('error'))
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <i class="bi bi-exclamation-circle me-2"></i>{{ session('error') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                <div style="background:rgba(240,79,90,.08);border:1px solid rgba(240,79,90,.25);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+                    <i class="bi bi-exclamation-circle-fill" style="color:#f04f5a;font-size:15px;flex-shrink:0;"></i>
+                    <span style="font-size:13px;color:#f04f5a;">{{ session('error') }}</span>
                 </div>
             @endif
 
-            <!-- Balance Summary Card -->
-            <div class="card-dark shadow-sm p-3 mb-3">
-                <div class="row g-3">
-                    <div class="col-4">
-                        <p class="text-muted mb-1 small">Trade Balance</p>
-                        <h6 class="text-white mb-0 fw-bold">$ {{ number_format(auth()->user()->trade_balance, 2) }}</h6>
+            {{-- ── BALANCE SUMMARY ──────────────────────────────── --}}
+            <div class="mb-3" style="background:linear-gradient(135deg,#0f1c2e 0%,#0d1420 60%,#0a1118 100%);border:1px solid #1a2235;border-radius:20px;padding:16px;position:relative;overflow:hidden;">
+                <div style="position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(rgba(0,212,138,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,138,.025) 1px,transparent 1px);background-size:28px 28px;"></div>
+                <div style="position:absolute;top:-25px;right:-25px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(0,212,138,.10) 0%,transparent 65%);pointer-events:none;"></div>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;position:relative;">
+                    <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:10px 10px 8px;">
+                        <div style="font-size:9px;color:#3a4d66;letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px;">Trade</div>
+                        <div style="font-family:monospace;font-size:13px;font-weight:700;color:#e2eaf8;">$&nbsp;{{ number_format(auth()->user()->trade_balance, 2) }}</div>
                     </div>
-                    <div class="col-4">
-                        <p class="text-muted mb-1 small">Available</p>
-                        <h6 class="text-success mb-0 fw-bold">$
-                            {{ number_format(auth()->user()->getAvailableTradeBalance(), 2) }}</h6>
+                    <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:10px 10px 8px;">
+                        <div style="font-size:9px;color:#3a4d66;letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px;">Available</div>
+                        <div style="font-family:monospace;font-size:13px;font-weight:700;color:#00d48a;">$&nbsp;{{ number_format(auth()->user()->getAvailableTradeBalance(), 2) }}</div>
                     </div>
-                    <div class="col-4">
-                        <p class="text-muted mb-1 small">Locked</p>
-                        <h6 class="text-warning mb-0 fw-bold">$ {{ number_format(auth()->user()->locked_balance, 2) }}</h6>
+                    <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:10px 10px 8px;">
+                        <div style="font-size:9px;color:#3a4d66;letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px;">Locked</div>
+                        <div style="font-family:monospace;font-size:13px;font-weight:700;color:#f5a623;">$&nbsp;{{ number_format(auth()->user()->locked_balance, 2) }}</div>
                     </div>
                 </div>
             </div>
 
-            <!-- Daily PnL Card — Exchange Style -->
-            <div class="card-dark shadow-sm mb-3" style="overflow:hidden;">
+            {{-- ── DAILY PNL CARD ───────────────────────────────── --}}
+            <div class="mb-3" style="background:#0d1120;border:1px solid #1a2235;border-radius:20px;overflow:hidden;">
 
                 {{-- Header --}}
-                <div class="d-flex align-items-center justify-content-between px-3 pt-3 pb-2"
-                    style="border-bottom: 1px solid rgba(255,255,255,0.06);">
-                    <div class="d-flex align-items-center gap-2">
-                        <span style="
-                            width: 7px; height: 7px; border-radius: 50%; flex-shrink:0;
-                            background: {{ $dailyPnl >= 0 ? '#0ecb81' : '#f6465d' }};
-                            box-shadow: 0 0 7px {{ $dailyPnl >= 0 ? '#0ecb81' : '#f6465d' }};
-                            animation: xi-blink 1.8s infinite;
-                        "></span>
-                        <span class="text-white fw-semibold" style="font-size:13px; letter-spacing:.3px;">STARS INVESTMENT</span>
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px 13px;border-bottom:1px solid #1a2235;">
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <span style="width:7px;height:7px;border-radius:50%;flex-shrink:0;background:{{ $dailyPnl >= 0 ? '#00d48a' : '#f04f5a' }};box-shadow:0 0 7px {{ $dailyPnl >= 0 ? '#00d48a' : '#f04f5a' }};animation:xi-blink 1.8s infinite;"></span>
+                        <span style="font-size:13px;font-weight:700;color:#e2eaf8;letter-spacing:.3px;">STARS INVESTMENT</span>
                     </div>
-                    <small class="text-muted" style="font-size:11px;">{{ now()->format('d M Y') }}</small>
+                    <span style="font-size:11px;color:#3a4d66;">{{ now()->format('d M Y') }}</span>
                 </div>
 
                 {{-- PnL Utama --}}
-                <div class="text-center px-3 pt-3 pb-2">
-                    <p class="text-muted mb-1" style="font-size:11px; letter-spacing:.5px; text-transform:uppercase;">Daily P&L</p>
-                    <div class="fw-bold {{ $dailyPnl >= 0 ? 'text-success' : 'text-danger' }}"
-                        style="font-size: 30px; letter-spacing: -0.5px; font-variant-numeric: tabular-nums; line-height:1.1;">
+                <div style="text-align:center;padding:20px 16px 16px;">
+                    <div style="font-size:10px;color:#3a4d66;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Daily P&amp;L</div>
+                    <div style="font-family:monospace;font-size:32px;font-weight:700;letter-spacing:-1px;line-height:1;color:{{ $dailyPnl >= 0 ? '#00d48a' : '#f04f5a' }};">
                         {{ $dailyPnl >= 0 ? '+' : '' }}{{ number_format($dailyPnl, 2) }}
-                        <span style="font-size:14px; font-weight:500; color:#707a8a; margin-left:2px;">USDT</span>
+                        <span style="font-size:14px;font-weight:500;color:#3a4d66;margin-left:3px;">USDT</span>
                     </div>
                     @if ($dailyFees > 0)
-                        <small style="font-size:11px; color:#707a8a;">
-                            <i class="bi bi-lightning-charge-fill me-1" style="color:#f6465d;"></i>Fee: -{{ number_format($dailyFees, 2) }} USDT
-                        </small>
+                        <div style="margin-top:6px;font-size:11px;color:#3a4d66;">
+                            <i class="bi bi-lightning-charge-fill" style="color:#f04f5a;margin-right:3px;"></i>Fee: -{{ number_format($dailyFees, 2) }} USDT
+                        </div>
                     @endif
                 </div>
 
                 {{-- Divider --}}
-                <div style="height:1px; background:rgba(255,255,255,0.06); margin: 4px 16px 0;"></div>
+                <div style="height:1px;background:#1a2235;margin:0 16px;"></div>
 
                 {{-- Stats Row --}}
-                <div class="d-flex align-items-center px-2 py-2">
+                @php $winRate = $dailyTrades > 0 ? round(($dailyWins / $dailyTrades) * 100) : 0; @endphp
+                <div style="display:grid;grid-template-columns:1fr 1px 1fr 1px 1fr 1px 1fr;padding:4px 0;">
 
-                    {{-- Total Trades --}}
-                    <div class="flex-fill text-center py-1">
-                        <div class="d-flex justify-content-center mb-1">
-                            <span style="width:26px;height:26px;border-radius:7px;background:rgba(59,130,246,0.15);display:flex;align-items:center;justify-content:center;font-size:13px;color:#60a5fa;">
-                                <i class="bi bi-activity"></i>
-                            </span>
+                    <div style="text-align:center;padding:10px 4px;">
+                        <div style="width:26px;height:26px;border-radius:7px;background:rgba(100,160,255,.12);display:flex;align-items:center;justify-content:center;margin:0 auto 6px;">
+                            <i class="bi bi-activity" style="font-size:12px;color:#64a0ff;"></i>
                         </div>
-                        <div class="text-white fw-bold" style="font-size:16px; line-height:1; font-variant-numeric:tabular-nums;">{{ $dailyTrades }}</div>
-                        <div style="font-size:10px; color:#707a8a; margin-top:2px;">Trades</div>
+                        <div style="font-family:monospace;font-size:16px;font-weight:700;color:#e2eaf8;line-height:1;">{{ $dailyTrades }}</div>
+                        <div style="font-size:10px;color:#3a4d66;margin-top:2px;">Trades</div>
                     </div>
 
-                    <div style="width:1px; height:36px; background:rgba(255,255,255,0.07);"></div>
+                    <div style="background:#1a2235;"></div>
 
-                    {{-- Win --}}
-                    <div class="flex-fill text-center py-1">
-                        <div class="d-flex justify-content-center mb-1">
-                            <span style="width:26px;height:26px;border-radius:7px;background:rgba(14,203,129,0.12);display:flex;align-items:center;justify-content:center;font-size:15px;color:#0ecb81;">
-                                <i class="bi bi-arrow-up-short"></i>
-                            </span>
+                    <div style="text-align:center;padding:10px 4px;">
+                        <div style="width:26px;height:26px;border-radius:7px;background:rgba(0,212,138,.12);display:flex;align-items:center;justify-content:center;margin:0 auto 6px;">
+                            <i class="bi bi-arrow-up-short" style="font-size:15px;color:#00d48a;"></i>
                         </div>
-                        <div class="text-success fw-bold" style="font-size:16px; line-height:1; font-variant-numeric:tabular-nums;">{{ $dailyWins }}</div>
-                        <div style="font-size:10px; color:#707a8a; margin-top:2px;">Win</div>
+                        <div style="font-family:monospace;font-size:16px;font-weight:700;color:#00d48a;line-height:1;">{{ $dailyWins }}</div>
+                        <div style="font-size:10px;color:#3a4d66;margin-top:2px;">Win</div>
                     </div>
 
-                    <div style="width:1px; height:36px; background:rgba(255,255,255,0.07);"></div>
+                    <div style="background:#1a2235;"></div>
 
-                    {{-- Loss --}}
-                    <div class="flex-fill text-center py-1">
-                        <div class="d-flex justify-content-center mb-1">
-                            <span style="width:26px;height:26px;border-radius:7px;background:rgba(246,70,93,0.12);display:flex;align-items:center;justify-content:center;font-size:15px;color:#f6465d;">
-                                <i class="bi bi-arrow-down-short"></i>
-                            </span>
+                    <div style="text-align:center;padding:10px 4px;">
+                        <div style="width:26px;height:26px;border-radius:7px;background:rgba(240,79,90,.12);display:flex;align-items:center;justify-content:center;margin:0 auto 6px;">
+                            <i class="bi bi-arrow-down-short" style="font-size:15px;color:#f04f5a;"></i>
                         </div>
-                        <div class="text-danger fw-bold" style="font-size:16px; line-height:1; font-variant-numeric:tabular-nums;">{{ $dailyLosses }}</div>
-                        <div style="font-size:10px; color:#707a8a; margin-top:2px;">Loss</div>
+                        <div style="font-family:monospace;font-size:16px;font-weight:700;color:#f04f5a;line-height:1;">{{ $dailyLosses }}</div>
+                        <div style="font-size:10px;color:#3a4d66;margin-top:2px;">Loss</div>
                     </div>
 
-                    <div style="width:1px; height:36px; background:rgba(255,255,255,0.07);"></div>
+                    <div style="background:#1a2235;"></div>
 
-                    {{-- Win Rate --}}
-                    @php $winRate = $dailyTrades > 0 ? round(($dailyWins / $dailyTrades) * 100) : 0; @endphp
-                    <div class="flex-fill text-center py-1">
-                        <div class="d-flex justify-content-center mb-1">
-                            <span style="width:26px;height:26px;border-radius:7px;background:rgba(240,185,11,0.12);display:flex;align-items:center;justify-content:center;font-size:12px;color:#f0b90b;">
-                                <i class="bi bi-percent"></i>
-                            </span>
+                    <div style="text-align:center;padding:10px 4px;">
+                        <div style="width:26px;height:26px;border-radius:7px;background:rgba(245,166,35,.12);display:flex;align-items:center;justify-content:center;margin:0 auto 6px;">
+                            <i class="bi bi-percent" style="font-size:11px;color:#f5a623;"></i>
                         </div>
-                        <div style="font-size:16px; line-height:1; font-variant-numeric:tabular-nums; font-weight:700; color:#f0b90b;">{{ $winRate }}%</div>
-                        <div style="font-size:10px; color:#707a8a; margin-top:2px;">Win Rate</div>
+                        <div style="font-family:monospace;font-size:16px;font-weight:700;color:#f5a623;line-height:1;">{{ $winRate }}%</div>
+                        <div style="font-size:10px;color:#3a4d66;margin-top:2px;">Win Rate</div>
                     </div>
+
                 </div>
 
                 {{-- Active Signals Banner --}}
                 @if ($activeSignals > 0)
-                    <div class="d-flex align-items-center gap-2 px-3 py-2"
-                        style="background:rgba(240,185,11,0.07); border-top:1px solid rgba(240,185,11,0.15);">
-                        <span style="
-                            width:8px; height:8px; border-radius:50%; background:#f0b90b; flex-shrink:0;
-                            animation: xi-pulse 1.5s infinite;
-                            box-shadow: 0 0 0 0 rgba(240,185,11,0.5);
-                        "></span>
-                        <small class="text-warning fw-semibold" style="font-size:12px;">
-                            {{ $activeSignals }} Active Signal{{ $activeSignals > 1 ? 's' : '' }} Running
-                        </small>
-                        <span class="ms-auto text-muted" style="font-size:10px; letter-spacing:.5px;">LIVE</span>
+                    <div style="display:flex;align-items:center;gap:8px;padding:10px 16px;background:rgba(245,166,35,.06);border-top:1px solid rgba(245,166,35,.14);">
+                        <span style="width:8px;height:8px;border-radius:50%;background:#f5a623;flex-shrink:0;animation:xi-pulse 1.5s infinite;"></span>
+                        <span style="font-size:12px;font-weight:700;color:#f5a623;">{{ $activeSignals }} Active Signal{{ $activeSignals > 1 ? 's' : '' }} Running</span>
+                        <span style="display:inline-flex;align-items:center;gap:4px;margin-left:auto;background:rgba(245,166,35,.10);border:1px solid rgba(245,166,35,.20);border-radius:99px;padding:2px 8px;font-size:10px;font-weight:700;color:#f5a623;letter-spacing:.5px;">
+                            <span style="width:5px;height:5px;border-radius:50%;background:#f5a623;animation:xi-blink 1.6s infinite;"></span>
+                            LIVE
+                        </span>
                     </div>
                 @endif
             </div>
 
-            <!-- Quick Actions -->
-            <div class="row g-2 mb-3">
-                <div class="col-6">
-                    <a href="{{ route('member.invest.history') }}" class="btn btn-outline-light w-100 btn-sm">
-                        <i class="bi bi-clock-history me-1"></i>Historical Orders
-                    </a>
-                </div>
-                <div class="col-6">
-                    <a href="{{ route('member.balance.transfer') }}" class="btn btn-outline-light w-100 btn-sm">
-                        <i class="bi bi-arrow-left-right me-1"></i>Transfer Balance
-                    </a>
-                </div>
+            {{-- ── QUICK ACTIONS ────────────────────────────────── --}}
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+                <a href="{{ route('member.invest.history') }}" style="background:#0d1120;border:1px solid #1a2235;border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:9px;text-decoration:none;transition:background .15s;" onmouseover="this.style.background='rgba(255,255,255,.03)'" onmouseout="this.style.background='#0d1120'">
+                    <div style="width:32px;height:32px;border-radius:9px;background:rgba(100,160,255,.10);border:1px solid rgba(100,160,255,.18);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                        <i class="bi bi-clock-history" style="font-size:14px;color:#64a0ff;"></i>
+                    </div>
+                    <span style="font-size:12px;font-weight:600;color:#e2eaf8;">Historical Orders</span>
+                </a>
+                <a href="{{ route('member.balance.transfer') }}" style="background:#0d1120;border:1px solid #1a2235;border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:9px;text-decoration:none;transition:background .15s;" onmouseover="this.style.background='rgba(255,255,255,.03)'" onmouseout="this.style.background='#0d1120'">
+                    <div style="width:32px;height:32px;border-radius:9px;background:rgba(0,212,138,.10);border:1px solid rgba(0,212,138,.18);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                        <i class="bi bi-arrow-left-right" style="font-size:14px;color:#00d48a;"></i>
+                    </div>
+                    <span style="font-size:12px;font-weight:600;color:#e2eaf8;">Transfer Balance</span>
+                </a>
             </div>
 
-            <!-- Coins List Card -->
-            <div class="card-dark shadow-sm p-0 mb-3">
-                <div class="p-3" style="border-bottom: 1px solid var(--border-color);">
-                    <h6 class="text-white mb-0">Select Coin for Trading Signals</h6>
+            {{-- ── COINS LIST ───────────────────────────────────── --}}
+            <div class="mb-3" style="background:#0d1120;border:1px solid #1a2235;border-radius:20px;overflow:hidden;">
+
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px 13px;border-bottom:1px solid #1a2235;">
+                    <span style="font-size:13px;font-weight:700;color:#e2eaf8;">Select Coin for Trading Signals</span>
                 </div>
 
                 @foreach ($coins as $symbol => $info)
-                    <!-- Coin Item -->
-                    <a href="{{ route('member.invest.detail', ['coin' => strtolower($symbol)]) }}" class="coin-list-item">
-                        <div class="d-flex align-items-center justify-content-between">
-                            <div class="d-flex align-items-center gap-3 flex-grow-1">
-                                <div class="coin-icon"
-                                    style="background: linear-gradient(135deg, {{ $info['color'] }} 0%, {{ $info['color'] }}dd 100%);">
-                                    <i class="{{ $info['icon'] }}"></i>
-                                </div>
-                                <div class="flex-grow-1">
-                                    <div class="text-white fw-bold mb-1" style="font-size: 14px;">{{ $info['symbol'] }}
-                                    </div>
-                                    <small class="text-muted">{{ $info['name'] }}</small>
-                                </div>
+                    <a href="{{ route('member.invest.detail', ['coin' => strtolower($symbol)]) }}" class="xi-coin-row">
+                        <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0;">
+                            <div style="width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,{{ $info['color'] }} 0%,{{ $info['color'] }}aa 100%);display:flex;align-items:center;justify-content:center;font-size:17px;color:#fff;flex-shrink:0;">
+                                <i class="{{ $info['icon'] }}"></i>
                             </div>
-                            <div class="text-end">
-                                @if ($signalCounts[$symbol] > 0)
-                                    <div class="mb-1">
-                                        <span class="badge badge-success" style="font-size: 11px;">
-                                            <i class="bi bi-broadcast me-1"></i>{{ $signalCounts[$symbol] }}
-                                            Signal{{ $signalCounts[$symbol] > 1 ? 's' : '' }}
-                                        </span>
-                                    </div>
-                                @else
-                                    <small class="text-muted">No signals</small>
-                                @endif
-                                <i class="bi bi-chevron-right text-muted"></i>
+                            <div>
+                                <div style="font-size:13px;font-weight:700;color:#e2eaf8;margin-bottom:2px;">{{ $info['symbol'] }}</div>
+                                <div style="font-size:10px;color:#3a4d66;">{{ $info['name'] }}</div>
                             </div>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+                            @if ($signalCounts[$symbol] > 0)
+                                <span style="display:inline-flex;align-items:center;gap:4px;background:rgba(0,212,138,.10);border:1px solid rgba(0,212,138,.20);border-radius:99px;padding:3px 9px;font-size:11px;font-weight:700;color:#00d48a;">
+                                    <i class="bi bi-broadcast" style="font-size:10px;"></i>
+                                    {{ $signalCounts[$symbol] }} Signal{{ $signalCounts[$symbol] > 1 ? 's' : '' }}
+                                </span>
+                            @else
+                                <span style="font-size:11px;color:#3a4d66;">No signals</span>
+                            @endif
+                            <i class="bi bi-chevron-right" style="font-size:12px;color:#3a4d66;"></i>
                         </div>
                     </a>
                 @endforeach
             </div>
 
-            <!-- Info Card -->
-            <div class="card-dark shadow-sm p-3 mb-3">
-                <div class="d-flex align-items-start gap-2">
-                    <i class="bi bi-info-circle-fill text-gold" style="font-size: 18px; margin-top: 2px;"></i>
-                    <div>
-                        <h6 class="text-white mb-1" style="font-size: 13px;">How to Trade</h6>
-                        <p class="small text-muted mb-0" style="font-size: 12px;">
-                            Select a coin to view available trading signals. Minimum $100.00 available Trade Balance
-                            required to join signals.
-                            Your bet is calculated as 1% of your Trade Balance.
-                        </p>
+            {{-- ── INFO CARD ────────────────────────────────────── --}}
+            <div class="mb-3" style="background:#0d1120;border:1px solid #1a2235;border-left:3px solid #f5a623;border-radius:14px;padding:14px 16px;display:flex;align-items:flex-start;gap:10px;">
+                <i class="bi bi-info-circle-fill" style="font-size:16px;color:#f5a623;flex-shrink:0;margin-top:1px;"></i>
+                <div>
+                    <div style="font-size:12px;font-weight:700;color:#e2eaf8;margin-bottom:4px;">How to Trade</div>
+                    <div style="font-size:12px;color:#7a8fad;line-height:1.55;">
+                        Select a coin to view available trading signals. Minimum $100.00 available Trade Balance
+                        required to join signals. Your bet is calculated as 1% of your Trade Balance.
                     </div>
                 </div>
             </div>
@@ -216,21 +188,33 @@
         </div>
     </div>
 
+    <style>
+        .xi-coin-row {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            padding: 13px 16px !important;
+            border-bottom: 1px solid rgba(26,34,53,.9) !important;
+            text-decoration: none !important;
+            transition: background .15s;
+        }
+        .xi-coin-row:last-child { border-bottom: none !important; }
+        .xi-coin-row:hover { background: rgba(255,255,255,.02) !important; }
+    </style>
+
     @push('scripts')
         <script>
-            setTimeout(function() {
-                $('.alert').fadeOut('slow');
-            }, 5000);
+            setTimeout(function() { $('.alert').fadeOut('slow'); }, 5000);
         </script>
         <style>
             @keyframes xi-blink {
                 0%, 100% { opacity: 1; }
-                50%       { opacity: 0.25; }
+                50%       { opacity: 0.2; }
             }
             @keyframes xi-pulse {
-                0%   { box-shadow: 0 0 0 0 rgba(240,185,11,0.55); }
-                70%  { box-shadow: 0 0 0 7px rgba(240,185,11,0); }
-                100% { box-shadow: 0 0 0 0 rgba(240,185,11,0); }
+                0%   { box-shadow: 0 0 0 0 rgba(245,166,35,.55); }
+                70%  { box-shadow: 0 0 0 7px rgba(245,166,35,0); }
+                100% { box-shadow: 0 0 0 0 rgba(245,166,35,0); }
             }
         </style>
     @endpush

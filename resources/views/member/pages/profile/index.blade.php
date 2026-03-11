@@ -1,472 +1,372 @@
 @extends('member.layouts.app')
 @section('content')
-    <!-- Scrollable Content Area -->
     <div class="scrollable-content">
         <div class="content-section">
 
-            <!-- Flash Messages -->
+            {{-- ── SESSION ALERTS ───────────────────────────────── --}}
             @if (session('success'))
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                <div style="background:rgba(0,212,138,.08);border:1px solid rgba(0,212,138,.25);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+                    <i class="bi bi-check-circle-fill" style="color:#00d48a;font-size:15px;flex-shrink:0;"></i>
+                    <span style="font-size:13px;color:#00d48a;">{{ session('success') }}</span>
                 </div>
             @endif
-
             @if (session('error'))
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <i class="bi bi-exclamation-circle me-2"></i>{{ session('error') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                <div style="background:rgba(240,79,90,.08);border:1px solid rgba(240,79,90,.25);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+                    <i class="bi bi-exclamation-circle-fill" style="color:#f04f5a;font-size:15px;flex-shrink:0;"></i>
+                    <span style="font-size:13px;color:#f04f5a;">{{ session('error') }}</span>
                 </div>
             @endif
 
-            <!-- Card 1: Data Diri -->
-            <div class="card-dark shadow-sm p-0 mb-3">
-                <div class="p-3" style="border-bottom: 1px solid var(--border-color);">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h6 class="text-white mb-0">Data Diri</h6>
-                        <a href="{{ route('member.verification.index') }}" class="btn-verification-link">
-                            {{-- <i class="bi bi-shield-check"></i> --}}
-                            <span>Verifikasi Akun</span>
-                        </a>
-                    </div>
-                </div>
-                <div class="p-3">
-                    <div class="d-flex align-items-center gap-3 mb-3">
-                        <div class="profile-avatar-large">
-                            <i class="bi bi-person-circle"></i>
-                        </div>
-                        <div class="flex-grow-1">
-                            <div class="text-white fw-bold mb-1" style="font-size: 16px;">{{ $user->name }}</div>
-                            <div class="d-flex align-items-center gap-1">
-                                <i class="bi bi-telephone-fill text-gold" style="font-size: 12px;"></i>
-                                <small class="text-muted">{{ $user->phone }}</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- Card 2: Balance -->
-            <div class="card-dark shadow-sm p-3 mb-3">
-                <div class="d-flex align-items-center justify-content-between mb-3">
-                    <div>
-                        <p class="text-muted mb-1 small">Total Balance</p>
-                        <h3 class="text-gold mb-0 fw-bold">{{ number_format($balanceBreakdown['total_balance'], 2) }} USDT
-                        </h3>
-                        <small class="text-muted">Exchange + Trade Balance</small>
-                    </div>
-                    <div class="balance-icon-wrapper">
-                        <i class="bi bi-wallet2"></i>
-                    </div>
-                </div>
-
-                <!-- Current Balance Breakdown -->
-                <div class="mb-3"
-                    style="padding: 12px; background: rgba(245, 166, 35, 0.05); border-radius: 8px; border: 1px solid var(--border-color);">
-                    <small class="text-muted d-block mb-2"
-                        style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">
-                        <i class="bi bi-wallet me-1"></i>Current Balance
-                    </small>
-
-                    <div class="d-flex justify-content-between mb-2">
-                        <span class="text-muted small" style="padding-left: 8px;">Exchange Balance</span>
-                        <span class="text-white small fw-bold">
-                            {{ number_format($balanceBreakdown['exchange_balance'], 2) }} USDT
-                        </span>
-                    </div>
-
-                    <div class="d-flex justify-content-between mb-2">
-                        <span class="text-muted small" style="padding-left: 8px;">Trade Balance</span>
-                        <span class="text-white small fw-bold">
-                            {{ number_format($balanceBreakdown['trade_balance'], 2) }} USDT
-                        </span>
-                    </div>
-
-                    @if ($balanceBreakdown['locked_balance'] > 0)
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="text-muted small" style="padding-left: 8px;">└ Locked (Trading)</span>
-                            <span class="text-warning small fw-bold">
-                                -{{ number_format($balanceBreakdown['locked_balance'], 2) }} USDT
-                            </span>
-                        </div>
-                        <div class="d-flex justify-content-between">
-                            <span class="text-muted small" style="padding-left: 8px;">└ Available</span>
-                            <span class="text-success small fw-bold">
-                                {{ number_format($balanceBreakdown['available_trade_balance'], 2) }} USDT
-                            </span>
-                        </div>
-                    @endif
-                </div>
-
-                <!-- Transaction History Summary -->
-                @if (isset($balanceBreakdown))
-                    <div class="mb-3"
-                        style="padding: 12px; background: rgba(59, 181, 232, 0.05); border-radius: 8px; border: 1px solid var(--border-color);">
-
-                        <!-- Income Section -->
-                        <div class="mb-2 pb-2" style="border-bottom: 1px dashed rgba(255,255,255,0.1);">
-                            <small class="text-muted d-block mb-2"
-                                style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">
-                                <i class="bi bi-arrow-down-circle me-1"></i>Total Income
-                            </small>
-                            <div class="d-flex justify-content-between mb-2">
-                                <span class="text-muted small" style="padding-left: 8px;">Deposits</span>
-                                <span class="text-success small fw-bold">
-                                    +{{ number_format($balanceBreakdown['total_deposits'], 2) }} USDT
-                                </span>
-                            </div>
-                            <div class="d-flex justify-content-between">
-                                <span class="text-muted small" style="padding-left: 8px;">Commissions</span>
-                                <span class="text-success small fw-bold">
-                                    +{{ number_format($balanceBreakdown['total_commissions'], 2) }} USDT
-                                </span>
-                            </div>
-                        </div>
-
-                        <!-- Expense Section -->
-                        <div class="mb-0">
-                            <small class="text-muted d-block mb-2"
-                                style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">
-                                <i class="bi bi-arrow-up-circle me-1"></i>Total Expenses
-                            </small>
-                            <div class="d-flex justify-content-between mb-2">
-                                <span class="text-muted small" style="padding-left: 8px;">Withdrawals (Net)</span>
-                                <span class="text-danger small fw-bold">
-                                    -{{ number_format($balanceBreakdown['total_withdrawals_net'], 2) }} USDT
-                                </span>
-                            </div>
-                            <div class="d-flex justify-content-between">
-                                <span class="text-muted small" style="padding-left: 8px;">Withdrawal Fees</span>
-                                <span class="text-danger small fw-bold">
-                                    -{{ number_format($balanceBreakdown['total_withdrawal_fees'], 2) }} USDT
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                @endif
-
-                <!-- Trading Volume Progress (if any) -->
-                @if ($balanceBreakdown['target_volume'] > 0)
-                    <div class="mb-3"
-                        style="padding: 12px; background: rgba(138, 43, 226, 0.05); border-radius: 8px; border: 1px solid var(--border-color);">
-                        <small class="text-muted d-block mb-2"
-                            style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">
-                            <i class="bi bi-graph-up me-1"></i>Trading Volume
-                        </small>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="text-muted small">Target</span>
-                            <span
-                                class="text-white small fw-bold">{{ number_format($balanceBreakdown['target_volume'], 2) }}
-                                USDT</span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="text-muted small">Achieved</span>
-                            <span
-                                class="text-success small fw-bold">{{ number_format($balanceBreakdown['achieved_volume'], 2) }}
-                                USDT</span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-3">
-                            <span class="text-muted small">Remaining</span>
-                            <span
-                                class="text-warning small fw-bold">{{ number_format($balanceBreakdown['remaining_volume'], 2) }}
-                                USDT</span>
-                        </div>
-                        <div class="progress" style="height: 6px; background-color: rgba(255,255,255,0.1);">
-                            <div class="progress-bar" role="progressbar"
-                                style="width: {{ $balanceBreakdown['target_volume'] > 0 ? ($balanceBreakdown['achieved_volume'] / $balanceBreakdown['target_volume']) * 100 : 0 }}%; background: linear-gradient(90deg, #8a2be2, #da70d6);">
-                            </div>
-                        </div>
-                        <small class="text-muted d-block text-center mt-2" style="font-size: 10px;">
-                            {{ number_format($balanceBreakdown['target_volume'] > 0 ? ($balanceBreakdown['achieved_volume'] / $balanceBreakdown['target_volume']) * 100 : 0, 1) }}%
-                            Completed
-                        </small>
-                    </div>
-                @endif
-
-                <div class="row g-2">
-                    <div class="col-6">
-                        <a href="{{ route('member.deposit.index') }}" class="btn btn-gold w-100">
-                            <i class="bi bi-plus-circle me-1"></i>Deposit
-                        </a>
-                    </div>
-                    <div class="col-6">
-                        <a href="{{ route('member.withdraw.index') }}" class="btn btn-outline-gold w-100">
-                            <i class="bi bi-arrow-up-circle me-1"></i>Withdraw
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Quick Link to Transfer -->
-                <div class="mt-2">
-                    <a href="{{ route('member.balance.transfer') }}" class="btn btn-outline-light w-100 btn-sm">
-                        <i class="bi bi-arrow-left-right me-1"></i>Transfer Balance
+            {{-- ── CARD 1: DATA DIRI ────────────────────────────── --}}
+            <div class="mb-3" style="background:#0d1120;border:1px solid #1a2235;border-radius:20px;overflow:hidden;">
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px 13px;border-bottom:1px solid #1a2235;">
+                    <span style="font-size:13px;font-weight:700;color:#e2eaf8;">Data Diri</span>
+                    <a href="{{ route('member.verification.index') }}" style="display:inline-flex;align-items:center;gap:5px;background:rgba(0,212,138,.08);border:1px solid rgba(0,212,138,.18);border-radius:8px;padding:5px 12px;font-size:11px;font-weight:700;color:#00d48a;text-decoration:none;">
+                        <i class="bi bi-shield-check" style="font-size:11px;"></i> Verifikasi Akun
                     </a>
                 </div>
-            </div>
-
-            <!-- Card 3: Transaction History (NEW) -->
-            <div class="card-dark shadow-sm p-0 mb-3">
-                <div class="p-3" style="border-bottom: 1px solid var(--border-color);">
-                    <h6 class="text-white mb-0">Transaction History</h6>
-                </div>
-
-                <!-- Transaction Tabs -->
-                <div class="transaction-tabs">
-                    <button class="transaction-tab active" onclick="switchTransactionTab('deposit')">
-                        <i class="bi bi-arrow-down-circle me-1"></i>
-                        Deposit
-                        <span class="tab-count">{{ $deposits->count() }}</span>
-                    </button>
-                    <button class="transaction-tab" onclick="switchTransactionTab('withdrawal')">
-                        <i class="bi bi-arrow-up-circle me-1"></i>
-                        Withdrawal
-                        <span class="tab-count">{{ $withdrawals->count() }}</span>
-                    </button>
-                    <button class="transaction-tab" onclick="switchTransactionTab('commission')">
-                        <i class="bi bi-gift me-1"></i>
-                        Commission
-                        <span class="tab-count">{{ $commissions->count() }}</span>
-                    </button>
-                </div>
-
-                <!-- Deposit List -->
-                <div id="deposit-list" class="transaction-list active">
-                    @forelse($deposits as $deposit)
-                        <div class="transaction-item">
-                            <div class="d-flex align-items-start gap-3">
-                                <div class="transaction-icon-wrapper deposit">
-                                    <i class="bi bi-arrow-down-circle"></i>
-                                </div>
-                                <div class="flex-grow-1">
-                                    <div class="d-flex justify-content-between align-items-start mb-1">
-                                        <div>
-                                            <h6 class="text-white mb-0 fw-bold" style="font-size: 14px;">Deposit</h6>
-                                            <p class="text-muted small mb-0" style="font-size: 11px;">
-                                                {{ $deposit->reference }}</p>
-                                        </div>
-                                        <div class="text-end">
-                                            <h6 class="text-success mb-0 fw-bold" style="font-size: 14px;">
-                                                +{{ number_format($deposit->amount, 2) }} USDT
-                                            </h6>
-                                            <span class="status-badge-mini {{ $deposit->status }}">
-                                                {{ ucfirst($deposit->status) }}
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div class="d-flex justify-content-between align-items-center mt-2">
-                                        <small class="text-muted" style="font-size: 11px;">
-                                            <i
-                                                class="bi bi-calendar3 me-1"></i>{{ $deposit->created_at->format('d M Y, H:i') }}
-                                        </small>
-                                        @if ($deposit->payment_method)
-                                            <small class="text-gold" style="font-size: 11px;">
-                                                <i
-                                                    class="bi bi-credit-card me-1"></i>{{ ucfirst(str_replace('_', ' ', $deposit->payment_method)) }}
-                                            </small>
-                                        @endif
-                                    </div>
-                                </div>
+                <div style="padding:16px;">
+                    <div style="display:flex;align-items:center;gap:14px;">
+                        <div style="width:50px;height:50px;border-radius:15px;background:#0a1118;border:1px solid #1a2235;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                            <i class="bi bi-person-circle" style="font-size:26px;color:#3a4d66;"></i>
+                        </div>
+                        <div>
+                            <div style="font-size:15px;font-weight:700;color:#e2eaf8;margin-bottom:4px;">{{ $user->name }}</div>
+                            <div style="display:flex;align-items:center;gap:5px;">
+                                <i class="bi bi-telephone-fill" style="font-size:11px;color:#f5a623;"></i>
+                                <span style="font-size:12px;color:#7a8fad;">{{ $user->phone }}</span>
                             </div>
                         </div>
-                    @empty
-                        <div class="empty-transaction-state">
-                            <i class="bi bi-inbox"></i>
-                            <p class="text-muted mb-0">No deposit history</p>
-                        </div>
-                    @endforelse
-
-                    @if ($deposits->count() > 0)
-                        <div class="p-3">
-                            <a href="{{ route('member.deposit.history') }}" class="btn btn-outline-gold w-100 btn-sm">
-                                View All Deposits
-                            </a>
-                        </div>
-                    @endif
-                </div>
-
-                <!-- Withdrawal List -->
-                <div id="withdrawal-list" class="transaction-list">
-                    @forelse($withdrawals as $withdrawal)
-                        <div class="transaction-item">
-                            <div class="d-flex align-items-start gap-3">
-                                <div class="transaction-icon-wrapper withdrawal">
-                                    <i class="bi bi-arrow-up-circle"></i>
-                                </div>
-                                <div class="flex-grow-1">
-                                    <div class="d-flex justify-content-between align-items-start mb-1">
-                                        <div>
-                                            <h6 class="text-white mb-0 fw-bold" style="font-size: 14px;">Withdrawal</h6>
-                                            <p class="text-muted small mb-0" style="font-size: 11px;">
-                                                {{ $withdrawal->reference }}</p>
-                                        </div>
-                                        <div class="text-end">
-                                            <h6 class="text-gold mb-0 fw-bold" style="font-size: 14px;">
-                                                -{{ number_format($withdrawal->amount, 2) }} USDT
-                                            </h6>
-                                            <span class="status-badge-mini {{ $withdrawal->status }}">
-                                                {{ ucfirst($withdrawal->status) }}
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div class="d-flex flex-column gap-1 mt-2">
-                                        <div class="d-flex justify-content-between">
-                                            <small class="text-muted" style="font-size: 11px;">Fee (5%)</small>
-                                            <small class="text-muted"
-                                                style="font-size: 11px;">{{ number_format($withdrawal->withdrawal_fee, 2) }}
-                                                USDT</small>
-                                        </div>
-                                        <small class="text-muted" style="font-size: 11px;">
-                                            <i
-                                                class="bi bi-calendar3 me-1"></i>{{ $withdrawal->created_at->format('d M Y, H:i') }}
-                                        </small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    @empty
-                        <div class="empty-transaction-state">
-                            <i class="bi bi-inbox"></i>
-                            <p class="text-muted mb-0">No withdrawal history</p>
-                        </div>
-                    @endforelse
-
-                    @if ($withdrawals->count() > 0)
-                        <div class="p-3">
-                            <a href="{{ route('member.withdraw.history') }}" class="btn btn-outline-gold w-100 btn-sm">
-                                View All Withdrawals
-                            </a>
-                        </div>
-                    @endif
-                </div>
-
-                <!-- Commission List -->
-                <div id="commission-list" class="transaction-list">
-                    @forelse($commissions as $commission)
-                        <div class="transaction-item">
-                            <div class="d-flex align-items-start gap-3">
-                                <div class="transaction-icon-wrapper commission">
-                                    <i class="bi bi-gift"></i>
-                                </div>
-                                <div class="flex-grow-1">
-                                    <div class="d-flex justify-content-between align-items-start mb-1">
-                                        <div>
-                                            <h6 class="text-white mb-0 fw-bold" style="font-size: 14px;">Commission</h6>
-                                            <p class="text-muted small mb-0" style="font-size: 11px;">
-                                                {{ $commission->reference }}</p>
-                                        </div>
-                                        <div class="text-end">
-                                            <h6 class="text-gold mb-0 fw-bold" style="font-size: 14px;">
-                                                +{{ number_format($commission->amount, 2) }} USDT
-                                            </h6>
-                                            <span class="status-badge-mini {{ $commission->status }}">
-                                                {{ ucfirst($commission->status) }}
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div class="d-flex justify-content-between align-items-center mt-2">
-                                        <small class="text-muted" style="font-size: 11px;">
-                                            <i
-                                                class="bi bi-calendar3 me-1"></i>{{ $commission->created_at->format('d M Y, H:i') }}
-                                        </small>
-                                        @if ($commission->source_user_id)
-                                            <small class="text-gold" style="font-size: 11px;">
-                                                <i class="bi bi-person me-1"></i>From referral
-                                            </small>
-                                        @endif
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    @empty
-                        <div class="empty-transaction-state">
-                            <i class="bi bi-inbox"></i>
-                            <p class="text-muted mb-0">No commission history</p>
-                        </div>
-                    @endforelse
-
-                    @if ($commissions->count() > 0)
-                        <div class="p-3">
-                            <a href="#" class="btn btn-outline-gold w-100 btn-sm">
-                                View All Commissions
-                            </a>
-                        </div>
-                    @endif
+                    </div>
                 </div>
             </div>
 
-            <!-- Card 4: Wallet List -->
-            <div class="card-dark shadow-sm p-0 mb-3">
-                <div class="p-3" style="border-bottom: 1px solid var(--border-color);">
-                    <div class="d-flex align-items-center justify-content-between">
-                        <h6 class="text-white mb-0">Wallet List</h6>
-                        <span class="badge-count">{{ $wallets->count() }}/3</span>
+            {{-- ── CARD 2: BALANCE ──────────────────────────────── --}}
+            <div class="mb-3" style="background:linear-gradient(135deg,#0f1c2e 0%,#0d1420 60%,#0a1118 100%);border:1px solid #1a2235;border-radius:20px;padding:18px;position:relative;overflow:hidden;">
+                <div style="position:absolute;top:-30px;right:-30px;width:150px;height:150px;border-radius:50%;background:radial-gradient(circle,rgba(245,166,35,.10) 0%,transparent 65%);pointer-events:none;"></div>
+                <div style="position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(rgba(0,212,138,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,138,.025) 1px,transparent 1px);background-size:28px 28px;"></div>
+
+                {{-- Total Balance --}}
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;position:relative;">
+                    <div>
+                        <div style="font-size:10px;color:#3a4d66;letter-spacing:.8px;text-transform:uppercase;margin-bottom:6px;">Total Balance</div>
+                        <div style="font-family:monospace;font-size:28px;font-weight:700;color:#f5a623;letter-spacing:-1px;line-height:1;">{{ number_format($balanceBreakdown['total_balance'], 2) }}</div>
+                        <div style="font-size:11px;color:#3a4d66;margin-top:3px;">USDT · Exchange + Trade</div>
+                    </div>
+                    <div style="width:40px;height:40px;border-radius:12px;background:rgba(245,166,35,.10);border:1px solid rgba(245,166,35,.20);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                        <i class="bi bi-wallet2" style="font-size:17px;color:#f5a623;"></i>
                     </div>
                 </div>
 
-                <!-- Currency Info Card Inside Wallet -->
-                <div class="p-3"
-                    style="border-bottom: 1px solid var(--border-color); background: rgba(245, 166, 35, 0.03);">
-                    <div class="d-flex align-items-center gap-2">
-                        <div
-                            style="width: 36px; height: 36px; background: rgba(245, 166, 35, 0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
-                            <span style="color: var(--gold-color); font-size: 18px; font-weight: bold;">₮</span>
+                {{-- Current Balance Breakdown --}}
+                <div style="background:rgba(255,255,255,.03);border:1px solid #1a2235;border-radius:12px;padding:12px 14px;margin-bottom:10px;position:relative;">
+                    <div style="font-size:9px;color:#3a4d66;letter-spacing:.8px;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:5px;">
+                        <i class="bi bi-wallet" style="font-size:10px;"></i> Current Balance
+                    </div>
+                    <div style="display:flex;flex-direction:column;gap:7px;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;">
+                            <span style="font-size:12px;color:#7a8fad;padding-left:6px;">Exchange Balance</span>
+                            <span style="font-size:12px;font-weight:700;color:#e2eaf8;font-family:monospace;">{{ number_format($balanceBreakdown['exchange_balance'], 2) }} USDT</span>
                         </div>
-                        <div>
-                            <p class="text-muted mb-0 small" style="font-size: 11px;">Currency</p>
-                            <h6 class="text-white mb-0 fw-bold" style="font-size: 13px;">USDT (Tether)</h6>
+                        <div style="display:flex;justify-content:space-between;align-items:center;">
+                            <span style="font-size:12px;color:#7a8fad;padding-left:6px;">Trade Balance</span>
+                            <span style="font-size:12px;font-weight:700;color:#e2eaf8;font-family:monospace;">{{ number_format($balanceBreakdown['trade_balance'], 2) }} USDT</span>
                         </div>
+                        @if ($balanceBreakdown['locked_balance'] > 0)
+                            <div style="border-top:1px solid #1a2235;padding-top:7px;margin-top:2px;display:flex;flex-direction:column;gap:7px;">
+                                <div style="display:flex;justify-content:space-between;align-items:center;">
+                                    <span style="font-size:12px;color:#7a8fad;padding-left:14px;">└ Locked (Trading)</span>
+                                    <span style="font-size:12px;font-weight:700;color:#f5a623;font-family:monospace;">-{{ number_format($balanceBreakdown['locked_balance'], 2) }} USDT</span>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;align-items:center;">
+                                    <span style="font-size:12px;color:#7a8fad;padding-left:14px;">└ Available</span>
+                                    <span style="font-size:12px;font-weight:700;color:#00d48a;font-family:monospace;">{{ number_format($balanceBreakdown['available_trade_balance'], 2) }} USDT</span>
+                                </div>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+
+                {{-- Transaction Summary --}}
+                @if (isset($balanceBreakdown))
+                <div style="background:rgba(255,255,255,.03);border:1px solid #1a2235;border-radius:12px;padding:12px 14px;margin-bottom:10px;position:relative;">
+
+                    {{-- Income --}}
+                    <div style="font-size:9px;color:#3a4d66;letter-spacing:.8px;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:5px;">
+                        <i class="bi bi-arrow-down-circle" style="font-size:10px;color:#00d48a;"></i> Total Income
+                    </div>
+                    <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:12px;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;">
+                            <span style="font-size:12px;color:#7a8fad;padding-left:6px;">Deposits</span>
+                            <span style="font-size:12px;font-weight:700;color:#00d48a;font-family:monospace;">+{{ number_format($balanceBreakdown['total_deposits'], 2) }} USDT</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;align-items:center;">
+                            <span style="font-size:12px;color:#7a8fad;padding-left:6px;">Commissions</span>
+                            <span style="font-size:12px;font-weight:700;color:#00d48a;font-family:monospace;">+{{ number_format($balanceBreakdown['total_commissions'], 2) }} USDT</span>
+                        </div>
+                    </div>
+
+                    <div style="border-top:1px dashed rgba(255,255,255,.07);margin-bottom:12px;"></div>
+
+                    {{-- Expenses --}}
+                    <div style="font-size:9px;color:#3a4d66;letter-spacing:.8px;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:5px;">
+                        <i class="bi bi-arrow-up-circle" style="font-size:10px;color:#f04f5a;"></i> Total Expenses
+                    </div>
+                    <div style="display:flex;flex-direction:column;gap:7px;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;">
+                            <span style="font-size:12px;color:#7a8fad;padding-left:6px;">Withdrawals (Net)</span>
+                            <span style="font-size:12px;font-weight:700;color:#f04f5a;font-family:monospace;">-{{ number_format($balanceBreakdown['total_withdrawals_net'], 2) }} USDT</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;align-items:center;">
+                            <span style="font-size:12px;color:#7a8fad;padding-left:6px;">Withdrawal Fees</span>
+                            <span style="font-size:12px;font-weight:700;color:#f04f5a;font-family:monospace;">-{{ number_format($balanceBreakdown['total_withdrawal_fees'], 2) }} USDT</span>
+                        </div>
+                    </div>
+                </div>
+                @endif
+
+                {{-- Trading Volume --}}
+                @if ($balanceBreakdown['target_volume'] > 0)
+                @php $volumePct = $balanceBreakdown['target_volume'] > 0 ? ($balanceBreakdown['achieved_volume'] / $balanceBreakdown['target_volume']) * 100 : 0; @endphp
+                <div style="background:rgba(255,255,255,.03);border:1px solid #1a2235;border-radius:12px;padding:12px 14px;margin-bottom:10px;position:relative;">
+                    <div style="font-size:9px;color:#3a4d66;letter-spacing:.8px;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:5px;">
+                        <i class="bi bi-graph-up" style="font-size:10px;color:#9945ff;"></i> Trading Volume
+                    </div>
+                    <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:12px;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;">
+                            <span style="font-size:12px;color:#7a8fad;">Target</span>
+                            <span style="font-size:12px;font-weight:700;color:#e2eaf8;font-family:monospace;">{{ number_format($balanceBreakdown['target_volume'], 2) }} USDT</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;align-items:center;">
+                            <span style="font-size:12px;color:#7a8fad;">Achieved</span>
+                            <span style="font-size:12px;font-weight:700;color:#00d48a;font-family:monospace;">{{ number_format($balanceBreakdown['achieved_volume'], 2) }} USDT</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;align-items:center;">
+                            <span style="font-size:12px;color:#7a8fad;">Remaining</span>
+                            <span style="font-size:12px;font-weight:700;color:#f5a623;font-family:monospace;">{{ number_format($balanceBreakdown['remaining_volume'], 2) }} USDT</span>
+                        </div>
+                    </div>
+                    {{-- Progress Bar --}}
+                    <div style="height:6px;background:rgba(255,255,255,.08);border-radius:99px;overflow:hidden;margin-bottom:6px;">
+                        <div style="height:100%;width:{{ $volumePct }}%;background:linear-gradient(90deg,#9945ff,#da70d6);border-radius:99px;transition:width .4s;"></div>
+                    </div>
+                    <div style="font-size:10px;color:#3a4d66;text-align:center;">{{ number_format($volumePct, 1) }}% Completed</div>
+                </div>
+                @endif
+
+                {{-- Action Buttons --}}
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;position:relative;">
+                    <a href="{{ route('member.deposit.index') }}" style="display:flex;align-items:center;justify-content:center;gap:6px;background:linear-gradient(135deg,#f5a623 0%,#e08800 100%);border:none;border-radius:12px;padding:12px;font-size:13px;font-weight:700;color:#080b12;text-decoration:none;box-shadow:0 4px 14px rgba(245,166,35,.25);">
+                        <i class="bi bi-plus-circle"></i> Deposit
+                    </a>
+                    <a href="{{ route('member.withdraw.index') }}" style="display:flex;align-items:center;justify-content:center;gap:6px;background:rgba(245,166,35,.08);border:1px solid rgba(245,166,35,.25);border-radius:12px;padding:12px;font-size:13px;font-weight:700;color:#f5a623;text-decoration:none;">
+                        <i class="bi bi-arrow-up-circle"></i> Withdraw
+                    </a>
+                </div>
+                <a href="{{ route('member.balance.transfer') }}" style="display:flex;align-items:center;justify-content:center;gap:6px;background:rgba(255,255,255,.04);border:1px solid #1a2235;border-radius:12px;padding:11px;font-size:13px;font-weight:600;color:#7a8fad;text-decoration:none;position:relative;">
+                    <i class="bi bi-arrow-left-right"></i> Transfer Balance
+                </a>
+            </div>
+
+            {{-- ── CARD 3: TRANSACTION HISTORY ─────────────────── --}}
+            <div class="mb-3" style="background:#0d1120;border:1px solid #1a2235;border-radius:20px;overflow:hidden;">
+                <div style="padding:14px 16px 13px;border-bottom:1px solid #1a2235;">
+                    <span style="font-size:13px;font-weight:700;color:#e2eaf8;">Transaction History</span>
+                </div>
+
+                {{-- Tabs --}}
+                <div style="display:flex;border-bottom:1px solid #1a2235;background:rgba(255,255,255,.02);">
+                    @foreach([['deposit','Deposit','bi-arrow-down-circle',$deposits->count()],['withdrawal','Withdrawal','bi-arrow-up-circle',$withdrawals->count()],['commission','Commission','bi-gift',$commissions->count()]] as [$key,$label,$icon,$count])
+                    <button class="xa-tab {{ $loop->first ? 'active' : '' }}" onclick="switchTransactionTab('{{ $key }}')" style="flex:1;padding:11px 6px;background:transparent;border:none;font-size:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;position:relative;color:{{ $loop->first ? '#f5a623' : '#3a4d66' }};">
+                        <i class="bi {{ $icon }}" style="font-size:12px;"></i>
+                        {{ $label }}
+                        <span style="background:{{ $loop->first ? '#f5a623' : 'rgba(255,255,255,.06)' }};color:{{ $loop->first ? '#080b12' : '#3a4d66' }};border-radius:6px;padding:1px 6px;font-size:10px;font-weight:700;">{{ $count }}</span>
+                        @if($loop->first)<span class="xa-tab-line" style="position:absolute;bottom:0;left:0;right:0;height:2px;background:#f5a623;"></span>@endif
+                    </button>
+                    @endforeach
+                </div>
+
+                {{-- Deposit List --}}
+                <div id="deposit-list" class="xa-list active">
+                    @forelse($deposits as $deposit)
+                        <div style="display:flex;align-items:flex-start;gap:12px;padding:14px 16px;border-bottom:1px solid rgba(26,34,53,.8);">
+                            <div style="width:38px;height:38px;border-radius:11px;background:rgba(0,212,138,.10);border:1px solid rgba(0,212,138,.18);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                <i class="bi bi-arrow-down-circle" style="font-size:17px;color:#00d48a;"></i>
+                            </div>
+                            <div style="flex:1;min-width:0;">
+                                <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;">
+                                    <div>
+                                        <div style="font-size:13px;font-weight:700;color:#e2eaf8;">Deposit</div>
+                                        <div style="font-size:11px;color:#3a4d66;font-family:monospace;">{{ $deposit->reference }}</div>
+                                    </div>
+                                    <div style="text-align:right;">
+                                        <div style="font-size:13px;font-weight:700;color:#00d48a;font-family:monospace;">+{{ number_format($deposit->amount, 2) }}</div>
+                                        <span class="xa-status {{ $deposit->status }}">{{ ucfirst($deposit->status) }}</span>
+                                    </div>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;">
+                                    <span style="font-size:11px;color:#3a4d66;"><i class="bi bi-calendar3 me-1"></i>{{ $deposit->created_at->format('d M Y, H:i') }}</span>
+                                    @if ($deposit->payment_method)
+                                        <span style="font-size:11px;color:#f5a623;"><i class="bi bi-credit-card me-1"></i>{{ ucfirst(str_replace('_', ' ', $deposit->payment_method)) }}</span>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    @empty
+                        <div style="padding:36px 20px;text-align:center;">
+                            <i class="bi bi-inbox" style="font-size:36px;color:#1a2235;display:block;margin-bottom:10px;"></i>
+                            <span style="font-size:13px;color:#3a4d66;">No deposit history</span>
+                        </div>
+                    @endforelse
+                    @if ($deposits->count() > 0)
+                        <div style="padding:12px 16px;">
+                            <a href="{{ route('member.deposit.history') }}" style="display:flex;align-items:center;justify-content:center;background:rgba(245,166,35,.06);border:1px solid rgba(245,166,35,.18);border-radius:10px;padding:10px;font-size:12px;font-weight:700;color:#f5a623;text-decoration:none;">View All Deposits</a>
+                        </div>
+                    @endif
+                </div>
+
+                {{-- Withdrawal List --}}
+                <div id="withdrawal-list" class="xa-list">
+                    @forelse($withdrawals as $withdrawal)
+                        <div style="display:flex;align-items:flex-start;gap:12px;padding:14px 16px;border-bottom:1px solid rgba(26,34,53,.8);">
+                            <div style="width:38px;height:38px;border-radius:11px;background:rgba(245,166,35,.10);border:1px solid rgba(245,166,35,.18);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                <i class="bi bi-arrow-up-circle" style="font-size:17px;color:#f5a623;"></i>
+                            </div>
+                            <div style="flex:1;min-width:0;">
+                                <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;">
+                                    <div>
+                                        <div style="font-size:13px;font-weight:700;color:#e2eaf8;">Withdrawal</div>
+                                        <div style="font-size:11px;color:#3a4d66;font-family:monospace;">{{ $withdrawal->reference }}</div>
+                                    </div>
+                                    <div style="text-align:right;">
+                                        <div style="font-size:13px;font-weight:700;color:#f5a623;font-family:monospace;">-{{ number_format($withdrawal->amount, 2) }}</div>
+                                        <span class="xa-status {{ $withdrawal->status }}">{{ ucfirst($withdrawal->status) }}</span>
+                                    </div>
+                                </div>
+                                <div style="display:flex;flex-direction:column;gap:3px;margin-top:4px;">
+                                    <div style="display:flex;justify-content:space-between;">
+                                        <span style="font-size:11px;color:#3a4d66;">Fee (5%)</span>
+                                        <span style="font-size:11px;color:#3a4d66;font-family:monospace;">{{ number_format($withdrawal->withdrawal_fee, 2) }} USDT</span>
+                                    </div>
+                                    <span style="font-size:11px;color:#3a4d66;"><i class="bi bi-calendar3 me-1"></i>{{ $withdrawal->created_at->format('d M Y, H:i') }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    @empty
+                        <div style="padding:36px 20px;text-align:center;">
+                            <i class="bi bi-inbox" style="font-size:36px;color:#1a2235;display:block;margin-bottom:10px;"></i>
+                            <span style="font-size:13px;color:#3a4d66;">No withdrawal history</span>
+                        </div>
+                    @endforelse
+                    @if ($withdrawals->count() > 0)
+                        <div style="padding:12px 16px;">
+                            <a href="{{ route('member.withdraw.history') }}" style="display:flex;align-items:center;justify-content:center;background:rgba(245,166,35,.06);border:1px solid rgba(245,166,35,.18);border-radius:10px;padding:10px;font-size:12px;font-weight:700;color:#f5a623;text-decoration:none;">View All Withdrawals</a>
+                        </div>
+                    @endif
+                </div>
+
+                {{-- Commission List --}}
+                <div id="commission-list" class="xa-list">
+                    @forelse($commissions as $commission)
+                        <div style="display:flex;align-items:flex-start;gap:12px;padding:14px 16px;border-bottom:1px solid rgba(26,34,53,.8);">
+                            <div style="width:38px;height:38px;border-radius:11px;background:rgba(153,69,255,.10);border:1px solid rgba(153,69,255,.18);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                <i class="bi bi-gift" style="font-size:17px;color:#9945ff;"></i>
+                            </div>
+                            <div style="flex:1;min-width:0;">
+                                <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;">
+                                    <div>
+                                        <div style="font-size:13px;font-weight:700;color:#e2eaf8;">Commission</div>
+                                        <div style="font-size:11px;color:#3a4d66;font-family:monospace;">{{ $commission->reference }}</div>
+                                    </div>
+                                    <div style="text-align:right;">
+                                        <div style="font-size:13px;font-weight:700;color:#9945ff;font-family:monospace;">+{{ number_format($commission->amount, 2) }}</div>
+                                        <span class="xa-status {{ $commission->status }}">{{ ucfirst($commission->status) }}</span>
+                                    </div>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;">
+                                    <span style="font-size:11px;color:#3a4d66;"><i class="bi bi-calendar3 me-1"></i>{{ $commission->created_at->format('d M Y, H:i') }}</span>
+                                    @if ($commission->source_user_id)
+                                        <span style="font-size:11px;color:#f5a623;"><i class="bi bi-person me-1"></i>From referral</span>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    @empty
+                        <div style="padding:36px 20px;text-align:center;">
+                            <i class="bi bi-inbox" style="font-size:36px;color:#1a2235;display:block;margin-bottom:10px;"></i>
+                            <span style="font-size:13px;color:#3a4d66;">No commission history</span>
+                        </div>
+                    @endforelse
+                    @if ($commissions->count() > 0)
+                        <div style="padding:12px 16px;">
+                            <a href="#" style="display:flex;align-items:center;justify-content:center;background:rgba(245,166,35,.06);border:1px solid rgba(245,166,35,.18);border-radius:10px;padding:10px;font-size:12px;font-weight:700;color:#f5a623;text-decoration:none;">View All Commissions</a>
+                        </div>
+                    @endif
+                </div>
+            </div>
+
+            {{-- ── CARD 4: WALLET LIST ──────────────────────────── --}}
+            <div class="mb-3" style="background:#0d1120;border:1px solid #1a2235;border-radius:20px;overflow:hidden;">
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px 13px;border-bottom:1px solid #1a2235;">
+                    <span style="font-size:13px;font-weight:700;color:#e2eaf8;">Wallet List</span>
+                    <span style="background:rgba(245,166,35,.10);border:1px solid rgba(245,166,35,.20);border-radius:8px;padding:3px 10px;font-size:11px;font-weight:700;color:#f5a623;">{{ $wallets->count() }}/3</span>
+                </div>
+
+                {{-- Currency Info --}}
+                <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid #1a2235;background:rgba(245,166,35,.03);">
+                    <div style="width:36px;height:36px;border-radius:10px;background:rgba(245,166,35,.10);border:1px solid rgba(245,166,35,.18);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                        <span style="color:#f5a623;font-size:17px;font-weight:700;">₮</span>
+                    </div>
+                    <div>
+                        <div style="font-size:10px;color:#3a4d66;margin-bottom:2px;">Currency</div>
+                        <div style="font-size:13px;font-weight:700;color:#e2eaf8;">USDT (Tether)</div>
                     </div>
                 </div>
 
                 @forelse($wallets as $wallet)
-                    <!-- Wallet Item -->
-                    <div class="bank-list-item">
-                        <div class="d-flex align-items-start justify-content-between">
-                            <div class="d-flex align-items-start gap-3 flex-grow-1">
-                                <div class="bank-icon-circle {{ $wallet->type }}">
-                                    <i class="bi bi-wallet-fill"></i>
-                                </div>
-                                <div class="flex-grow-1">
-                                    <div class="d-flex align-items-center gap-2 mb-1">
-                                        <span class="wallet-type-badge {{ $wallet->type }}">
-                                            {{ strtoupper($wallet->type) }}
-                                        </span>
-                                    </div>
-                                    <div class="text-white fw-bold mb-1" style="font-size: 13px;">
-                                        {{ $wallet->account_number }}
-                                    </div>
-                                    <small class="text-gold" style="font-size: 11px;">
-                                        <i class="bi bi-info-circle me-1"></i>{{ $wallet->getTypeLabel() }}
-                                    </small>
-                                </div>
+                    <div style="display:flex;align-items:flex-start;justify-content:space-between;padding:14px 16px;border-bottom:1px solid rgba(26,34,53,.8);">
+                        <div style="display:flex;align-items:flex-start;gap:12px;flex:1;min-width:0;">
+                            <div style="width:38px;height:38px;border-radius:11px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+                                background:{{ $wallet->type === 'trc20' ? 'rgba(255,68,68,.10)' : 'rgba(243,186,47,.10)' }};
+                                border:1px solid {{ $wallet->type === 'trc20' ? 'rgba(255,68,68,.20)' : 'rgba(243,186,47,.20)' }};">
+                                <i class="bi bi-wallet-fill" style="font-size:17px;color:{{ $wallet->type === 'trc20' ? '#ff4444' : '#f3ba2f' }};"></i>
                             </div>
-                            <div class="d-flex gap-2">
-                                <button class="btn-bank-action btn-bank-edit"
-                                    onclick="openEditModal({{ $wallet->id }}, '{{ $wallet->type }}', '{{ $wallet->account_number }}')">
-                                    <i class="bi bi-pencil"></i>
+                            <div style="flex:1;min-width:0;">
+                                <div style="margin-bottom:4px;">
+                                    <span style="display:inline-block;padding:2px 8px;border-radius:5px;font-size:9px;font-weight:700;letter-spacing:.5px;
+                                        background:{{ $wallet->type === 'trc20' ? 'rgba(255,68,68,.12)' : 'rgba(243,186,47,.12)' }};
+                                        color:{{ $wallet->type === 'trc20' ? '#ff4444' : '#f3ba2f' }};
+                                        border:1px solid {{ $wallet->type === 'trc20' ? 'rgba(255,68,68,.25)' : 'rgba(243,186,47,.25)' }};">
+                                        {{ strtoupper($wallet->type) }}
+                                    </span>
+                                </div>
+                                <div style="font-size:12px;font-weight:700;color:#e2eaf8;margin-bottom:3px;font-family:monospace;word-break:break-all;">{{ $wallet->account_number }}</div>
+                                <div style="font-size:11px;color:#f5a623;"><i class="bi bi-info-circle me-1"></i>{{ $wallet->getTypeLabel() }}</div>
+                            </div>
+                        </div>
+                        <div style="display:flex;gap:6px;flex-shrink:0;margin-left:10px;">
+                            <button onclick="openEditModal({{ $wallet->id }}, '{{ $wallet->type }}', '{{ $wallet->account_number }}')"
+                                style="width:32px;height:32px;border-radius:8px;background:rgba(100,160,255,.10);border:1px solid rgba(100,160,255,.20);display:flex;align-items:center;justify-content:center;color:#64a0ff;cursor:pointer;">
+                                <i class="bi bi-pencil" style="font-size:12px;"></i>
+                            </button>
+                            <form action="{{ route('member.wallet.destroy', $wallet->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus wallet ini?')" style="display:inline;">
+                                @csrf @method('DELETE')
+                                <button type="submit" style="width:32px;height:32px;border-radius:8px;background:rgba(240,79,90,.10);border:1px solid rgba(240,79,90,.20);display:flex;align-items:center;justify-content:center;color:#f04f5a;cursor:pointer;">
+                                    <i class="bi bi-trash" style="font-size:12px;"></i>
                                 </button>
-                                <form action="{{ route('member.wallet.destroy', $wallet->id) }}" method="POST"
-                                    onsubmit="return confirm('Yakin ingin menghapus wallet ini?')"
-                                    style="display: inline;">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn-bank-action btn-bank-delete">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </form>
-                            </div>
+                            </form>
                         </div>
                     </div>
                 @empty
-                    <div class="p-3 text-center">
-                        <p class="text-muted mb-0">Belum ada wallet</p>
+                    <div style="padding:30px 20px;text-align:center;">
+                        <span style="font-size:13px;color:#3a4d66;">Belum ada wallet</span>
                     </div>
                 @endforelse
 
-                <!-- Add Wallet Button -->
-                <div class="p-3">
-                    <button class="btn btn-outline-gold w-100" data-bs-toggle="modal" data-bs-target="#addWalletModal"
-                        @if ($wallets->count() >= 3) disabled @endif>
-                        <i class="bi bi-plus-circle me-2"></i>Tambah Wallet
+                <div style="padding:12px 16px;">
+                    <button data-bs-toggle="modal" data-bs-target="#addWalletModal" @if($wallets->count() >= 3) disabled @endif
+                        style="width:100%;background:rgba(245,166,35,.06);border:1px solid rgba(245,166,35,.20);border-radius:12px;padding:11px;font-size:13px;font-weight:700;color:#f5a623;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;opacity:{{ $wallets->count() >= 3 ? '.4' : '1' }};">
+                        <i class="bi bi-plus-circle"></i> Tambah Wallet
                     </button>
                 </div>
             </div>
@@ -474,568 +374,207 @@
         </div>
     </div>
 
-    <!-- Modal Add Wallet -->
+    {{-- ── MODAL ADD WALLET ─────────────────────────────── --}}
     <div class="modal fade" id="addWalletModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content" style="background-color: var(--card-dark); border: 1px solid var(--border-color);">
-                <div class="modal-header" style="border-bottom: 1px solid var(--border-color);">
-                    <h5 class="modal-title text-white">Tambah Wallet</h5>
+            <div class="modal-content" style="background:#0d1120;border:1px solid #1a2235;border-radius:16px;">
+                <div class="modal-header" style="border-bottom:1px solid #1a2235;padding:16px 18px;">
+                    <h5 class="modal-title" style="color:#e2eaf8;font-size:15px;font-weight:700;">Tambah Wallet</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <form action="{{ route('member.wallet.store') }}" method="POST">
                     @csrf
-                    <div class="modal-body">
-                        <!-- Currency Info in Modal -->
-                        <div class="mb-3 p-3"
-                            style="background: rgba(245, 166, 35, 0.05); border-radius: 8px; border: 1px solid var(--border-color);">
-                            <div class="d-flex align-items-center gap-2">
-                                <div
-                                    style="width: 36px; height: 36px; background: rgba(245, 166, 35, 0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
-                                    <span style="color: var(--gold-color); font-size: 18px; font-weight: bold;">₮</span>
-                                </div>
-                                <div>
-                                    <p class="text-muted mb-0 small" style="font-size: 11px;">Currency</p>
-                                    <h6 class="text-white mb-0 fw-bold" style="font-size: 13px;">USDT (Tether)</h6>
-                                </div>
+                    <div class="modal-body" style="padding:18px;">
+                        {{-- Currency --}}
+                        <div style="display:flex;align-items:center;gap:10px;background:rgba(245,166,35,.05);border:1px solid rgba(245,166,35,.12);border-radius:10px;padding:12px;margin-bottom:16px;">
+                            <div style="width:36px;height:36px;border-radius:10px;background:rgba(245,166,35,.10);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                <span style="color:#f5a623;font-size:17px;font-weight:700;">₮</span>
+                            </div>
+                            <div>
+                                <div style="font-size:10px;color:#3a4d66;margin-bottom:2px;">Currency</div>
+                                <div style="font-size:13px;font-weight:700;color:#e2eaf8;">USDT (Tether)</div>
                             </div>
                         </div>
 
-                        <!-- Type Selection -->
-                        <div class="mb-3">
-                            <label class="form-label text-white">Network Type</label>
-                            <div class="network-type-selector">
-                                <label class="network-type-option">
-                                    <input type="radio" name="type" value="trc20" checked>
-                                    <div class="network-type-card">
-                                        <div class="network-icon trc20">
-                                            <i class="bi bi-circle-fill"></i>
+                        {{-- Network Type --}}
+                        <div style="margin-bottom:16px;">
+                            <label style="font-size:12px;font-weight:600;color:#7a8fad;display:block;margin-bottom:8px;">Network Type</label>
+                            <div style="display:flex;flex-direction:column;gap:8px;">
+                                @foreach([['trc20','TRC20','TRON Network','rgba(255,68,68,.12)','rgba(255,68,68,.22)','#ff4444'],['bep20','BEP20','Binance Smart Chain','rgba(243,186,47,.12)','rgba(243,186,47,.22)','#f3ba2f']] as [$val,$name,$desc,$bg,$border,$clr])
+                                <label style="cursor:pointer;margin:0;">
+                                    <input type="radio" name="type" value="{{ $val }}" {{ $val === 'trc20' ? 'checked' : '' }} style="display:none;" class="xa-network-radio">
+                                    <div class="xa-network-card" style="display:flex;align-items:center;gap:12px;padding:12px;background:rgba(255,255,255,.03);border:2px solid #1a2235;border-radius:10px;transition:all .15s;">
+                                        <div style="width:38px;height:38px;border-radius:10px;background:{{ $bg }};border:1px solid {{ $border }};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                            <i class="bi bi-circle-fill" style="font-size:18px;color:{{ $clr }};"></i>
                                         </div>
-                                        <div class="network-info">
-                                            <div class="network-name">TRC20</div>
-                                            <small class="network-desc">TRON Network</small>
+                                        <div style="flex:1;">
+                                            <div style="font-size:13px;font-weight:700;color:#e2eaf8;">{{ $name }}</div>
+                                            <div style="font-size:11px;color:#3a4d66;">{{ $desc }}</div>
                                         </div>
-                                        <div class="network-check">
-                                            <i class="bi bi-check-circle-fill"></i>
-                                        </div>
+                                        <i class="bi bi-check-circle-fill xa-network-check" style="font-size:18px;color:#f5a623;opacity:{{ $val === 'trc20' ? '1' : '0' }};transition:opacity .15s;"></i>
                                     </div>
                                 </label>
-                                <label class="network-type-option">
-                                    <input type="radio" name="type" value="bep20">
-                                    <div class="network-type-card">
-                                        <div class="network-icon bep20">
-                                            <i class="bi bi-circle-fill"></i>
-                                        </div>
-                                        <div class="network-info">
-                                            <div class="network-name">BEP20</div>
-                                            <small class="network-desc">Binance Smart Chain</small>
-                                        </div>
-                                        <div class="network-check">
-                                            <i class="bi bi-check-circle-fill"></i>
-                                        </div>
-                                    </div>
-                                </label>
+                                @endforeach
                             </div>
-                            @error('type')
-                                <small class="text-danger">{{ $message }}</small>
-                            @enderror
+                            @error('type')<small style="color:#f04f5a;">{{ $message }}</small>@enderror
                         </div>
 
-                        <!-- Wallet Address -->
-                        <div class="mb-3">
-                            <label class="form-label text-white">Wallet Address</label>
-                            <input type="text" name="account_number" class="form-control-dark"
-                                placeholder="Masukkan wallet address" required value="{{ old('account_number') }}">
-                            <small class="text-muted d-block mt-1" style="font-size: 11px;">
-                                <i class="bi bi-info-circle me-1"></i>Pastikan address sesuai dengan network yang dipilih
-                            </small>
-                            @error('account_number')
-                                <small class="text-danger">{{ $message }}</small>
-                            @enderror
+                        {{-- Wallet Address --}}
+                        <div>
+                            <label style="font-size:12px;font-weight:600;color:#7a8fad;display:block;margin-bottom:8px;">Wallet Address</label>
+                            <input type="text" name="account_number" placeholder="Masukkan wallet address" required value="{{ old('account_number') }}"
+                                style="width:100%;background:rgba(255,255,255,.04);border:1px solid #1a2235;border-radius:10px;padding:11px 14px;font-size:13px;color:#e2eaf8;outline:none;font-family:monospace;">
+                            <div style="font-size:11px;color:#3a4d66;margin-top:5px;"><i class="bi bi-info-circle me-1"></i>Pastikan address sesuai dengan network yang dipilih</div>
+                            @error('account_number')<small style="color:#f04f5a;">{{ $message }}</small>@enderror
                         </div>
                     </div>
-                    <div class="modal-footer" style="border-top: 1px solid var(--border-color);">
-                        <button type="button" class="btn btn-outline-gold" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-gold">Simpan</button>
+                    <div class="modal-footer" style="border-top:1px solid #1a2235;padding:14px 18px;gap:8px;">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" style="background:rgba(255,255,255,.04);border:1px solid #1a2235;color:#7a8fad;border-radius:10px;padding:9px 18px;font-size:13px;">Batal</button>
+                        <button type="submit" style="background:linear-gradient(135deg,#f5a623 0%,#e08800 100%);border:none;border-radius:10px;padding:9px 22px;font-size:13px;font-weight:700;color:#080b12;cursor:pointer;">Simpan</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 
-    <!-- Modal Edit Wallet -->
+    {{-- ── MODAL EDIT WALLET ────────────────────────────── --}}
     <div class="modal fade" id="editWalletModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content" style="background-color: var(--card-dark); border: 1px solid var(--border-color);">
-                <div class="modal-header" style="border-bottom: 1px solid var(--border-color);">
-                    <h5 class="modal-title text-white">Edit Wallet</h5>
+            <div class="modal-content" style="background:#0d1120;border:1px solid #1a2235;border-radius:16px;">
+                <div class="modal-header" style="border-bottom:1px solid #1a2235;padding:16px 18px;">
+                    <h5 class="modal-title" style="color:#e2eaf8;font-size:15px;font-weight:700;">Edit Wallet</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <form id="editWalletForm" method="POST">
-                    @csrf
-                    @method('PUT')
-                    <div class="modal-body">
-                        <!-- Currency Info in Modal -->
-                        <div class="mb-3 p-3"
-                            style="background: rgba(245, 166, 35, 0.05); border-radius: 8px; border: 1px solid var(--border-color);">
-                            <div class="d-flex align-items-center gap-2">
-                                <div
-                                    style="width: 36px; height: 36px; background: rgba(245, 166, 35, 0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
-                                    <span style="color: var(--gold-color); font-size: 18px; font-weight: bold;">₮</span>
-                                </div>
-                                <div>
-                                    <p class="text-muted mb-0 small" style="font-size: 11px;">Currency</p>
-                                    <h6 class="text-white mb-0 fw-bold" style="font-size: 13px;">USDT (Tether)</h6>
-                                </div>
+                    @csrf @method('PUT')
+                    <div class="modal-body" style="padding:18px;">
+                        {{-- Currency --}}
+                        <div style="display:flex;align-items:center;gap:10px;background:rgba(245,166,35,.05);border:1px solid rgba(245,166,35,.12);border-radius:10px;padding:12px;margin-bottom:16px;">
+                            <div style="width:36px;height:36px;border-radius:10px;background:rgba(245,166,35,.10);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                <span style="color:#f5a623;font-size:17px;font-weight:700;">₮</span>
+                            </div>
+                            <div>
+                                <div style="font-size:10px;color:#3a4d66;margin-bottom:2px;">Currency</div>
+                                <div style="font-size:13px;font-weight:700;color:#e2eaf8;">USDT (Tether)</div>
                             </div>
                         </div>
 
-                        <!-- Type Selection -->
-                        <div class="mb-3">
-                            <label class="form-label text-white">Network Type</label>
-                            <div class="network-type-selector">
-                                <label class="network-type-option">
-                                    <input type="radio" name="type" value="trc20" id="edit_type_trc20">
-                                    <div class="network-type-card">
-                                        <div class="network-icon trc20">
-                                            <i class="bi bi-circle-fill"></i>
+                        {{-- Network Type --}}
+                        <div style="margin-bottom:16px;">
+                            <label style="font-size:12px;font-weight:600;color:#7a8fad;display:block;margin-bottom:8px;">Network Type</label>
+                            <div style="display:flex;flex-direction:column;gap:8px;">
+                                @foreach([['trc20','edit_type_trc20','TRC20','TRON Network','rgba(255,68,68,.12)','rgba(255,68,68,.22)','#ff4444'],['bep20','edit_type_bep20','BEP20','Binance Smart Chain','rgba(243,186,47,.12)','rgba(243,186,47,.22)','#f3ba2f']] as [$val,$id,$name,$desc,$bg,$border,$clr])
+                                <label style="cursor:pointer;margin:0;">
+                                    <input type="radio" name="type" value="{{ $val }}" id="{{ $id }}" style="display:none;" class="xa-network-radio">
+                                    <div class="xa-network-card" style="display:flex;align-items:center;gap:12px;padding:12px;background:rgba(255,255,255,.03);border:2px solid #1a2235;border-radius:10px;transition:all .15s;">
+                                        <div style="width:38px;height:38px;border-radius:10px;background:{{ $bg }};border:1px solid {{ $border }};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                            <i class="bi bi-circle-fill" style="font-size:18px;color:{{ $clr }};"></i>
                                         </div>
-                                        <div class="network-info">
-                                            <div class="network-name">TRC20</div>
-                                            <small class="network-desc">TRON Network</small>
+                                        <div style="flex:1;">
+                                            <div style="font-size:13px;font-weight:700;color:#e2eaf8;">{{ $name }}</div>
+                                            <div style="font-size:11px;color:#3a4d66;">{{ $desc }}</div>
                                         </div>
-                                        <div class="network-check">
-                                            <i class="bi bi-check-circle-fill"></i>
-                                        </div>
+                                        <i class="bi bi-check-circle-fill xa-network-check" style="font-size:18px;color:#f5a623;opacity:0;transition:opacity .15s;"></i>
                                     </div>
                                 </label>
-                                <label class="network-type-option">
-                                    <input type="radio" name="type" value="bep20" id="edit_type_bep20">
-                                    <div class="network-type-card">
-                                        <div class="network-icon bep20">
-                                            <i class="bi bi-circle-fill"></i>
-                                        </div>
-                                        <div class="network-info">
-                                            <div class="network-name">BEP20</div>
-                                            <small class="network-desc">Binance Smart Chain</small>
-                                        </div>
-                                        <div class="network-check">
-                                            <i class="bi bi-check-circle-fill"></i>
-                                        </div>
-                                    </div>
-                                </label>
+                                @endforeach
                             </div>
-                            @error('type')
-                                <small class="text-danger">{{ $message }}</small>
-                            @enderror
+                            @error('type')<small style="color:#f04f5a;">{{ $message }}</small>@enderror
                         </div>
 
-                        <!-- Wallet Address -->
-                        <div class="mb-3">
-                            <label class="form-label text-white">Wallet Address</label>
-                            <input type="text" name="account_number" id="edit_account_number"
-                                class="form-control-dark" placeholder="Masukkan wallet address" required>
-                            <small class="text-muted d-block mt-1" style="font-size: 11px;">
-                                <i class="bi bi-info-circle me-1"></i>Pastikan address sesuai dengan network yang dipilih
-                            </small>
-                            @error('account_number')
-                                <small class="text-danger">{{ $message }}</small>
-                            @enderror
+                        {{-- Wallet Address --}}
+                        <div>
+                            <label style="font-size:12px;font-weight:600;color:#7a8fad;display:block;margin-bottom:8px;">Wallet Address</label>
+                            <input type="text" name="account_number" id="edit_account_number" placeholder="Masukkan wallet address" required
+                                style="width:100%;background:rgba(255,255,255,.04);border:1px solid #1a2235;border-radius:10px;padding:11px 14px;font-size:13px;color:#e2eaf8;outline:none;font-family:monospace;">
+                            <div style="font-size:11px;color:#3a4d66;margin-top:5px;"><i class="bi bi-info-circle me-1"></i>Pastikan address sesuai dengan network yang dipilih</div>
+                            @error('account_number')<small style="color:#f04f5a;">{{ $message }}</small>@enderror
                         </div>
                     </div>
-                    <div class="modal-footer" style="border-top: 1px solid var(--border-color);">
-                        <button type="button" class="btn btn-outline-gold" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-gold">Update</button>
+                    <div class="modal-footer" style="border-top:1px solid #1a2235;padding:14px 18px;gap:8px;">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" style="background:rgba(255,255,255,.04);border:1px solid #1a2235;color:#7a8fad;border-radius:10px;padding:9px 18px;font-size:13px;">Batal</button>
+                        <button type="submit" style="background:linear-gradient(135deg,#f5a623 0%,#e08800 100%);border:none;border-radius:10px;padding:9px 22px;font-size:13px;font-weight:700;color:#080b12;cursor:pointer;">Update</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
+
     <style>
-        /* Transaction Tabs */
-        .transaction-tabs {
-            display: flex;
-            border-bottom: 1px solid var(--border-color);
-            background: rgba(245, 166, 35, 0.03);
+        /* Tab active state */
+        .xa-tab.active { color: #f5a623 !important; background: rgba(245,166,35,.06) !important; }
+        .xa-tab:not(.active) .xa-tab-line { display: none; }
+
+        /* Transaction list show/hide */
+        .xa-list { display: none; }
+        .xa-list.active { display: block; }
+
+        /* Status badge */
+        .xa-status {
+            display: inline-block; padding: 2px 7px; border-radius: 5px;
+            font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .3px;
         }
+        .xa-status.pending  { background: rgba(245,166,35,.12); color: #f5a623; border: 1px solid rgba(245,166,35,.25); }
+        .xa-status.approved { background: rgba(100,160,255,.12); color: #64a0ff; border: 1px solid rgba(100,160,255,.25); }
+        .xa-status.completed{ background: rgba(0,212,138,.12); color: #00d48a; border: 1px solid rgba(0,212,138,.25); }
+        .xa-status.rejected { background: rgba(240,79,90,.12); color: #f04f5a; border: 1px solid rgba(240,79,90,.25); }
 
-        .transaction-tab {
-            flex: 1;
-            padding: 12px 8px;
-            background: transparent;
-            border: none;
-            color: var(--text-muted);
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 4px;
+        /* Network card selected */
+        .xa-network-radio:checked ~ .xa-network-card {
+            background: rgba(245,166,35,.08) !important;
+            border-color: rgba(245,166,35,.40) !important;
         }
-
-        .transaction-tab:hover {
-            background: rgba(245, 166, 35, 0.05);
-            color: var(--gold-color);
-        }
-
-        .transaction-tab.active {
-            color: var(--gold-color);
-            background: rgba(245, 166, 35, 0.1);
-        }
-
-        .transaction-tab.active::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: var(--gold-color);
-        }
-
-        .tab-count {
-            background: rgba(245, 166, 35, 0.2);
-            border: 1px solid rgba(245, 166, 35, 0.3);
-            padding: 2px 6px;
-            border-radius: 8px;
-            font-size: 10px;
-            font-weight: 700;
-        }
-
-        .transaction-tab.active .tab-count {
-            background: var(--gold-color);
-            border-color: var(--gold-color);
-            color: #000;
-        }
-
-        /* Transaction List */
-        .transaction-list {
-            display: none;
-        }
-
-        .transaction-list.active {
-            display: block;
-        }
-
-        /* Transaction Item */
-        .transaction-item {
-            padding: 14px 16px;
-            border-bottom: 1px solid var(--border-color);
-            transition: background-color 0.2s ease;
-        }
-
-        .transaction-item:hover {
-            background-color: rgba(245, 166, 35, 0.05);
-        }
-
-        .transaction-item:last-child {
-            border-bottom: none;
-        }
-
-        /* Transaction Icon Wrapper */
-        .transaction-icon-wrapper {
-            width: 40px;
-            height: 40px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 1px solid;
-            flex-shrink: 0;
-        }
-
-        .transaction-icon-wrapper i {
-            font-size: 20px;
-        }
-
-        .transaction-icon-wrapper.deposit {
-            background: rgba(40, 167, 69, 0.15);
-            border-color: rgba(40, 167, 69, 0.3);
-        }
-
-        .transaction-icon-wrapper.deposit i {
-            color: #28a745;
-        }
-
-        .transaction-icon-wrapper.withdrawal {
-            background: rgba(245, 166, 35, 0.15);
-            border-color: rgba(245, 166, 35, 0.3);
-        }
-
-        .transaction-icon-wrapper.withdrawal i {
-            color: var(--gold-color);
-        }
-
-        .transaction-icon-wrapper.commission {
-            background: rgba(138, 43, 226, 0.15);
-            border-color: rgba(138, 43, 226, 0.3);
-        }
-
-        .transaction-icon-wrapper.commission i {
-            color: #8a2be2;
-        }
-
-        /* Status Badge Mini */
-        .status-badge-mini {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 10px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-        }
-
-        .status-badge-mini.pending {
-            background: rgba(255, 193, 7, 0.15);
-            color: #ffc107;
-            border: 1px solid rgba(255, 193, 7, 0.3);
-        }
-
-        .status-badge-mini.approved {
-            background: rgba(59, 181, 232, 0.15);
-            color: var(--blue-color);
-            border: 1px solid rgba(59, 181, 232, 0.3);
-        }
-
-        .status-badge-mini.completed {
-            background: rgba(40, 167, 69, 0.15);
-            color: #28a745;
-            border: 1px solid rgba(40, 167, 69, 0.3);
-        }
-
-        .status-badge-mini.rejected {
-            background: rgba(220, 53, 69, 0.15);
-            color: #dc3545;
-            border: 1px solid rgba(220, 53, 69, 0.3);
-        }
-
-        /* Empty Transaction State */
-        .empty-transaction-state {
-            padding: 40px 20px;
-            text-align: center;
-        }
-
-        .empty-transaction-state i {
-            font-size: 48px;
-            color: var(--text-muted);
-            opacity: 0.4;
-            margin-bottom: 12px;
-            display: block;
-        }
-
-        .empty-transaction-state p {
-            font-size: 13px;
-        }
-
-        /* Responsive */
-        @media (max-width: 375px) {
-            .transaction-tab {
-                padding: 10px 6px;
-                font-size: 11px;
-            }
-
-            .transaction-tab i {
-                font-size: 12px;
-            }
-
-            .tab-count {
-                font-size: 9px;
-                padding: 1px 5px;
-            }
-
-            .transaction-icon-wrapper {
-                width: 36px;
-                height: 36px;
-            }
-
-            .transaction-icon-wrapper i {
-                font-size: 18px;
-            }
-        }
-
-        /* Wallet Type Badge */
-        .wallet-type-badge {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 9px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .wallet-type-badge.trc20 {
-            background: rgba(255, 0, 0, 0.15);
-            color: #ff4444;
-            border: 1px solid rgba(255, 0, 0, 0.3);
-        }
-
-        .wallet-type-badge.bep20 {
-            background: rgba(243, 186, 47, 0.15);
-            color: #f3ba2f;
-            border: 1px solid rgba(243, 186, 47, 0.3);
-        }
-
-        /* Bank Icon dengan Color Type */
-        .bank-icon-circle.trc20 {
-            background: rgba(255, 0, 0, 0.1);
-            border-color: rgba(255, 0, 0, 0.3);
-        }
-
-        .bank-icon-circle.trc20 i {
-            color: #ff4444;
-        }
-
-        .bank-icon-circle.bep20 {
-            background: rgba(243, 186, 47, 0.1);
-            border-color: rgba(243, 186, 47, 0.3);
-        }
-
-        .bank-icon-circle.bep20 i {
-            color: #f3ba2f;
-        }
-
-        /* Network Type Selector */
-        .network-type-selector {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .network-type-option {
-            cursor: pointer;
-            margin: 0;
-        }
-
-        .network-type-option input[type="radio"] {
-            display: none;
-        }
-
-        .network-type-card {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px;
-            background: rgba(255, 255, 255, 0.03);
-            border: 2px solid var(--border-color);
-            border-radius: 8px;
-            transition: all 0.2s ease;
-        }
-
-        .network-type-option:hover .network-type-card {
-            background: rgba(245, 166, 35, 0.05);
-            border-color: rgba(245, 166, 35, 0.3);
-        }
-
-        .network-type-option input[type="radio"]:checked~.network-type-card {
-            background: rgba(245, 166, 35, 0.1);
-            border-color: var(--gold-color);
-        }
-
-        .network-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
-
-        .network-icon i {
-            font-size: 20px;
-        }
-
-        .network-icon.trc20 {
-            background: rgba(255, 0, 0, 0.15);
-            border: 1px solid rgba(255, 0, 0, 0.3);
-        }
-
-        .network-icon.trc20 i {
-            color: #ff4444;
-        }
-
-        .network-icon.bep20 {
-            background: rgba(243, 186, 47, 0.15);
-            border: 1px solid rgba(243, 186, 47, 0.3);
-        }
-
-        .network-icon.bep20 i {
-            color: #f3ba2f;
-        }
-
-        .network-info {
-            flex-grow: 1;
-        }
-
-        .network-name {
-            color: var(--text-white);
-            font-weight: 600;
-            font-size: 14px;
-            margin-bottom: 2px;
-        }
-
-        .network-desc {
-            color: var(--text-muted);
-            font-size: 11px;
-        }
-
-        .network-check {
-            opacity: 0;
-            transition: opacity 0.2s ease;
-        }
-
-        .network-check i {
-            font-size: 20px;
-            color: var(--gold-color);
-        }
-
-        .network-type-option input[type="radio"]:checked~.network-type-card .network-check {
-            opacity: 1;
-        }
+        .xa-network-radio:checked ~ .xa-network-card .xa-network-check { opacity: 1 !important; }
     </style>
 
     <script>
-        // Switch transaction tabs
         function switchTransactionTab(type) {
-            // Update active tab
-            document.querySelectorAll('.transaction-tab').forEach(tab => {
-                tab.classList.remove('active');
+            document.querySelectorAll('.xa-tab').forEach(t => {
+                t.classList.remove('active');
+                t.style.color = '#3a4d66';
+                const line = t.querySelector('.xa-tab-line');
+                if (line) line.style.display = 'none';
+                const count = t.querySelector('span:last-child');
+                if (count) { count.style.background = 'rgba(255,255,255,.06)'; count.style.color = '#3a4d66'; }
             });
-            event.target.closest('.transaction-tab').classList.add('active');
+            document.querySelectorAll('.xa-list').forEach(l => l.classList.remove('active'));
 
-            // Show corresponding list
-            document.querySelectorAll('.transaction-list').forEach(list => {
-                list.classList.remove('active');
-            });
+            const activeTab = event.target.closest('.xa-tab');
+            activeTab.classList.add('active');
+            activeTab.style.color = '#f5a623';
+            const line = activeTab.querySelector('.xa-tab-line');
+            if (line) line.style.display = 'block';
+            const count = activeTab.querySelector('span:last-child');
+            if (count) { count.style.background = '#f5a623'; count.style.color = '#080b12'; }
             document.getElementById(type + '-list').classList.add('active');
         }
 
         function openEditModal(id, type, accountNumber) {
             document.getElementById('editWalletForm').action = "{{ url('member/wallet') }}/" + id;
             document.getElementById('edit_account_number').value = accountNumber;
-
-            // Set radio button type
-            if (type === 'trc20') {
-                document.getElementById('edit_type_trc20').checked = true;
-            } else {
-                document.getElementById('edit_type_bep20').checked = true;
-            }
-
-            var editModal = new bootstrap.Modal(document.getElementById('editWalletModal'));
-            editModal.show();
+            document.getElementById('edit_type_trc20').checked = type === 'trc20';
+            document.getElementById('edit_type_bep20').checked = type === 'bep20';
+            // Update check icon visibility
+            document.querySelectorAll('#editWalletModal .xa-network-radio').forEach(r => {
+                const check = r.nextElementSibling.querySelector('.xa-network-check');
+                if (check) check.style.opacity = r.checked ? '1' : '0';
+            });
+            new bootstrap.Modal(document.getElementById('editWalletModal')).show();
         }
 
-        // Auto hide alerts after 5 seconds
-        setTimeout(function() {
-            var alerts = document.querySelectorAll('.alert');
-            alerts.forEach(function(alert) {
-                var bsAlert = new bootstrap.Alert(alert);
-                bsAlert.close();
+        // Network radio visual update
+        document.querySelectorAll('.xa-network-radio').forEach(radio => {
+            radio.addEventListener('change', function() {
+                const form = this.closest('form, .modal-body');
+                form.querySelectorAll('.xa-network-radio').forEach(r => {
+                    const check = r.nextElementSibling.querySelector('.xa-network-check');
+                    if (check) check.style.opacity = r.checked ? '1' : '0';
+                });
             });
+        });
+
+        setTimeout(function() {
+            document.querySelectorAll('.alert').forEach(a => { try { new bootstrap.Alert(a).close(); } catch(e){} });
         }, 5000);
     </script>
 @endsection

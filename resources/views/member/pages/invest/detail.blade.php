@@ -3,353 +3,267 @@
     <div class="scrollable-content">
         <div class="content-section">
 
+            {{-- ── SESSION ALERTS ───────────────────────────────── --}}
             @if (session('success'))
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                <div style="background:rgba(0,212,138,.08);border:1px solid rgba(0,212,138,.25);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+                    <i class="bi bi-check-circle-fill" style="color:#00d48a;font-size:15px;flex-shrink:0;"></i>
+                    <span style="font-size:13px;color:#00d48a;">{{ session('success') }}</span>
                 </div>
             @endif
-
             @if (session('error'))
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <i class="bi bi-exclamation-circle me-2"></i>{{ session('error') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                <div style="background:rgba(240,79,90,.08);border:1px solid rgba(240,79,90,.25);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+                    <i class="bi bi-exclamation-circle-fill" style="color:#f04f5a;font-size:15px;flex-shrink:0;"></i>
+                    <span style="font-size:13px;color:#f04f5a;">{{ session('error') }}</span>
                 </div>
             @endif
 
+            {{-- ── BACK BUTTON ──────────────────────────────────── --}}
             <div class="mb-3">
-                <a href="{{ route('member.invest.index') }}" class="btn-back">
-                    <i class="bi bi-arrow-left me-2"></i>Back to Signals
+                <a href="{{ route('member.invest.index') }}" style="display:inline-flex;align-items:center;gap:7px;background:#0d1120;border:1px solid #1a2235;border-radius:10px;padding:8px 14px;text-decoration:none;color:#7a8fad;font-size:13px;transition:color .15s;" onmouseover="this.style.color='#e2eaf8'" onmouseout="this.style.color='#7a8fad'">
+                    <i class="bi bi-arrow-left"></i> Back to Signals
                 </a>
             </div>
 
-            <div class="card-dark shadow-sm p-3 mb-3">
-                <div class="row g-3">
-                    <div class="col-4">
-                        <p class="text-muted mb-1 small">Trade Balance</p>
-                        <h6 class="text-white mb-0 fw-bold">$ {{ number_format(auth()->user()->trade_balance, 2) }}</h6>
+            {{-- ── BALANCE SUMMARY ──────────────────────────────── --}}
+            <div class="mb-3" style="background:linear-gradient(135deg,#0f1c2e 0%,#0d1420 60%,#0a1118 100%);border:1px solid #1a2235;border-radius:20px;padding:16px;position:relative;overflow:hidden;">
+                <div style="position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(rgba(0,212,138,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,138,.025) 1px,transparent 1px);background-size:28px 28px;"></div>
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;position:relative;">
+                    <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:10px 10px 8px;">
+                        <div style="font-size:9px;color:#3a4d66;letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px;">Trade</div>
+                        <div style="font-family:monospace;font-size:13px;font-weight:700;color:#e2eaf8;">$&nbsp;{{ number_format(auth()->user()->trade_balance, 2) }}</div>
                     </div>
-                    <div class="col-4">
-                        <p class="text-muted mb-1 small">Available</p>
-                        <h6 class="text-success mb-0 fw-bold">$
-                            {{ number_format(auth()->user()->getAvailableTradeBalance(), 2) }}</h6>
+                    <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:10px 10px 8px;">
+                        <div style="font-size:9px;color:#3a4d66;letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px;">Available</div>
+                        <div style="font-family:monospace;font-size:13px;font-weight:700;color:#00d48a;">$&nbsp;{{ number_format(auth()->user()->getAvailableTradeBalance(), 2) }}</div>
                     </div>
-                    <div class="col-4">
-                        <p class="text-muted mb-1 small">Locked</p>
-                        <h6 class="text-warning mb-0 fw-bold">$ {{ number_format(auth()->user()->locked_balance, 2) }}</h6>
+                    <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:10px 10px 8px;">
+                        <div style="font-size:9px;color:#3a4d66;letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px;">Locked</div>
+                        <div style="font-family:monospace;font-size:13px;font-weight:700;color:#f5a623;">$&nbsp;{{ number_format(auth()->user()->locked_balance, 2) }}</div>
                     </div>
                 </div>
             </div>
 
-            @php
-                // Check if signal is pending or has null values
-                $isPending = $signal->result === 'pending' || $signal->result === null;
-            @endphp
+            @php $isPending = $signal->result === 'pending' || $signal->result === null; @endphp
 
-            <div class="card-dark shadow-sm p-3 mb-3">
-                <div class="d-flex align-items-center gap-3 mb-3">
-                    <div class="coin-icon-large" style="background: linear-gradient(135deg, #f5a623 0%, #f7b733 100%);">
-                        <i class="bi bi-broadcast"></i>
+            {{-- ── SIGNAL HEADER CARD ───────────────────────────── --}}
+            <div class="mb-3" style="background:linear-gradient(135deg,#0f1c2e 0%,#0d1420 60%,#0a1118 100%);border:1px solid #1a2235;border-radius:20px;padding:16px;position:relative;overflow:hidden;">
+                <div style="position:absolute;top:-25px;right:-25px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(245,166,35,.10) 0%,transparent 65%);pointer-events:none;"></div>
+
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;position:relative;">
+                    <div style="width:44px;height:44px;border-radius:13px;background:linear-gradient(135deg,#f5a623 0%,#e08800 100%);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                        <i class="bi bi-broadcast" style="font-size:20px;color:#fff;"></i>
                     </div>
-                    <div class="flex-grow-1">
-                        <h5 class="text-white mb-1 fw-bold">{{ $signal->title }}</h5>
-                        <small class="text-muted">Trading Signal</small>
+                    <div style="flex:1;min-width:0;">
+                        <div style="font-size:15px;font-weight:700;color:#e2eaf8;margin-bottom:2px;">{{ $signal->title }}</div>
+                        <div style="font-size:11px;color:#3a4d66;">Trading Signal</div>
                     </div>
                     @if ($signal->status === 'open')
-                        <span class="badge badge-success">
-                            <i class="bi bi-circle-fill" style="font-size: 6px;"></i> OPEN
+                        <span style="display:inline-flex;align-items:center;gap:4px;background:rgba(0,212,138,.10);border:1px solid rgba(0,212,138,.20);border-radius:99px;padding:4px 10px;font-size:10px;font-weight:700;color:#00d48a;flex-shrink:0;">
+                            <span style="width:5px;height:5px;border-radius:50%;background:#00d48a;animation:xi-blink 1.6s infinite;"></span> OPEN
                         </span>
                     @elseif($signal->status === 'closed')
-                        <span class="badge badge-warning">
-                            <i class="bi bi-circle-fill" style="font-size: 6px;"></i> CLOSED
-                        </span>
+                        <span style="display:inline-flex;align-items:center;gap:4px;background:rgba(245,166,35,.10);border:1px solid rgba(245,166,35,.20);border-radius:99px;padding:4px 10px;font-size:10px;font-weight:700;color:#f5a623;flex-shrink:0;">CLOSED</span>
                     @else
-                        <span class="badge badge-secondary">SETTLED</span>
+                        <span style="display:inline-flex;align-items:center;gap:4px;background:rgba(122,143,173,.10);border:1px solid rgba(122,143,173,.20);border-radius:99px;padding:4px 10px;font-size:10px;font-weight:700;color:#7a8fad;flex-shrink:0;">SETTLED</span>
                     @endif
                 </div>
 
                 @if ($signal->description)
-                    <div class="mb-3">
-                        <p class="text-muted small mb-0">{{ $signal->description }}</p>
-                    </div>
+                    <div style="font-size:12px;color:#7a8fad;margin-bottom:14px;line-height:1.5;">{{ $signal->description }}</div>
                 @endif
 
-                <div class="d-flex align-items-end justify-content-between">
-                    <div class="row g-3 flex-grow-1">
-                        <div class="col-6">
-                            <p class="text-muted mb-1 small">Opening Price</p>
-                            <h6 class="text-gold mb-0 fw-bold">
-                                @if ($isPending || !$signal->entry_price)
-                                    ~
-                                @else
-                                    $ {{ number_format($signal->entry_price, 2) }}
-                                @endif
-                            </h6>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                    <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:10px 12px;">
+                        <div style="font-size:9px;color:#3a4d66;letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px;">Opening Price</div>
+                        <div style="font-family:monospace;font-size:14px;font-weight:700;color:#f5a623;">
+                            @if ($isPending || !$signal->entry_price) ~ @else ${{ number_format($signal->entry_price, 2) }} @endif
                         </div>
-                        <div class="col-6">
-                            <p class="text-muted mb-1 small">Settlement Price</p>
-                            <h6 class="text-success mb-0 fw-bold">
-                                @if ($isPending || !$signal->target_price)
-                                    ~
-                                @else
-                                    $ {{ number_format($signal->target_price, 2) }}
-                                @endif
-                            </h6>
+                    </div>
+                    <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:10px 12px;">
+                        <div style="font-size:9px;color:#3a4d66;letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px;">Settlement Price</div>
+                        <div style="font-family:monospace;font-size:14px;font-weight:700;color:#00d48a;">
+                            @if ($isPending || !$signal->target_price) ~ @else ${{ number_format($signal->target_price, 2) }} @endif
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="card-dark shadow-sm p-3 mb-3">
-                <div class="d-flex align-items-center justify-content-between mb-3">
-                    <h6 class="text-white mb-0">{{ $signal->getCoinInfo()['name'] }} Chart</h6>
-                    <div class="chart-timeframe-pills">
-                        <button class="timeframe-pill active" data-interval="60">1H</button>
-                        <button class="timeframe-pill" data-interval="D">1D</button>
-                        <button class="timeframe-pill" data-interval="W">1W</button>
+            {{-- ── CHART ────────────────────────────────────────── --}}
+            <div class="mb-3" style="background:#0d1120;border:1px solid #1a2235;border-radius:20px;overflow:hidden;">
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px 13px;border-bottom:1px solid #1a2235;">
+                    <span style="font-size:13px;font-weight:700;color:#e2eaf8;">{{ $signal->getCoinInfo()['name'] }} Chart</span>
+                    <div style="display:flex;gap:4px;">
+                        <button class="xc-tf active" data-interval="60">1H</button>
+                        <button class="xc-tf" data-interval="D">1D</button>
+                        <button class="xc-tf" data-interval="W">1W</button>
                     </div>
                 </div>
-
-                <div class="chart-container" style="height: 400px;">
+                <div style="height:400px;padding:12px;">
                     <iframe id="tradingViewChart"
                         src="https://www.tradingview.com/widgetembed/?symbol={{ $signal->getTradingViewSymbol() }}&interval=60&theme=dark&style=1&locale=en&toolbar_bg=1d2058&hidesidetoolbar=1&hidetoptoolbar=1&symboledit=0&saveimage=0&withdateranges=0&hide_legend=0&allow_symbol_change=0&details=0&calendar=0&show_popup_button=0&studies=%5B%5D"
-                        style="width: 100%; height: 100%; border: none; border-radius: 8px;" frameborder="0"
-                        allowtransparency="true" scrolling="no">
+                        style="width:100%;height:100%;border:none;border-radius:10px;" frameborder="0" allowtransparency="true" scrolling="no">
                     </iframe>
                 </div>
             </div>
 
+            {{-- ── YOUR PARTICIPATION ───────────────────────────── --}}
             @if ($hasJoined)
-                <div class="card-dark shadow-sm p-3 mb-3">
-                    <h6 class="text-white mb-3">
-                        <i class="bi bi-check-circle text-success me-2"></i>Your Participation
-                    </h6>
-                    <div class="row g-3">
-                        <div class="col-6">
-                            <p class="text-muted mb-1 small">Bet Amount</p>
-                            <h6 class="text-white mb-0 fw-bold">$ {{ number_format($participant->bet_amount, 2) }}</h6>
+                <div class="mb-3" style="background:#0d1120;border:1px solid #1a2235;border-radius:20px;overflow:hidden;">
+                    <div style="display:flex;align-items:center;gap:8px;padding:14px 16px 13px;border-bottom:1px solid #1a2235;">
+                        <i class="bi bi-check-circle-fill" style="color:#00d48a;font-size:14px;"></i>
+                        <span style="font-size:13px;font-weight:700;color:#e2eaf8;">Your Participation</span>
+                    </div>
+                    <div style="padding:14px 16px;display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                        <div>
+                            <div style="font-size:10px;color:#3a4d66;letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px;">Bet Amount</div>
+                            <div style="font-family:monospace;font-size:14px;font-weight:700;color:#e2eaf8;">$&nbsp;{{ number_format($participant->bet_amount, 2) }}</div>
                         </div>
-                        <div class="col-6">
-                            <p class="text-muted mb-1 small">Status</p>
+                        <div>
+                            <div style="font-size:10px;color:#3a4d66;letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px;">Status</div>
                             @if ($participant->status === 'joined')
-                                <span class="badge badge-warning">
-                                    <i class="bi bi-clock me-1"></i>Waiting Settlement
+                                <span style="display:inline-flex;align-items:center;gap:5px;background:rgba(245,166,35,.10);border:1px solid rgba(245,166,35,.20);border-radius:8px;padding:4px 10px;font-size:11px;font-weight:700;color:#f5a623;">
+                                    <i class="bi bi-clock"></i> Waiting
                                 </span>
                             @else
-                                <span class="badge badge-success">
-                                    <i class="bi bi-check-circle me-1"></i>Settled
+                                <span style="display:inline-flex;align-items:center;gap:5px;background:rgba(0,212,138,.10);border:1px solid rgba(0,212,138,.20);border-radius:8px;padding:4px 10px;font-size:11px;font-weight:700;color:#00d48a;">
+                                    <i class="bi bi-check-circle"></i> Settled
                                 </span>
                             @endif
                         </div>
                     </div>
 
                     @if ($participant->status === 'settled')
-                        <div class="mt-3 pt-3" style="border-top: 1px solid var(--border-color);">
-                            <div class="row g-3">
-                                <div class="col-12">
-                                    <p class="text-muted mb-1 small">Your Reward</p>
-                                    <h6 class="text-success mb-0 fw-bold">
-                                        + $ {{ number_format($participant->profit_loss, 2) }}
-                                    </h6>
-                                    <small class="text-muted">You received
-                                        {{ number_format(($participant->profit_loss / $participant->bet_amount) * 100, 2) }}%
-                                        reward</small>
+                        <div style="margin:0 16px 14px;padding-top:12px;border-top:1px solid #1a2235;">
+                            <div style="font-size:10px;color:#3a4d66;letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px;">Your Reward</div>
+                            <div style="font-family:monospace;font-size:18px;font-weight:700;color:#00d48a;">+$&nbsp;{{ number_format($participant->profit_loss, 2) }}</div>
+                            <div style="font-size:11px;color:#3a4d66;margin-top:2px;">You received {{ number_format(($participant->profit_loss / $participant->bet_amount) * 100, 2) }}% reward</div>
+                        </div>
+                    @endif
+                </div>
+            @endif
+
+            {{-- ── BET CALCULATION ──────────────────────────────── --}}
+            @if (!$hasJoined && $signal->status === 'open')
+                <div class="mb-3" style="background:#0d1120;border:1px solid #1a2235;border-radius:20px;overflow:hidden;">
+                    <div style="padding:14px 16px 13px;border-bottom:1px solid #1a2235;">
+                        <span style="font-size:13px;font-weight:700;color:#e2eaf8;">Your Bet Calculation</span>
+                    </div>
+                    <div style="padding:14px 16px;display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                        <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:10px 12px;">
+                            <div style="font-size:9px;color:#3a4d66;letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px;">Trade Balance</div>
+                            <div style="font-family:monospace;font-size:14px;font-weight:700;color:#e2eaf8;">$&nbsp;{{ number_format(auth()->user()->trade_balance, 2) }}</div>
+                        </div>
+                        <div style="background:rgba(245,166,35,.06);border:1px solid rgba(245,166,35,.15);border-radius:10px;padding:10px 12px;">
+                            <div style="font-size:9px;color:#3a4d66;letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px;">Your Bet Amount</div>
+                            <div style="font-family:monospace;font-size:14px;font-weight:700;color:#f5a623;">$&nbsp;{{ number_format($betAmountPreview, 2) }}</div>
+                        </div>
+                    </div>
+                    @if ($signal->bet_type != 'percentage')
+                        <div style="margin:0 16px 14px;background:rgba(100,160,255,.07);border:1px solid rgba(100,160,255,.18);border-radius:10px;padding:10px 12px;font-size:12px;color:#64a0ff;">
+                            <i class="bi bi-info-circle me-2"></i>
+                            <strong>Fixed Bet:</strong> All participants bet exactly {{ number_format($signal->bet_value, 2) }} USDT regardless of balance
+                        </div>
+                    @endif
+                </div>
+            @endif
+
+            {{-- ── SIGNAL STATISTICS ────────────────────────────── --}}
+            <div class="mb-3" style="background:#0d1120;border:1px solid #1a2235;border-radius:20px;overflow:hidden;">
+                <div style="padding:14px 16px 13px;border-bottom:1px solid #1a2235;">
+                    <span style="font-size:13px;font-weight:700;color:#e2eaf8;">Signal Statistics</span>
+                </div>
+                <div style="padding:14px 16px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                        <span style="font-size:12px;color:#3a4d66;">Opened</span>
+                        <span style="font-size:12px;font-family:monospace;color:#e2eaf8;">
+                            @if ($signal->opened_at) {{ $signal->opened_at->format('H:i') }} @else ~ @endif
+                        </span>
+                    </div>
+
+                    @if ($signal->status !== 'open')
+                        <div style="border-top:1px solid #1a2235;padding-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                            <div>
+                                <div style="font-size:10px;color:#3a4d66;letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px;">Result</div>
+                                @if ($signal->result === 'win')
+                                    <span style="display:inline-flex;align-items:center;gap:4px;background:rgba(0,212,138,.10);border:1px solid rgba(0,212,138,.20);border-radius:8px;padding:4px 10px;font-size:11px;font-weight:700;color:#00d48a;">
+                                        <i class="bi bi-arrow-up"></i> WIN (CALL)
+                                    </span>
+                                @elseif($signal->result === 'loss')
+                                    <span style="display:inline-flex;align-items:center;gap:4px;background:rgba(240,79,90,.10);border:1px solid rgba(240,79,90,.20);border-radius:8px;padding:4px 10px;font-size:11px;font-weight:700;color:#f04f5a;">
+                                        <i class="bi bi-arrow-down"></i> LOSS (PUT)
+                                    </span>
+                                @else
+                                    <span style="display:inline-flex;align-items:center;gap:4px;background:rgba(245,166,35,.10);border:1px solid rgba(245,166,35,.20);border-radius:8px;padding:4px 10px;font-size:11px;font-weight:700;color:#f5a623;">
+                                        <i class="bi bi-clock"></i> PENDING
+                                    </span>
+                                @endif
+                            </div>
+                            <div>
+                                <div style="font-size:10px;color:#3a4d66;letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px;">Win Rate</div>
+                                <div style="font-family:monospace;font-size:16px;font-weight:700;color:#f5a623;">
+                                    @if ($isPending || !$signal->rate_of_return) ~ @else {{ number_format($signal->rate_of_return, 2) }}% @endif
                                 </div>
                             </div>
                         </div>
                     @endif
                 </div>
-            @endif
-
-            <!-- REPLACE "Your Bet Calculation" CARD IN detail.blade.php -->
-
-            @if (!$hasJoined && $signal->status === 'open')
-                <div class="card-dark shadow-sm p-3 mb-3">
-                    <h6 class="text-white mb-3">Your Bet Calculation</h6>
-
-                    <!-- Signal Bet Configuration -->
-                    <div class="row g-3 mb-3">
-                        {{-- <div class="col-6">
-                            <p class="text-muted mb-1 small">Signal Bet Type</p>
-                            @if ($signal->bet_type == 'percentage')
-                                <span class="badge badge-light-primary">{{ number_format($signal->bet_value, 2) }}% of
-                                    Balance</span>
-                            @else
-                                <span class="badge badge-light-info">{{ number_format($signal->bet_value, 2) }} USDT
-                                    Fixed</span>
-                            @endif
-                        </div> --}}
-                        {{-- <div class="col-6">
-                            <p class="text-muted mb-1 small">Signal Access</p>
-                            @if ($signal->is_public)
-                                <span class="badge badge-light-success">
-                                    <i class="bi bi-people"></i> Public
-                                </span>
-                            @else
-                                <span class="badge badge-light-warning">
-                                    <i class="bi bi-lock"></i> Private
-                                </span>
-                            @endif
-                        </div> --}}
-                    </div>
-
-                    <!-- Your Bet Preview -->
-                    <div class="row g-3 mb-3">
-                        <div class="col-6">
-                            <p class="text-muted mb-1 small">Your Trade Balance</p>
-                            <h6 class="text-white mb-0 fw-bold">$ {{ number_format(auth()->user()->trade_balance, 2) }}
-                            </h6>
-                        </div>
-                        <div class="col-6">
-                            <p class="text-muted mb-1 small">Your Bet Amount</p>
-                            <h6 class="text-gold mb-0 fw-bold">$ {{ number_format($betAmountPreview, 2) }}</h6>
-                        </div>
-                    </div>
-
-                    <!-- Calculation Explanation -->
-                    @if ($signal->bet_type == 'percentage')
-                        {{-- <div class="alert"
-                            style="background-color: rgba(59, 130, 246, 0.1); border: 1px solid #3b82f6; color: #60a5fa; font-size: 11px;">
-                            <i class="bi bi-calculator me-2"></i>
-                            <strong>Calculation:</strong> Your bet = {{ number_format(auth()->user()->trade_balance, 2) }}
-                            × {{ number_format($signal->bet_value, 2) }}% = {{ number_format($betAmountPreview, 2) }} USDT
-                        </div> --}}
-                    @else
-                        <div class="alert"
-                            style="background-color: rgba(59, 130, 246, 0.1); border: 1px solid #3b82f6; color: #60a5fa; font-size: 11px;">
-                            <i class="bi bi-info-circle me-2"></i>
-                            <strong>Fixed Bet:</strong> All participants bet exactly
-                            {{ number_format($signal->bet_value, 2) }} USDT regardless of balance
-                        </div>
-                    @endif
-
-                    {{-- <div class="alert"
-                        style="background-color: rgba(34, 197, 94, 0.1); border: 1px solid #22c55e; color: #22c55e; font-size: 12px;">
-                        <i class="bi bi-info-circle me-2"></i>
-                        <strong>Good news!</strong> You will always receive rewards based on the win rate. No losses, no
-                        fees! Your bet is just locked temporarily for volume tracking.
-                    </div> --}}
-                </div>
-            @endif
-
-            <div class="card-dark shadow-sm p-3 mb-3">
-                <h6 class="text-white mb-3">Signal Statistics</h6>
-                <div class="row g-3">
-                    {{-- <div class="col-6">
-                        <p class="text-muted mb-1 small">Total Bets</p>
-                        <h6 class="text-white mb-0 fw-bold">$ {{ number_format($signal->total_bet_amount, 2) }}</h6>
-                    </div> --}}
-                    <div class="col-6">
-                        <p class="text-muted mb-1 small">Opened</p>
-                        <h6 class="text-white mb-0 fw-bold">
-                            @if ($signal->opened_at)
-                                {{ $signal->opened_at->format('H:i') }}
-                            @else
-                                ~
-                            @endif
-                        </h6>
-                    </div>
-                </div>
-
-                @if ($signal->status !== 'open')
-                    <div class="mt-3 pt-3" style="border-top: 1px solid var(--border-color);">
-                        <div class="row g-3">
-                            <div class="col-6">
-                                <p class="text-muted mb-1 small">Result</p>
-                                @if ($signal->result === 'win')
-                                    <span class="badge badge-success">
-                                        <i class="bi bi-arrow-up me-1"></i>WIN (CALL)
-                                    </span>
-                                @elseif($signal->result === 'loss')
-                                    <span class="badge badge-danger">
-                                        <i class="bi bi-arrow-down me-1"></i>LOSS (PUT)
-                                    </span>
-                                @else
-                                    <span class="badge badge-warning">
-                                        <i class="bi bi-clock me-1"></i>PENDING
-                                    </span>
-                                @endif
-                            </div>
-                            <div class="col-6">
-                                <p class="text-muted mb-1 small">Win Rate</p>
-                                <h6 class="text-gold mb-0 fw-bold">
-                                    @if ($isPending || !$signal->rate_of_return)
-                                        ~
-                                    @else
-                                        {{ number_format($signal->rate_of_return, 2) }}%
-                                    @endif
-                                </h6>
-                            </div>
-                        </div>
-                    </div>
-                @endif
             </div>
 
+            {{-- ── JOIN BUTTON / ALERTS ─────────────────────────── --}}
             @if (!$hasJoined && $signal->status === 'open')
                 @php
-                    // Check sufficient balance based on bet type
-                    $hasSufficientBalance =
-                        $signal->bet_type == 'percentage'
-                            ? auth()->user()->canJoinSignal()
-                            : auth()->user()->getAvailableTradeBalance() >= $betAmountPreview;
+                    $hasSufficientBalance = $signal->bet_type == 'percentage'
+                        ? auth()->user()->canJoinSignal()
+                        : auth()->user()->getAvailableTradeBalance() >= $betAmountPreview;
                 @endphp
 
                 @if ($hasSufficientBalance)
-                    <form action="{{ route('member.signals.join', $signal->id) }}" method="POST">
+                    <form action="{{ route('member.signals.join', $signal->id) }}" method="POST" class="mb-3">
                         @csrf
-                        <button type="submit" class="btn btn-call w-100"
-                            onclick="return confirm('Join this signal?\n\n' + 
-                    // 'Bet Type: {{ $signal->bet_type == 'percentage' ? number_format($signal->bet_value, 2) . '% of your balance' : 'Fixed ' . number_format($signal->bet_value, 2) . ' USDT' }}\n' +
-                    'Your bet: ${{ number_format($betAmountPreview, 2) }} will be locked until settlement.\n\n' +
-                    'Do you want to continue?')">
-                            <i class="bi bi-check-circle me-2"></i>JOIN THIS SIGNAL
+                        <button type="submit"
+                            style="width:100%;background:linear-gradient(135deg,#f5a623 0%,#e08800 100%);border:none;border-radius:14px;padding:15px;font-size:14px;font-weight:700;color:#080b12;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 20px rgba(245,166,35,.30);"
+                            onclick="return confirm('Join this signal?\n\nYour bet: ${{ number_format($betAmountPreview, 2) }} will be locked until settlement.\n\nDo you want to continue?')">
+                            <i class="bi bi-check-circle-fill"></i> JOIN THIS SIGNAL
                         </button>
                     </form>
                 @else
-                    <div class="alert alert-danger">
-                        <i class="bi bi-exclamation-triangle me-2"></i>
+                    <div class="mb-3" style="background:rgba(240,79,90,.08);border:1px solid rgba(240,79,90,.25);border-left:3px solid #f04f5a;border-radius:12px;padding:12px 14px;font-size:12px;color:#f04f5a;line-height:1.5;">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
                         <strong>Insufficient Balance:</strong>
-                        @if ($signal->bet_type == 'percentage')
-                            Minimum $100.00 available Trade Balance required.
-                        @else
-                            You need at least ${{ number_format($betAmountPreview, 2) }} available Trade Balance.
-                        @endif
-                        <a href="{{ route('member.balance.transfer') }}" class="text-white"><u>Transfer funds now</u></a>
+                        @if ($signal->bet_type == 'percentage') Minimum $100.00 available Trade Balance required.
+                        @else You need at least ${{ number_format($betAmountPreview, 2) }} available Trade Balance. @endif
+                        <a href="{{ route('member.balance.transfer') }}" style="color:#e2eaf8;text-decoration:underline;">Transfer funds now</a>
                     </div>
                 @endif
-            @elseif($hasJoined)
-                {{-- <div class="alert alert-success">
-                    <i class="bi bi-check-circle me-2"></i>
-                    You have joined this signal. Wait for admin to settle and receive your rewards!
-                </div> --}}
-            @else
-                <div class="alert alert-secondary">
-                    <i class="bi bi-lock me-2"></i>
-                    This signal is no longer available for joining.
+            @elseif(!$hasJoined)
+                <div class="mb-3" style="background:rgba(122,143,173,.07);border:1px solid rgba(122,143,173,.18);border-radius:12px;padding:12px 14px;font-size:12px;color:#7a8fad;display:flex;align-items:center;gap:8px;">
+                    <i class="bi bi-lock-fill"></i> This signal is no longer available for joining.
                 </div>
             @endif
 
-            <div class="card-dark shadow-sm p-3 mb-3">
-                <div class="d-flex align-items-start gap-2">
-                    <i class="bi bi-info-circle-fill text-gold" style="font-size: 18px; margin-top: 2px;"></i>
-                    <div>
-                        <h6 class="text-white mb-1" style="font-size: 13px;">Important Information</h6>
-                        <ul class="small text-muted mb-0 ps-3" style="font-size: 12px;">
-                            <li>Bet amount is determined by signal configuration (percentage or fixed)</li>
-                            @if ($signal->bet_type == 'percentage')
-                                <li>This signal uses <strong>{{ number_format($signal->bet_value, 2) }}%</strong> of your
-                                    Trade Balance</li>
-                            @else
-                                <li>This signal uses a <strong>fixed amount of {{ number_format($signal->bet_value, 2) }}
-                                        USDT</strong></li>
-                            @endif
-                            @if (!$signal->is_public)
-                                <li><strong class="text-warning">Private Signal:</strong> Only selected users can access
-                                </li>
-                            @endif
-                            <li>Minimum $100.00 available balance required (for percentage-based signals)</li>
-                            <li>Your bet will be locked until signal settlement</li>
-                        </ul>
+            {{-- ── INFO CARD ────────────────────────────────────── --}}
+            <div class="mb-3" style="background:#0d1120;border:1px solid #1a2235;border-left:3px solid #f5a623;border-radius:14px;padding:14px 16px;display:flex;align-items:flex-start;gap:10px;">
+                <i class="bi bi-info-circle-fill" style="font-size:16px;color:#f5a623;flex-shrink:0;margin-top:1px;"></i>
+                <div>
+                    <div style="font-size:12px;font-weight:700;color:#e2eaf8;margin-bottom:6px;">Important Information</div>
+                    <div style="display:flex;flex-direction:column;gap:4px;">
+                        @php
+                        $infos = [
+                            'Bet amount is determined by signal configuration (percentage or fixed)',
+                            $signal->bet_type == 'percentage'
+                                ? 'This signal uses '.number_format($signal->bet_value, 2).'% of your Trade Balance'
+                                : 'This signal uses a fixed amount of '.number_format($signal->bet_value, 2).' USDT',
+                            'Minimum $100.00 available balance required (for percentage-based signals)',
+                            'Your bet will be locked until signal settlement',
+                        ];
+                        if (!$signal->is_public) array_splice($infos, 2, 0, ['Private Signal: Only selected users can access']);
+                        @endphp
+                        @foreach($infos as $info)
+                        <div style="display:flex;align-items:flex-start;gap:6px;">
+                            <span style="width:4px;height:4px;border-radius:50%;background:#3a4d66;flex-shrink:0;margin-top:5px;"></span>
+                            <span style="font-size:12px;color:#7a8fad;line-height:1.5;">{!! $info !!}</span>
+                        </div>
+                        @endforeach
                     </div>
                 </div>
             </div>
@@ -357,25 +271,34 @@
         </div>
     </div>
 
+    <style>
+        .xc-tf {
+            background: rgba(255,255,255,.04);
+            border: 1px solid #1a2235;
+            border-radius: 7px;
+            padding: 4px 10px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #7a8fad;
+            cursor: pointer;
+            transition: all .15s;
+        }
+        .xc-tf.active { background: #f5a623; color: #080b12; border-color: #f5a623; }
+        .xc-tf:hover:not(.active) { color: #e2eaf8; }
+        @keyframes xi-blink { 0%,100%{opacity:1} 50%{opacity:.15} }
+    </style>
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        // Timeframe switcher untuk TradingView
-        document.querySelectorAll('.timeframe-pill').forEach(btn => {
+        document.querySelectorAll('.xc-tf').forEach(btn => {
             btn.addEventListener('click', function() {
-                document.querySelectorAll('.timeframe-pill').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.xc-tf').forEach(b => b.classList.remove('active'));
                 this.classList.add('active');
-
                 const interval = this.getAttribute('data-interval');
                 const iframe = document.getElementById('tradingViewChart');
-                const currentSrc = iframe.src;
-                const newSrc = currentSrc.replace(/interval=\w+/, 'interval=' + interval);
-                iframe.src = newSrc;
+                iframe.src = iframe.src.replace(/interval=\w+/, 'interval=' + interval);
             });
         });
-
-        // Auto hide alerts
-        setTimeout(function() {
-            $('.alert').fadeOut('slow');
-        }, 5000);
+        setTimeout(function() { $('.alert').fadeOut('slow'); }, 5000);
     </script>
 @endsection

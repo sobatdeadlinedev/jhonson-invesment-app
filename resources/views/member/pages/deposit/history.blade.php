@@ -1,150 +1,138 @@
 @extends('member.layouts.app')
 @section('content')
-    <!-- Scrollable Content Area -->
     <div class="scrollable-content">
         <div class="content-section">
-            <!-- Back Button -->
+
+            {{-- ── BACK BUTTON ──────────────────────────────────── --}}
             <div class="mb-3">
-                <a href="{{ route('member.profile.index') }}" class="btn-back">
-                    <i class="bi bi-arrow-left me-2"></i>Kembali
+                <a href="{{ route('member.profile.index') }}" style="display:inline-flex;align-items:center;gap:7px;background:#0d1120;border:1px solid #1a2235;border-radius:10px;padding:8px 14px;text-decoration:none;color:#7a8fad;font-size:13px;" onmouseover="this.style.color='#e2eaf8'" onmouseout="this.style.color='#7a8fad'">
+                    <i class="bi bi-arrow-left"></i> Kembali
                 </a>
             </div>
 
-            <h5 class="text-white mb-3">Deposit History</h5>
+            <div style="font-size:18px;font-weight:700;color:#e2eaf8;margin-bottom:16px;">Deposit History</div>
 
-            <!-- Summary Card -->
-            <div class="card-dark shadow-sm p-3 mb-3">
-                <div class="row g-3">
-                    <div class="col-6">
-                        <div class="d-flex align-items-center gap-2">
-                            <div class="summary-icon-wrapper pending">
-                                <i class="bi bi-clock-history"></i>
-                            </div>
-                            <div>
-                                <p class="text-muted mb-0 small">Pending</p>
-                                <h6 class="text-white mb-0 fw-bold">{{ $pendingCount }}</h6>
-                            </div>
-                        </div>
+            {{-- ── SUMMARY CARDS ────────────────────────────────── --}}
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+                <div style="background:linear-gradient(135deg,#0f1c2e 0%,#0d1420 100%);border:1px solid #1a2235;border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:12px;position:relative;overflow:hidden;">
+                    <div style="position:absolute;top:-15px;right:-15px;width:70px;height:70px;border-radius:50%;background:radial-gradient(circle,rgba(245,166,35,.12) 0%,transparent 65%);pointer-events:none;"></div>
+                    <div style="width:38px;height:38px;border-radius:11px;background:rgba(245,166,35,.12);border:1px solid rgba(245,166,35,.20);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                        <i class="bi bi-clock-history" style="font-size:16px;color:#f5a623;"></i>
                     </div>
-                    <div class="col-6">
-                        <div class="d-flex align-items-center gap-2">
-                            <div class="summary-icon-wrapper completed">
-                                <i class="bi bi-check-circle"></i>
-                            </div>
-                            <div>
-                                <p class="text-muted mb-0 small">Completed</p>
-                                <h6 class="text-white mb-0 fw-bold">{{ $completedCount }}</h6>
-                            </div>
-                        </div>
+                    <div>
+                        <div style="font-size:10px;color:#3a4d66;letter-spacing:.4px;text-transform:uppercase;margin-bottom:3px;">Pending</div>
+                        <div style="font-family:monospace;font-size:20px;font-weight:700;color:#f5a623;">{{ $pendingCount }}</div>
+                    </div>
+                </div>
+                <div style="background:linear-gradient(135deg,#0f1c2e 0%,#0d1420 100%);border:1px solid #1a2235;border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:12px;position:relative;overflow:hidden;">
+                    <div style="position:absolute;top:-15px;right:-15px;width:70px;height:70px;border-radius:50%;background:radial-gradient(circle,rgba(0,212,138,.10) 0%,transparent 65%);pointer-events:none;"></div>
+                    <div style="width:38px;height:38px;border-radius:11px;background:rgba(0,212,138,.10);border:1px solid rgba(0,212,138,.18);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                        <i class="bi bi-check-circle" style="font-size:16px;color:#00d48a;"></i>
+                    </div>
+                    <div>
+                        <div style="font-size:10px;color:#3a4d66;letter-spacing:.4px;text-transform:uppercase;margin-bottom:3px;">Completed</div>
+                        <div style="font-family:monospace;font-size:20px;font-weight:700;color:#00d48a;">{{ $completedCount }}</div>
                     </div>
                 </div>
             </div>
 
-            <!-- Filter Tabs -->
-            <div class="filter-tabs mb-3">
-                <button class="filter-tab active" onclick="filterTransactions('all')">
-                    All
+            {{-- ── FILTER TABS ──────────────────────────────────── --}}
+            <div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:12px;">
+                @foreach(['all'=>'All','pending'=>'Pending','approved'=>'Approved','rejected'=>'Rejected','completed'=>'Completed'] as $key=>$label)
+                <button class="xdh-tab {{ $key === 'all' ? 'active' : '' }}" onclick="filterTransactions('{{ $key }}')"
+                    style="padding:7px 14px;border-radius:8px;font-size:12px;font-weight:600;white-space:nowrap;cursor:pointer;flex-shrink:0;border:1px solid;transition:all .15s;
+                    background:{{ $key === 'all' ? '#f5a623' : 'rgba(255,255,255,.04)' }};
+                    border-color:{{ $key === 'all' ? '#f5a623' : '#1a2235' }};
+                    color:{{ $key === 'all' ? '#080b12' : '#3a4d66' }};">
+                    {{ $label }}
                 </button>
-                <button class="filter-tab" onclick="filterTransactions('pending')">
-                    Pending
-                </button>
-                <button class="filter-tab" onclick="filterTransactions('approved')">
-                    Approved
-                </button>
-                <button class="filter-tab" onclick="filterTransactions('rejected')">
-                    Rejected
-                </button>
-                <button class="filter-tab" onclick="filterTransactions('completed')">
-                    Completed
-                </button>
+                @endforeach
             </div>
 
-            <!-- Transactions List -->
-            <div class="card-dark shadow-sm">
+            {{-- ── TRANSACTION LIST ─────────────────────────────── --}}
+            <div style="background:#0d1120;border:1px solid #1a2235;border-radius:20px;overflow:hidden;margin-bottom:12px;">
+
                 @forelse($transactions as $transaction)
-                    <div class="deposit-item" data-status="{{ $transaction->status }}">
-                        <div class="d-flex align-items-start gap-3">
-                            <!-- Icon -->
-                            <div class="deposit-icon-wrapper {{ $transaction->status }}">
-                                @if ($transaction->status === 'pending')
-                                    <i class="bi bi-clock-history"></i>
-                                @elseif($transaction->status === 'approved')
-                                    <i class="bi bi-hourglass-split"></i>
-                                @elseif($transaction->status === 'completed')
-                                    <i class="bi bi-check-circle"></i>
-                                @else
-                                    <i class="bi bi-x-circle"></i>
-                                @endif
+                @php
+                    $iconColor = match($transaction->status) {
+                        'pending'   => ['bg'=>'rgba(245,166,35,.12)','br'=>'rgba(245,166,35,.22)','cl'=>'#f5a623'],
+                        'approved'  => ['bg'=>'rgba(100,160,255,.12)','br'=>'rgba(100,160,255,.22)','cl'=>'#64a0ff'],
+                        'completed' => ['bg'=>'rgba(0,212,138,.12)','br'=>'rgba(0,212,138,.22)','cl'=>'#00d48a'],
+                        default     => ['bg'=>'rgba(240,79,90,.12)','br'=>'rgba(240,79,90,.22)','cl'=>'#f04f5a'],
+                    };
+                    $icon = match($transaction->status) {
+                        'pending'  => 'bi-clock-history',
+                        'approved' => 'bi-hourglass-split',
+                        'completed'=> 'bi-check-circle',
+                        default    => 'bi-x-circle',
+                    };
+                @endphp
+                <div class="xdh-item" data-status="{{ $transaction->status }}" style="display:flex;align-items:flex-start;gap:12px;padding:14px 16px;border-bottom:1px solid rgba(26,34,53,.8);transition:background .15s;" onmouseover="this.style.background='rgba(255,255,255,.02)'" onmouseout="this.style.background='transparent'">
+
+                    <div style="width:40px;height:40px;border-radius:11px;background:{{ $iconColor['bg'] }};border:1px solid {{ $iconColor['br'] }};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                        <i class="bi {{ $icon }}" style="font-size:18px;color:{{ $iconColor['cl'] }};"></i>
+                    </div>
+
+                    <div style="flex:1;min-width:0;">
+                        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
+                            <div>
+                                <div style="font-size:13px;font-weight:700;color:#e2eaf8;">Deposit</div>
+                                <div style="font-size:11px;color:#3a4d66;font-family:monospace;">{{ $transaction->reference }}</div>
                             </div>
-
-                            <!-- Content -->
-                            <div class="flex-grow-1">
-                                <div class="d-flex justify-content-between align-items-start mb-1">
-                                    <div>
-                                        <h6 class="text-white mb-0 fw-bold">Deposit</h6>
-                                        <p class="text-muted small mb-0">{{ $transaction->reference }}</p>
-                                    </div>
-                                    <div class="text-end">
-                                        <h6 class="text-success mb-0 fw-bold">+{{ number_format($transaction->amount, 2) }}
-                                            USDT</h6>
-                                        <span class="status-badge {{ $transaction->status }}">
-                                            {{ ucfirst($transaction->status) }}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <!-- Transaction Details -->
-                                <div class="transaction-details mt-2">
-                                    <div class="detail-row">
-                                        <span class="text-muted small">Payment Method:</span>
-                                        <span class="text-white small fw-bold">
-                                            {{ ucfirst(str_replace('_', ' ', $transaction->payment_method)) }}
-                                        </span>
-                                    </div>
-                                    <div class="detail-row">
-                                        <span class="text-muted small">Amount:</span>
-                                        <span class="text-success small fw-bold">
-                                            {{ number_format($transaction->total_amount, 2) }} USDT
-                                        </span>
-                                    </div>
-                                    <div class="detail-row">
-                                        <span class="text-muted small">Date:</span>
-                                        <span class="text-white small">
-                                            {{ $transaction->created_at->format('d M Y, H:i') }}
-                                        </span>
-                                    </div>
-                                    @if (in_array($transaction->status, ['approved', 'completed']) && $transaction->updated_at)
-                                        <div class="detail-row">
-                                            <span class="text-muted small">Processed At:</span>
-                                            <span class="text-white small">
-                                                {{ $transaction->updated_at->format('d M Y, H:i') }}
-                                            </span>
-                                        </div>
-                                    @endif
-                                    @if ($transaction->payment_proof)
-                                        <div class="detail-row">
-                                            <span class="text-muted small">Payment Proof:</span>
-                                            <button type="button" class="btn-view-proof"
-                                                onclick="viewProof('{{ asset('storage/' . $transaction->payment_proof) }}')">
-                                                <i class="bi bi-eye me-1"></i>View
-                                            </button>
-                                        </div>
-                                    @endif
-                                </div>
+                            <div style="text-align:right;">
+                                <div style="font-size:13px;font-weight:700;color:#00d48a;font-family:monospace;">+{{ number_format($transaction->amount, 2) }} USDT</div>
+                                <span style="display:inline-block;padding:2px 8px;border-radius:5px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.3px;
+                                    background:{{ $iconColor['bg'] }};color:{{ $iconColor['cl'] }};border:1px solid {{ $iconColor['br'] }};">
+                                    {{ ucfirst($transaction->status) }}
+                                </span>
                             </div>
                         </div>
+
+                        {{-- Detail rows --}}
+                        <div style="background:rgba(255,255,255,.03);border:1px solid #1a2235;border-radius:8px;overflow:hidden;">
+                            <div style="display:flex;justify-content:space-between;padding:7px 10px;border-bottom:1px solid rgba(26,34,53,.6);">
+                                <span style="font-size:11px;color:#3a4d66;">Payment Method</span>
+                                <span style="font-size:11px;font-weight:600;color:#e2eaf8;">{{ ucfirst(str_replace('_', ' ', $transaction->payment_method)) }}</span>
+                            </div>
+                            <div style="display:flex;justify-content:space-between;padding:7px 10px;border-bottom:1px solid rgba(26,34,53,.6);">
+                                <span style="font-size:11px;color:#3a4d66;">Amount</span>
+                                <span style="font-size:11px;font-weight:600;color:#00d48a;font-family:monospace;">{{ number_format($transaction->total_amount, 2) }} USDT</span>
+                            </div>
+                            <div style="display:flex;justify-content:space-between;padding:7px 10px;{{ in_array($transaction->status, ['approved','completed']) && $transaction->updated_at || $transaction->payment_proof ? 'border-bottom:1px solid rgba(26,34,53,.6);' : '' }}">
+                                <span style="font-size:11px;color:#3a4d66;">Date</span>
+                                <span style="font-size:11px;color:#7a8fad;">{{ $transaction->created_at->format('d M Y, H:i') }}</span>
+                            </div>
+                            @if (in_array($transaction->status, ['approved','completed']) && $transaction->updated_at)
+                            <div style="display:flex;justify-content:space-between;padding:7px 10px;{{ $transaction->payment_proof ? 'border-bottom:1px solid rgba(26,34,53,.6);' : '' }}">
+                                <span style="font-size:11px;color:#3a4d66;">Processed At</span>
+                                <span style="font-size:11px;color:#7a8fad;">{{ $transaction->updated_at->format('d M Y, H:i') }}</span>
+                            </div>
+                            @endif
+                            @if ($transaction->payment_proof)
+                            <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 10px;">
+                                <span style="font-size:11px;color:#3a4d66;">Payment Proof</span>
+                                <button type="button" onclick="viewProof('{{ asset('storage/' . $transaction->payment_proof) }}')"
+                                    style="background:rgba(100,160,255,.10);border:1px solid rgba(100,160,255,.20);border-radius:6px;padding:3px 10px;color:#64a0ff;font-size:11px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:4px;">
+                                    <i class="bi bi-eye"></i> View
+                                </button>
+                            </div>
+                            @endif
+                        </div>
                     </div>
+                </div>
                 @empty
-                    <div class="empty-state">
-                        <i class="bi bi-inbox"></i>
-                        <p class="text-muted mb-0">No deposit history</p>
+                    <div style="padding:40px 20px;text-align:center;">
+                        <div style="width:60px;height:60px;border-radius:18px;background:rgba(255,255,255,.04);border:1px solid #1a2235;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;">
+                            <i class="bi bi-inbox" style="font-size:26px;color:#3a4d66;"></i>
+                        </div>
+                        <div style="font-size:14px;color:#7a8fad;">No deposit history</div>
                     </div>
                 @endforelse
             </div>
 
-            <!-- Pagination -->
+            {{-- ── PAGINATION ───────────────────────────────────── --}}
             @if ($transactions->hasPages())
-                <div class="mt-3">
+                <div style="display:flex;justify-content:center;margin-bottom:12px;">
                     {{ $transactions->links() }}
                 </div>
             @endif
@@ -152,319 +140,50 @@
         </div>
     </div>
 
-    <!-- Modal for Payment Proof -->
+    {{-- ── MODAL PAYMENT PROOF ──────────────────────────── --}}
     <div class="modal fade" id="proofModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content" style="background-color: var(--card-dark); border: 1px solid var(--border-color);">
-                <div class="modal-header" style="border-bottom: 1px solid var(--border-color);">
-                    <h5 class="modal-title text-white">Payment Proof</h5>
+            <div class="modal-content" style="background:#0d1120;border:1px solid #1a2235;border-radius:16px;">
+                <div class="modal-header" style="border-bottom:1px solid #1a2235;padding:16px 18px;">
+                    <h5 class="modal-title" style="color:#e2eaf8;font-size:15px;font-weight:700;">Payment Proof</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body text-center">
-                    <img id="proofImage" src="" alt="Payment Proof" style="max-width: 100%; border-radius: 8px;">
+                <div class="modal-body" style="padding:16px;text-align:center;">
+                    <img id="proofImage" src="" alt="Payment Proof" style="max-width:100%;border-radius:10px;">
                 </div>
             </div>
         </div>
     </div>
 
     <style>
-        /* Summary Icon Wrapper */
-        .summary-icon-wrapper {
-            width: 40px;
-            height: 40px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 1px solid;
-            flex-shrink: 0;
-        }
-
-        .summary-icon-wrapper i {
-            font-size: 20px;
-        }
-
-        .summary-icon-wrapper.pending {
-            background: rgba(255, 193, 7, 0.15);
-            border-color: rgba(255, 193, 7, 0.3);
-        }
-
-        .summary-icon-wrapper.pending i {
-            color: #ffc107;
-        }
-
-        .summary-icon-wrapper.completed {
-            background: rgba(40, 167, 69, 0.15);
-            border-color: rgba(40, 167, 69, 0.3);
-        }
-
-        .summary-icon-wrapper.completed i {
-            color: #28a745;
-        }
-
-        /* Filter Tabs */
-        .filter-tabs {
-            display: flex;
-            gap: 8px;
-            overflow-x: auto;
-            padding-bottom: 5px;
-        }
-
-        .filter-tabs::-webkit-scrollbar {
-            height: 4px;
-        }
-
-        .filter-tabs::-webkit-scrollbar-thumb {
-            background: var(--border-color);
-            border-radius: 4px;
-        }
-
-        .filter-tab {
-            padding: 8px 16px;
-            background: rgba(245, 166, 35, 0.1);
-            border: 1px solid rgba(245, 166, 35, 0.3);
-            border-radius: 6px;
-            color: var(--text-muted);
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            white-space: nowrap;
-            flex-shrink: 0;
-        }
-
-        .filter-tab:hover {
-            background: rgba(245, 166, 35, 0.15);
-        }
-
-        .filter-tab.active {
-            background: var(--gold-color);
-            border-color: var(--gold-color);
-            color: #000;
-        }
-
-        /* Deposit Item */
-        .deposit-item {
-            padding: 16px 20px;
-            border-bottom: 1px solid var(--border-color);
-            transition: background-color 0.2s ease;
-        }
-
-        .deposit-item:hover {
-            background-color: rgba(245, 166, 35, 0.05);
-        }
-
-        .deposit-item:last-child {
-            border-bottom: none;
-        }
-
-        /* Deposit Icon Wrapper */
-        .deposit-icon-wrapper {
-            width: 45px;
-            height: 45px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 1px solid;
-            flex-shrink: 0;
-        }
-
-        .deposit-icon-wrapper i {
-            font-size: 22px;
-        }
-
-        .deposit-icon-wrapper.pending {
-            background: rgba(255, 193, 7, 0.15);
-            border-color: rgba(255, 193, 7, 0.3);
-        }
-
-        .deposit-icon-wrapper.pending i {
-            color: #ffc107;
-        }
-
-        .deposit-icon-wrapper.approved {
-            background: rgba(59, 181, 232, 0.15);
-            border-color: rgba(59, 181, 232, 0.3);
-        }
-
-        .deposit-icon-wrapper.approved i {
-            color: var(--blue-color);
-        }
-
-        .deposit-icon-wrapper.completed {
-            background: rgba(40, 167, 69, 0.15);
-            border-color: rgba(40, 167, 69, 0.3);
-        }
-
-        .deposit-icon-wrapper.completed i {
-            color: #28a745;
-        }
-
-        .deposit-icon-wrapper.rejected {
-            background: rgba(220, 53, 69, 0.15);
-            border-color: rgba(220, 53, 69, 0.3);
-        }
-
-        .deposit-icon-wrapper.rejected i {
-            color: #dc3545;
-        }
-
-        /* Status Badge */
-        .status-badge {
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .status-badge.pending {
-            background: rgba(255, 193, 7, 0.15);
-            color: #ffc107;
-            border: 1px solid rgba(255, 193, 7, 0.3);
-        }
-
-        .status-badge.approved {
-            background: rgba(59, 181, 232, 0.15);
-            color: var(--blue-color);
-            border: 1px solid rgba(59, 181, 232, 0.3);
-        }
-
-        .status-badge.completed {
-            background: rgba(40, 167, 69, 0.15);
-            color: #28a745;
-            border: 1px solid rgba(40, 167, 69, 0.3);
-        }
-
-        .status-badge.rejected {
-            background: rgba(220, 53, 69, 0.15);
-            color: #dc3545;
-            border: 1px solid rgba(220, 53, 69, 0.3);
-        }
-
-        /* Transaction Details */
-        .transaction-details {
-            background: rgba(245, 166, 35, 0.05);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 10px 12px;
-        }
-
-        .detail-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 4px 0;
-        }
-
-        .detail-row:not(:last-child) {
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        /* View Proof Button */
-        .btn-view-proof {
-            padding: 4px 10px;
-            background: rgba(59, 181, 232, 0.1);
-            border: 1px solid rgba(59, 181, 232, 0.3);
-            border-radius: 4px;
-            color: var(--blue-color);
-            font-size: 11px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .btn-view-proof:hover {
-            background: rgba(59, 181, 232, 0.2);
-            border-color: rgba(59, 181, 232, 0.5);
-        }
-
-        /* Empty State */
-        .empty-state {
-            padding: 60px 20px;
-            text-align: center;
-        }
-
-        .empty-state i {
-            font-size: 64px;
-            color: var(--text-muted);
-            opacity: 0.5;
-            margin-bottom: 16px;
-            display: block;
-        }
-
-        .empty-state p {
-            font-size: 14px;
-        }
-
-        /* Responsive */
-        @media (max-width: 375px) {
-            .deposit-icon-wrapper {
-                width: 40px;
-                height: 40px;
-            }
-
-            .deposit-icon-wrapper i {
-                font-size: 20px;
-            }
-
-            .summary-icon-wrapper {
-                width: 36px;
-                height: 36px;
-            }
-
-            .summary-icon-wrapper i {
-                font-size: 18px;
-            }
-
-            .filter-tab {
-                padding: 6px 12px;
-                font-size: 12px;
-            }
-        }
+        .xdh-tab.active { background: #f5a623 !important; border-color: #f5a623 !important; color: #080b12 !important; }
+        .xdh-item:last-child { border-bottom: none !important; }
     </style>
 
     <script>
-        // Filter transactions
         function filterTransactions(status) {
-            // Update active tab
-            document.querySelectorAll('.filter-tab').forEach(tab => {
-                tab.classList.remove('active');
+            document.querySelectorAll('.xdh-tab').forEach(t => {
+                t.classList.remove('active');
+                t.style.background = 'rgba(255,255,255,.04)';
+                t.style.borderColor = '#1a2235';
+                t.style.color = '#3a4d66';
             });
             event.target.classList.add('active');
+            event.target.style.background = '#f5a623';
+            event.target.style.borderColor = '#f5a623';
+            event.target.style.color = '#080b12';
 
-            // Filter items
-            const items = document.querySelectorAll('.deposit-item');
-            items.forEach(item => {
-                if (status === 'all') {
-                    item.style.display = 'block';
-                } else {
-                    if (item.dataset.status === status) {
-                        item.style.display = 'block';
-                    } else {
-                        item.style.display = 'none';
-                    }
-                }
+            document.querySelectorAll('.xdh-item').forEach(item => {
+                item.style.display = (status === 'all' || item.dataset.status === status) ? 'flex' : 'none';
             });
         }
 
-        // View payment proof
-        function viewProof(imageUrl) {
-            document.getElementById('proofImage').src = imageUrl;
-            const modal = new bootstrap.Modal(document.getElementById('proofModal'));
-            modal.show();
+        function viewProof(url) {
+            document.getElementById('proofImage').src = url;
+            new bootstrap.Modal(document.getElementById('proofModal')).show();
         }
 
-        // Show alert messages
-        @if (session('success'))
-            alert('{{ session('success') }}');
-        @endif
-
-        @if (session('error'))
-            alert('{{ session('error') }}');
-        @endif
+        @if (session('success')) alert('{{ session('success') }}'); @endif
+        @if (session('error'))   alert('{{ session('error') }}');   @endif
     </script>
 @endsection

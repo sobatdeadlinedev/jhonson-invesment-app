@@ -1,172 +1,155 @@
 @extends('member.layouts.app')
 @section('content')
-    <!-- Scrollable Content Area -->
     <div class="scrollable-content">
         <div class="content-section">
-            <!-- Back Button -->
-            <div class="mb-3">
-                <a href="{{ route('member.profile.index') }}" class="btn-back">
-                    <i class="bi bi-arrow-left me-2"></i>Kembali
+
+            {{-- ── BACK BUTTON ──────────────────────────────────── --}}
+            <div style="margin-bottom:14px;">
+                <a href="{{ route('member.profile.index') }}" style="display:inline-flex;align-items:center;gap:7px;background:#0d1120;border:1px solid #1a2235;border-radius:10px;padding:8px 14px;text-decoration:none;color:#7a8fad;font-size:13px;">
+                    <i class="bi bi-arrow-left"></i> Kembali
                 </a>
             </div>
 
-            <h5 class="text-white mb-3">Withdrawal History</h5>
+            <div style="font-size:18px;font-weight:700;color:#e2eaf8;margin-bottom:16px;">Withdrawal History</div>
 
-            <!-- Summary Card -->
-            <div class="card-dark shadow-sm p-3 mb-3">
-                <div class="row g-3">
-                    <div class="col-6">
-                        <div class="d-flex align-items-center gap-2">
-                            <div class="summary-icon-wrapper pending">
-                                <i class="bi bi-clock-history"></i>
-                            </div>
-                            <div>
-                                <p class="text-muted mb-0 small">Pending</p>
-                                <h6 class="text-white mb-0 fw-bold">{{ $pendingCount }}</h6>
-                            </div>
-                        </div>
+            {{-- ── SUMMARY CARDS ────────────────────────────────── --}}
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+                <div style="background:linear-gradient(135deg,#0f1c2e 0%,#0d1420 100%);border:1px solid #1a2235;border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:12px;position:relative;overflow:hidden;">
+                    <div style="position:absolute;top:-15px;right:-15px;width:70px;height:70px;border-radius:50%;background:radial-gradient(circle,rgba(245,166,35,.12) 0%,transparent 65%);pointer-events:none;"></div>
+                    <div style="width:38px;height:38px;border-radius:11px;background:rgba(245,166,35,.12);border:1px solid rgba(245,166,35,.20);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                        <i class="bi bi-clock-history" style="font-size:16px;color:#f5a623;"></i>
                     </div>
-                    <div class="col-6">
-                        <div class="d-flex align-items-center gap-2">
-                            <div class="summary-icon-wrapper completed">
-                                <i class="bi bi-check-circle"></i>
-                            </div>
-                            <div>
-                                <p class="text-muted mb-0 small">Completed</p>
-                                <h6 class="text-white mb-0 fw-bold">{{ $completedCount }}</h6>
-                            </div>
-                        </div>
+                    <div>
+                        <div style="font-size:10px;color:#3a4d66;letter-spacing:.4px;text-transform:uppercase;margin-bottom:3px;">Pending</div>
+                        <div style="font-family:monospace;font-size:20px;font-weight:700;color:#f5a623;">{{ $pendingCount }}</div>
+                    </div>
+                </div>
+                <div style="background:linear-gradient(135deg,#0f1c2e 0%,#0d1420 100%);border:1px solid #1a2235;border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:12px;position:relative;overflow:hidden;">
+                    <div style="position:absolute;top:-15px;right:-15px;width:70px;height:70px;border-radius:50%;background:radial-gradient(circle,rgba(0,212,138,.10) 0%,transparent 65%);pointer-events:none;"></div>
+                    <div style="width:38px;height:38px;border-radius:11px;background:rgba(0,212,138,.10);border:1px solid rgba(0,212,138,.18);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                        <i class="bi bi-check-circle" style="font-size:16px;color:#00d48a;"></i>
+                    </div>
+                    <div>
+                        <div style="font-size:10px;color:#3a4d66;letter-spacing:.4px;text-transform:uppercase;margin-bottom:3px;">Completed</div>
+                        <div style="font-family:monospace;font-size:20px;font-weight:700;color:#00d48a;">{{ $completedCount }}</div>
                     </div>
                 </div>
             </div>
 
-            <!-- Filter Tabs -->
-            <div class="filter-tabs mb-3">
-                <button class="filter-tab active" onclick="filterTransactions('all')">
-                    All
+            {{-- ── FILTER TABS ──────────────────────────────────── --}}
+            <div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:12px;">
+                @foreach(['all'=>'All','pending'=>'Pending','approved'=>'Approved','rejected'=>'Rejected','completed'=>'Completed'] as $key=>$label)
+                <button class="xwh-tab {{ $key === 'all' ? 'active' : '' }}" onclick="filterTransactions('{{ $key }}')"
+                    style="padding:7px 14px;border-radius:8px;font-size:12px;font-weight:600;white-space:nowrap;cursor:pointer;flex-shrink:0;border:1px solid;
+                    background:{{ $key === 'all' ? '#f5a623' : 'rgba(255,255,255,.04)' }};
+                    border-color:{{ $key === 'all' ? '#f5a623' : '#1a2235' }};
+                    color:{{ $key === 'all' ? '#080b12' : '#3a4d66' }};">
+                    {{ $label }}
                 </button>
-                <button class="filter-tab" onclick="filterTransactions('pending')">
-                    Pending
-                </button>
-                <button class="filter-tab" onclick="filterTransactions('approved')">
-                    Approved
-                </button>
-                <button class="filter-tab" onclick="filterTransactions('rejected')">
-                    Rejected
-                </button>
-                <button class="filter-tab" onclick="filterTransactions('completed')">
-                    Completed
-                </button>
+                @endforeach
             </div>
 
-            <!-- Transactions List -->
-            <div class="card-dark shadow-sm">
+            {{-- ── TRANSACTION LIST ─────────────────────────────── --}}
+            <div style="background:#0d1120;border:1px solid #1a2235;border-radius:20px;overflow:hidden;margin-bottom:12px;">
+
                 @forelse($transactions as $transaction)
-                    <div class="withdrawal-item" data-status="{{ $transaction->status }}">
-                        <div class="d-flex align-items-start gap-3">
-                            <!-- Icon -->
-                            <div class="withdrawal-icon-wrapper {{ $transaction->status }}">
-                                @if ($transaction->status === 'pending')
-                                    <i class="bi bi-clock-history"></i>
-                                @elseif($transaction->status === 'approved')
-                                    <i class="bi bi-hourglass-split"></i>
-                                @elseif($transaction->status === 'completed')
-                                    <i class="bi bi-check-circle"></i>
-                                @else
-                                    <i class="bi bi-x-circle"></i>
-                                @endif
+                @php
+                    $ic = match($transaction->status) {
+                        'pending'   => ['bg'=>'rgba(245,166,35,.12)','br'=>'rgba(245,166,35,.22)','cl'=>'#f5a623'],
+                        'approved'  => ['bg'=>'rgba(100,160,255,.12)','br'=>'rgba(100,160,255,.22)','cl'=>'#64a0ff'],
+                        'completed' => ['bg'=>'rgba(0,212,138,.12)','br'=>'rgba(0,212,138,.22)','cl'=>'#00d48a'],
+                        'cancelled' => ['bg'=>'rgba(120,130,150,.12)','br'=>'rgba(120,130,150,.22)','cl'=>'#6c7a8d'],
+                        default     => ['bg'=>'rgba(240,79,90,.12)','br'=>'rgba(240,79,90,.22)','cl'=>'#f04f5a'],
+                    };
+                    $icon = match($transaction->status) {
+                        'pending'  => 'bi-clock-history',
+                        'approved' => 'bi-hourglass-split',
+                        'completed'=> 'bi-check-circle',
+                        'cancelled'=> 'bi-slash-circle',
+                        default    => 'bi-x-circle',
+                    };
+                @endphp
+                <div class="xwh-item" data-status="{{ $transaction->status }}"
+                    style="display:flex;align-items:flex-start;gap:12px;padding:14px 16px;border-bottom:1px solid rgba(26,34,53,.8);transition:background .15s;"
+                    onmouseover="this.style.background='rgba(255,255,255,.02)'" onmouseout="this.style.background='transparent'">
+
+                    <div style="width:40px;height:40px;border-radius:11px;background:{{ $ic['bg'] }};border:1px solid {{ $ic['br'] }};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                        <i class="bi {{ $icon }}" style="font-size:18px;color:{{ $ic['cl'] }};"></i>
+                    </div>
+
+                    <div style="flex:1;min-width:0;">
+                        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
+                            <div>
+                                <div style="font-size:13px;font-weight:700;color:#e2eaf8;">Withdrawal</div>
+                                <div style="font-size:11px;color:#3a4d66;font-family:monospace;">{{ $transaction->reference }}</div>
                             </div>
-
-                            <!-- Content -->
-                            <div class="flex-grow-1">
-                                <div class="d-flex justify-content-between align-items-start mb-1">
-                                    <div>
-                                        <h6 class="text-white mb-0 fw-bold">Withdrawal</h6>
-                                        <p class="text-muted small mb-0">{{ $transaction->reference }}</p>
-                                    </div>
-                                    <div class="text-end">
-                                        <h6 class="text-danger mb-0 fw-bold">
-                                            -{{ number_format($transaction->total_amount, 2) }}
-                                            USDT</h6>
-                                        <span class="status-badge {{ $transaction->status }}">
-                                            {{ ucfirst($transaction->status) }}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <!-- Transaction Details -->
-                                <div class="transaction-details mt-2">
-                                    <div class="detail-row">
-                                        <span class="text-muted small">Wallet Account:</span>
-                                        <span class="text-white small fw-bold">
-                                            {{ $transaction->wallet ? $transaction->wallet->account_name : 'N/A' }}
-                                        </span>
-                                    </div>
-                                    <div class="detail-row">
-                                        <span class="text-muted small">Account Number:</span>
-                                        <span class="text-white small fw-bold">
-                                            {{ $transaction->wallet ? $transaction->wallet->account_number : 'N/A' }}
-                                        </span>
-                                    </div>
-                                    <div class="detail-row">
-                                        <span class="text-muted small">Withdrawal Amount:</span>
-                                        <span class="text-white small fw-bold">
-                                            {{ number_format($transaction->total_amount, 2) }} USDT
-                                        </span>
-                                    </div>
-                                    @if ($transaction->withdrawal_fee > 0)
-                                        <div class="detail-row">
-                                            <span class="text-muted small">Fee (5%):</span>
-                                            <span class="text-danger small fw-bold">
-                                                -{{ number_format($transaction->withdrawal_fee, 2) }} USDT
-                                            </span>
-                                        </div>
-                                    @endif
-                                    <div class="detail-row">
-                                        <span class="text-muted small">You Receive:</span>
-                                        <span class="text-success small fw-bold">
-                                            {{ number_format($transaction->amount, 2) }} USDT
-                                        </span>
-                                    </div>
-                                    <div class="detail-row">
-                                        <span class="text-muted small">Date:</span>
-                                        <span class="text-white small">
-                                            {{ $transaction->created_at->format('d M Y, H:i') }}
-                                        </span>
-                                    </div>
-                                    @if ($transaction->status === 'completed' && $transaction->updated_at)
-                                        <div class="detail-row">
-                                            <span class="text-muted small">Completed At:</span>
-                                            <span class="text-white small">
-                                                {{ $transaction->updated_at->format('d M Y, H:i') }}
-                                            </span>
-                                        </div>
-                                    @endif
-                                </div>
-
-                                <!-- Action Button for Pending -->
-                                @if ($transaction->status === 'pending')
-                                    <div class="mt-2">
-                                        <button type="button" class="btn-cancel-withdrawal"
-                                            onclick="cancelWithdrawal('{{ $transaction->reference }}')">
-                                            <i class="bi bi-x-circle me-1"></i>Cancel Withdrawal
-                                        </button>
-                                    </div>
-                                @endif
+                            <div style="text-align:right;">
+                                <div style="font-size:13px;font-weight:700;color:#f04f5a;font-family:monospace;">-{{ number_format($transaction->total_amount, 2) }} USDT</div>
+                                <span style="display:inline-block;padding:2px 8px;border-radius:5px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.3px;
+                                    background:{{ $ic['bg'] }};color:{{ $ic['cl'] }};border:1px solid {{ $ic['br'] }};">
+                                    {{ ucfirst($transaction->status) }}
+                                </span>
                             </div>
                         </div>
+
+                        {{-- Detail rows --}}
+                        <div style="background:rgba(255,255,255,.03);border:1px solid #1a2235;border-radius:8px;overflow:hidden;margin-bottom:{{ $transaction->status === 'pending' ? '8px' : '0' }};">
+                            <div style="display:flex;justify-content:space-between;padding:7px 10px;border-bottom:1px solid rgba(26,34,53,.6);">
+                                <span style="font-size:11px;color:#3a4d66;">Wallet Account</span>
+                                <span style="font-size:11px;font-weight:600;color:#e2eaf8;">{{ $transaction->wallet ? $transaction->wallet->account_name : 'N/A' }}</span>
+                            </div>
+                            <div style="display:flex;justify-content:space-between;padding:7px 10px;border-bottom:1px solid rgba(26,34,53,.6);">
+                                <span style="font-size:11px;color:#3a4d66;">Account Number</span>
+                                <span style="font-size:11px;font-weight:600;color:#e2eaf8;font-family:monospace;word-break:break-all;text-align:right;max-width:65%;">{{ $transaction->wallet ? $transaction->wallet->account_number : 'N/A' }}</span>
+                            </div>
+                            <div style="display:flex;justify-content:space-between;padding:7px 10px;border-bottom:1px solid rgba(26,34,53,.6);">
+                                <span style="font-size:11px;color:#3a4d66;">Withdrawal Amount</span>
+                                <span style="font-size:11px;font-weight:600;color:#e2eaf8;font-family:monospace;">{{ number_format($transaction->total_amount, 2) }} USDT</span>
+                            </div>
+                            @if ($transaction->withdrawal_fee > 0)
+                            <div style="display:flex;justify-content:space-between;padding:7px 10px;border-bottom:1px solid rgba(26,34,53,.6);">
+                                <span style="font-size:11px;color:#3a4d66;">Fee (5%)</span>
+                                <span style="font-size:11px;font-weight:600;color:#f04f5a;font-family:monospace;">-{{ number_format($transaction->withdrawal_fee, 2) }} USDT</span>
+                            </div>
+                            @endif
+                            <div style="display:flex;justify-content:space-between;padding:7px 10px;border-bottom:1px solid rgba(26,34,53,.6);">
+                                <span style="font-size:11px;color:#3a4d66;">You Receive</span>
+                                <span style="font-size:11px;font-weight:600;color:#00d48a;font-family:monospace;">{{ number_format($transaction->amount, 2) }} USDT</span>
+                            </div>
+                            <div style="display:flex;justify-content:space-between;padding:7px 10px;{{ $transaction->status === 'completed' && $transaction->updated_at ? 'border-bottom:1px solid rgba(26,34,53,.6);' : '' }}">
+                                <span style="font-size:11px;color:#3a4d66;">Date</span>
+                                <span style="font-size:11px;color:#7a8fad;">{{ $transaction->created_at->format('d M Y, H:i') }}</span>
+                            </div>
+                            @if ($transaction->status === 'completed' && $transaction->updated_at)
+                            <div style="display:flex;justify-content:space-between;padding:7px 10px;">
+                                <span style="font-size:11px;color:#3a4d66;">Completed At</span>
+                                <span style="font-size:11px;color:#7a8fad;">{{ $transaction->updated_at->format('d M Y, H:i') }}</span>
+                            </div>
+                            @endif
+                        </div>
+
+                        {{-- Cancel button for pending --}}
+                        @if ($transaction->status === 'pending')
+                            <button type="button" onclick="cancelWithdrawal('{{ $transaction->reference }}')"
+                                style="width:100%;background:rgba(240,79,90,.08);border:1px solid rgba(240,79,90,.22);border-radius:8px;padding:9px;font-size:12px;font-weight:600;color:#f04f5a;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+                                <i class="bi bi-x-circle"></i> Cancel Withdrawal
+                            </button>
+                        @endif
                     </div>
+                </div>
                 @empty
-                    <div class="empty-state">
-                        <i class="bi bi-inbox"></i>
-                        <p class="text-muted mb-0">No withdrawal history</p>
+                    <div style="padding:40px 20px;text-align:center;">
+                        <div style="width:60px;height:60px;border-radius:18px;background:rgba(255,255,255,.04);border:1px solid #1a2235;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;">
+                            <i class="bi bi-inbox" style="font-size:26px;color:#3a4d66;"></i>
+                        </div>
+                        <div style="font-size:14px;color:#7a8fad;">No withdrawal history</div>
                     </div>
                 @endforelse
             </div>
 
-            <!-- Pagination -->
+            {{-- ── PAGINATION ───────────────────────────────────── --}}
             @if ($transactions->hasPages())
-                <div class="mt-3">
+                <div style="display:flex;justify-content:center;margin-bottom:12px;">
                     {{ $transactions->links() }}
                 </div>
             @endif
@@ -175,337 +158,44 @@
     </div>
 
     <style>
-        /* Summary Icon Wrapper */
-        .summary-icon-wrapper {
-            width: 40px;
-            height: 40px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 1px solid;
-            flex-shrink: 0;
-        }
-
-        .summary-icon-wrapper i {
-            font-size: 20px;
-        }
-
-        .summary-icon-wrapper.pending {
-            background: rgba(255, 193, 7, 0.15);
-            border-color: rgba(255, 193, 7, 0.3);
-        }
-
-        .summary-icon-wrapper.pending i {
-            color: #ffc107;
-        }
-
-        .summary-icon-wrapper.completed {
-            background: rgba(40, 167, 69, 0.15);
-            border-color: rgba(40, 167, 69, 0.3);
-        }
-
-        .summary-icon-wrapper.completed i {
-            color: #28a745;
-        }
-
-        /* Filter Tabs */
-        .filter-tabs {
-            display: flex;
-            gap: 8px;
-            overflow-x: auto;
-            padding-bottom: 5px;
-        }
-
-        .filter-tabs::-webkit-scrollbar {
-            height: 4px;
-        }
-
-        .filter-tabs::-webkit-scrollbar-thumb {
-            background: var(--border-color);
-            border-radius: 4px;
-        }
-
-        .filter-tab {
-            padding: 8px 16px;
-            background: rgba(245, 166, 35, 0.1);
-            border: 1px solid rgba(245, 166, 35, 0.3);
-            border-radius: 6px;
-            color: var(--text-muted);
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            white-space: nowrap;
-            flex-shrink: 0;
-        }
-
-        .filter-tab:hover {
-            background: rgba(245, 166, 35, 0.15);
-        }
-
-        .filter-tab.active {
-            background: var(--gold-color);
-            border-color: var(--gold-color);
-            color: #000;
-        }
-
-        /* Withdrawal Item */
-        .withdrawal-item {
-            padding: 16px 20px;
-            border-bottom: 1px solid var(--border-color);
-            transition: background-color 0.2s ease;
-        }
-
-        .withdrawal-item:hover {
-            background-color: rgba(245, 166, 35, 0.05);
-        }
-
-        .withdrawal-item:last-child {
-            border-bottom: none;
-        }
-
-        /* Withdrawal Icon Wrapper */
-        .withdrawal-icon-wrapper {
-            width: 45px;
-            height: 45px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 1px solid;
-            flex-shrink: 0;
-        }
-
-        .withdrawal-icon-wrapper i {
-            font-size: 22px;
-        }
-
-        .withdrawal-icon-wrapper.pending {
-            background: rgba(255, 193, 7, 0.15);
-            border-color: rgba(255, 193, 7, 0.3);
-        }
-
-        .withdrawal-icon-wrapper.pending i {
-            color: #ffc107;
-        }
-
-        .withdrawal-icon-wrapper.approved {
-            background: rgba(59, 181, 232, 0.15);
-            border-color: rgba(59, 181, 232, 0.3);
-        }
-
-        .withdrawal-icon-wrapper.approved i {
-            color: var(--blue-color);
-        }
-
-        .withdrawal-icon-wrapper.completed {
-            background: rgba(40, 167, 69, 0.15);
-            border-color: rgba(40, 167, 69, 0.3);
-        }
-
-        .withdrawal-icon-wrapper.completed i {
-            color: #28a745;
-        }
-
-        .withdrawal-icon-wrapper.rejected {
-            background: rgba(220, 53, 69, 0.15);
-            border-color: rgba(220, 53, 69, 0.3);
-        }
-
-        .withdrawal-icon-wrapper.rejected i {
-            color: #dc3545;
-        }
-
-        .withdrawal-icon-wrapper.cancelled {
-            background: rgba(108, 117, 125, 0.15);
-            border-color: rgba(108, 117, 125, 0.3);
-        }
-
-        .withdrawal-icon-wrapper.cancelled i {
-            color: #6c757d;
-        }
-
-        /* Status Badge */
-        .status-badge {
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .status-badge.pending {
-            background: rgba(255, 193, 7, 0.15);
-            color: #ffc107;
-            border: 1px solid rgba(255, 193, 7, 0.3);
-        }
-
-        .status-badge.approved {
-            background: rgba(59, 181, 232, 0.15);
-            color: var(--blue-color);
-            border: 1px solid rgba(59, 181, 232, 0.3);
-        }
-
-        .status-badge.completed {
-            background: rgba(40, 167, 69, 0.15);
-            color: #28a745;
-            border: 1px solid rgba(40, 167, 69, 0.3);
-        }
-
-        .status-badge.rejected {
-            background: rgba(220, 53, 69, 0.15);
-            color: #dc3545;
-            border: 1px solid rgba(220, 53, 69, 0.3);
-        }
-
-        .status-badge.cancelled {
-            background: rgba(108, 117, 125, 0.15);
-            color: #6c757d;
-            border: 1px solid rgba(108, 117, 125, 0.3);
-        }
-
-        /* Transaction Details */
-        .transaction-details {
-            background: rgba(245, 166, 35, 0.05);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 10px 12px;
-        }
-
-        .detail-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 4px 0;
-        }
-
-        .detail-row:not(:last-child) {
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        /* Cancel Button */
-        .btn-cancel-withdrawal {
-            width: 100%;
-            padding: 8px 12px;
-            background: rgba(220, 53, 69, 0.1);
-            border: 1px solid rgba(220, 53, 69, 0.3);
-            border-radius: 6px;
-            color: #dc3545;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .btn-cancel-withdrawal:hover {
-            background: rgba(220, 53, 69, 0.2);
-            border-color: rgba(220, 53, 69, 0.5);
-        }
-
-        /* Empty State */
-        .empty-state {
-            padding: 60px 20px;
-            text-align: center;
-        }
-
-        .empty-state i {
-            font-size: 64px;
-            color: var(--text-muted);
-            opacity: 0.5;
-            margin-bottom: 16px;
-            display: block;
-        }
-
-        .empty-state p {
-            font-size: 14px;
-        }
-
-        /* Responsive */
-        @media (max-width: 375px) {
-            .withdrawal-icon-wrapper {
-                width: 40px;
-                height: 40px;
-            }
-
-            .withdrawal-icon-wrapper i {
-                font-size: 20px;
-            }
-
-            .summary-icon-wrapper {
-                width: 36px;
-                height: 36px;
-            }
-
-            .summary-icon-wrapper i {
-                font-size: 18px;
-            }
-
-            .filter-tab {
-                padding: 6px 12px;
-                font-size: 12px;
-            }
-        }
+        .xwh-tab.active { background:#f5a623 !important; border-color:#f5a623 !important; color:#080b12 !important; }
+        .xwh-item:last-child { border-bottom:none !important; }
     </style>
 
     <script>
-        // Filter transactions
         function filterTransactions(status) {
-            // Update active tab
-            document.querySelectorAll('.filter-tab').forEach(tab => {
-                tab.classList.remove('active');
+            document.querySelectorAll('.xwh-tab').forEach(t => {
+                t.classList.remove('active');
+                t.style.background = 'rgba(255,255,255,.04)';
+                t.style.borderColor = '#1a2235';
+                t.style.color = '#3a4d66';
             });
             event.target.classList.add('active');
+            event.target.style.background = '#f5a623';
+            event.target.style.borderColor = '#f5a623';
+            event.target.style.color = '#080b12';
 
-            // Filter items
-            const items = document.querySelectorAll('.withdrawal-item');
-            items.forEach(item => {
-                if (status === 'all') {
-                    item.style.display = 'block';
-                } else {
-                    if (item.dataset.status === status) {
-                        item.style.display = 'block';
-                    } else {
-                        item.style.display = 'none';
-                    }
-                }
+            document.querySelectorAll('.xwh-item').forEach(item => {
+                item.style.display = (status === 'all' || item.dataset.status === status) ? 'flex' : 'none';
             });
         }
 
-        // Cancel withdrawal
         function cancelWithdrawal(reference) {
             if (confirm('Are you sure you want to cancel this withdrawal?')) {
-                // Create form and submit
                 const form = document.createElement('form');
                 form.method = 'POST';
                 form.action = '/member/withdraw/cancel/' + reference;
-
-                const csrfToken = document.createElement('input');
-                csrfToken.type = 'hidden';
-                csrfToken.name = '_token';
-                csrfToken.value = '{{ csrf_token() }}';
-
-                const methodField = document.createElement('input');
-                methodField.type = 'hidden';
-                methodField.name = '_method';
-                methodField.value = 'DELETE';
-
-                form.appendChild(csrfToken);
-                form.appendChild(methodField);
+                const csrf = document.createElement('input');
+                csrf.type = 'hidden'; csrf.name = '_token'; csrf.value = '{{ csrf_token() }}';
+                const method = document.createElement('input');
+                method.type = 'hidden'; method.name = '_method'; method.value = 'DELETE';
+                form.appendChild(csrf); form.appendChild(method);
                 document.body.appendChild(form);
                 form.submit();
             }
         }
 
-        // Show alert messages
-        @if (session('success'))
-            alert('{{ session('success') }}');
-        @endif
-
-        @if (session('error'))
-            alert('{{ session('error') }}');
-        @endif
+        @if (session('success')) alert('{{ session('success') }}'); @endif
+        @if (session('error'))   alert('{{ session('error') }}');   @endif
     </script>
 @endsection
