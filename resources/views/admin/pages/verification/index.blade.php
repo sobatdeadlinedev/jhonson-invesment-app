@@ -114,10 +114,59 @@
                     <!--end::Table-->
 
                     <!--begin::Pagination-->
-                    <div class="d-flex justify-content-center mt-5">
-                        {{ $verifications->links() }}
-                    </div>
-                    <!--end::Pagination-->
+<div class="d-flex flex-stack flex-wrap pt-10">
+    <div class="fs-6 fw-semibold text-gray-700">
+        Showing {{ $verifications->firstItem() }} to {{ $verifications->lastItem() }} of {{ $verifications->total() }} results
+    </div>
+    <ul class="pagination">
+        {{-- Previous --}}
+        <li class="page-item {{ $verifications->onFirstPage() ? 'disabled' : '' }}">
+            <a class="page-link" href="{{ $verifications->previousPageUrl() }}">
+                <i class="previous"></i>
+            </a>
+        </li>
+
+        {{-- Page Numbers --}}
+        @php
+            $currentPage = $verifications->currentPage();
+            $lastPage = $verifications->lastPage();
+            $start = max(1, $currentPage - 2);
+            $end = min($lastPage, $currentPage + 2);
+        @endphp
+
+        @if ($start > 1)
+            <li class="page-item">
+                <a class="page-link" href="{{ $verifications->url(1) }}">1</a>
+            </li>
+            @if ($start > 2)
+                <li class="page-item disabled"><span class="page-link">...</span></li>
+            @endif
+        @endif
+
+        @for ($i = $start; $i <= $end; $i++)
+            <li class="page-item {{ $i == $currentPage ? 'active' : '' }}">
+                <a class="page-link" href="{{ $verifications->url($i) }}">{{ $i }}</a>
+            </li>
+        @endfor
+
+        @if ($end < $lastPage)
+            @if ($end < $lastPage - 1)
+                <li class="page-item disabled"><span class="page-link">...</span></li>
+            @endif
+            <li class="page-item">
+                <a class="page-link" href="{{ $verifications->url($lastPage) }}">{{ $lastPage }}</a>
+            </li>
+        @endif
+
+        {{-- Next --}}
+        <li class="page-item {{ !$verifications->hasMorePages() ? 'disabled' : '' }}">
+            <a class="page-link" href="{{ $verifications->nextPageUrl() }}">
+                <i class="next"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+<!--end::Pagination-->
                 </div>
                 <!--end::Card body-->
             </div>

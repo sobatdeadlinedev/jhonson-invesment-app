@@ -13,7 +13,7 @@ class UserController extends Controller
         $users = User::role('member')
             ->with('roles')
             ->latest()
-            ->get();
+            ->paginate(50);
 
         return view('admin.pages.user.index', compact('users'));
     }

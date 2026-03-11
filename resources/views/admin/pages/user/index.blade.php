@@ -174,6 +174,62 @@
                         </tbody>
                     </table>
                     <!--end::Table-->
+
+                    <!--begin::Pagination-->
+                    <div class="d-flex flex-stack flex-wrap pt-10">
+                        <div class="fs-6 fw-semibold text-gray-700">
+                            Showing {{ $users->firstItem() }} to {{ $users->lastItem() }} of {{ $users->total() }} results
+                        </div>
+                        <ul class="pagination">
+                            {{-- Previous --}}
+                            <li class="page-item {{ $users->onFirstPage() ? 'disabled' : '' }}">
+                                <a class="page-link" href="{{ $users->previousPageUrl() }}" aria-label="Previous">
+                                    <i class="previous"></i>
+                                </a>
+                            </li>
+
+                            {{-- Page Numbers --}}
+                            @php
+                                $currentPage = $users->currentPage();
+                                $lastPage = $users->lastPage();
+                                $start = max(1, $currentPage - 2);
+                                $end = min($lastPage, $currentPage + 2);
+                            @endphp
+
+                            @if ($start > 1)
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ $users->url(1) }}">1</a>
+                                </li>
+                                @if ($start > 2)
+                                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                                @endif
+                            @endif
+
+                            @for ($i = $start; $i <= $end; $i++)
+                                <li class="page-item {{ $i == $currentPage ? 'active' : '' }}">
+                                    <a class="page-link" href="{{ $users->url($i) }}">{{ $i }}</a>
+                                </li>
+                            @endfor
+
+                            @if ($end < $lastPage)
+                                @if ($end < $lastPage - 1)
+                                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                                @endif
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ $users->url($lastPage) }}">{{ $lastPage }}</a>
+                                </li>
+                            @endif
+
+                            {{-- Next --}}
+                            <li class="page-item {{ !$users->hasMorePages() ? 'disabled' : '' }}">
+                                <a class="page-link" href="{{ $users->nextPageUrl() }}" aria-label="Next">
+                                    <i class="next"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                    <!--end::Pagination-->
+
                 </div>
                 <!--end::Card body-->
             </div>
