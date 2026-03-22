@@ -107,23 +107,28 @@ class DepositController extends Controller
         }
     }
 
-    public function reject($id)
-    {
-        $deposit = Transaction::deposit()->findOrFail($id);
+    public function reject(Request $request, $id)
+{
+    $request->validate([
+        'rejection_reason' => 'required|string|max:500',
+    ]);
 
-        if ($deposit->status !== 'pending') {
-            return redirect()->route('admin.deposit.index')
-                ->with('error', 'This deposit has already been processed.');
-        }
+    $deposit = Transaction::deposit()->findOrFail($id);
 
-        $deposit->update([
-            'status' => 'rejected',
-            'approved_by' => auth()->id(),
-        ]);
-
+    if ($deposit->status !== 'pending') {
         return redirect()->route('admin.deposit.index')
-            ->with('success', 'Deposit has been rejected.');
+            ->with('error', 'This deposit has already been processed.');
     }
+
+    $deposit->update([
+        'status'           => 'rejected',
+        'approved_by'      => auth()->id(),
+        'rejection_reason' => $request->rejection_reason,
+    ]);
+
+    return redirect()->route('admin.deposit.index')
+        ->with('success', 'Deposit has been rejected.');
+}
 
     /**
      * NEW: Manual adjustment (add balance)

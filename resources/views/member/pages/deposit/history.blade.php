@@ -102,6 +102,12 @@
                                 <span style="font-size:11px;color:#3a4d66;">Date</span>
                                 <span style="font-size:11px;color:#7a8fad;">{{ $transaction->created_at->format('d M Y, H:i') }}</span>
                             </div>
+                            @if ($transaction->status === 'rejected' && $transaction->rejection_reason)
+                            <div style="display:flex;justify-content:space-between;align-items:flex-start;padding:7px 10px;border-top:1px solid rgba(240,79,90,.15);background:rgba(240,79,90,.05);">
+                                <span style="font-size:11px;color:#f04f5a;flex-shrink:0;margin-right:8px;">Rejection Reason</span>
+                                <span style="font-size:11px;font-weight:600;color:#f04f5a;text-align:right;">{{ $transaction->rejection_reason }}</span>
+                            </div>
+                            @endif
                             @if (in_array($transaction->status, ['approved','completed']) && $transaction->updated_at)
                             <div style="display:flex;justify-content:space-between;padding:7px 10px;{{ $transaction->payment_proof ? 'border-bottom:1px solid rgba(26,34,53,.6);' : '' }}">
                                 <span style="font-size:11px;color:#3a4d66;">Processed At</span>

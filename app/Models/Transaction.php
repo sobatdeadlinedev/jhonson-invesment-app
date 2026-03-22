@@ -22,6 +22,7 @@ class Transaction extends Model
         'status',
         'payment_method',
         'payment_proof',
+         'rejection_reason',
         'approved_by',
     ];
 
