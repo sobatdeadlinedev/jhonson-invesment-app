@@ -12,12 +12,17 @@ class UserController extends Controller
     {
         $users = User::role('member')
             ->with(['roles', 'transactions' => function($q) {
-                $q->whereIn('type', ['withdrawal', 'deduction'])
+                $q->whereIn('type', ['withdrawal', 'deduction', 'deposit'])
                   ->latest();
             }])
-            ->withCount(['transactions as withdrawal_count' => function($q) {
-                $q->whereIn('type', ['withdrawal', 'deduction']);
-            }])
+            ->withCount([
+                'transactions as withdrawal_count' => function($q) {
+                    $q->whereIn('type', ['withdrawal', 'deduction']);
+                },
+                'transactions as deposit_count' => function($q) {
+                    $q->where('type', 'deposit');
+                },
+            ])
             ->latest()
             ->get();
 
@@ -27,17 +32,17 @@ class UserController extends Controller
     public function update(Request $request, User $user)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
+            'name'     => 'required|string|max:255',
             'username' => 'required|string|max:255|unique:users,username,' . $user->id,
-            'email' => 'required|email|max:255|unique:users,email,' . $user->id,
-            'phone' => 'required|string|max:20|unique:users,phone,' . $user->id,
+            'email'    => 'required|email|max:255|unique:users,email,' . $user->id,
+            'phone'    => 'required|string|max:20|unique:users,phone,' . $user->id,
         ]);
 
         $user->update([
-            'name' => $request->name,
+            'name'     => $request->name,
             'username' => $request->username,
-            'email' => $request->email,
-            'phone' => $request->phone,
+            'email'    => $request->email,
+            'phone'    => $request->phone,
         ]);
 
         return redirect()->route('admin.user.index')->with('success', 'User updated successfully');
