@@ -10,17 +10,22 @@ class UserController extends Controller
 {
     public function index()
     {
-       $users = User::role('member')
-    ->with('roles')
-    ->latest()
-    ->get();
+        $users = User::role('member')
+            ->with(['roles', 'transactions' => function($q) {
+                $q->whereIn('type', ['withdrawal', 'deduction'])
+                  ->latest();
+            }])
+            ->withCount(['transactions as withdrawal_count' => function($q) {
+                $q->whereIn('type', ['withdrawal', 'deduction']);
+            }])
+            ->latest()
+            ->get();
 
         return view('admin.pages.user.index', compact('users'));
     }
 
     public function update(Request $request, User $user)
     {
-        // Validasi
         $request->validate([
             'name' => 'required|string|max:255',
             'username' => 'required|string|max:255|unique:users,username,' . $user->id,
