@@ -203,10 +203,7 @@
                     <div style="font-size:12px;font-weight:700;color:#e2eaf8;margin-bottom:6px;">About Results</div>
                     <div style="display:flex;flex-direction:column;gap:4px;">
                         @foreach([
-                            'CALL/PUT shows what admin predicted (not actual market movement)',
                             'Trading Fee = 1% of your bet amount (deducted on win only)',
-                            'Net P/L = Final result after deducting fees',
-                            'Win Rate is calculated from settled signals only'
                         ] as $info)
                         <div style="display:flex;align-items:flex-start;gap:6px;">
                             <span style="width:4px;height:4px;border-radius:50%;background:#3a4d66;flex-shrink:0;margin-top:5px;"></span>

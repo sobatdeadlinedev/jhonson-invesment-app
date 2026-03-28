@@ -400,7 +400,7 @@
                 <div class="login-card">
 
                     <div class="live-dot">
-                        <span></span> PLATFORM AKTIF
+                        <span></span> STARS INVESTMENT
                     </div>
 
                     <div class="login-title">Masuk ke Akun Anda</div>
