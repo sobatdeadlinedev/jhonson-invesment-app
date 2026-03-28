@@ -249,10 +249,7 @@
                         @endforelse
                     </div>
 
-                    {{-- Pagination --}}
-                    <div class="d-flex justify-content-center p-4">
-                        {{ $withdrawals->links() }}
-                    </div>
+                   
                 </div>
             </div>
         </div>

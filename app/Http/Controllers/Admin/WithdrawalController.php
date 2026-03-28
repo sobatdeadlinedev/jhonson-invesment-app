@@ -17,7 +17,7 @@ class WithdrawalController extends Controller
         $withdrawals = Transaction::with(['user', 'wallet'])
             ->whereIn('type', ['withdrawal', 'deduction'])
             ->latest()
-            ->paginate(10);
+            ->get();
 
         $members = User::role('member')
             ->orderBy('name')

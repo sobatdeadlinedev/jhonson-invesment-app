@@ -17,7 +17,7 @@ class DepositController extends Controller
         $deposits = Transaction::with(['user'])
             ->whereIn('type', ['deposit', 'adjustment'])
             ->latest()
-            ->paginate(50);
+            ->get();
 
         $members = User::role('member')
             ->orderBy('name')

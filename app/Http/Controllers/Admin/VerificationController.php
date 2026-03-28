@@ -15,7 +15,7 @@ class VerificationController extends Controller
         $verifications = UserVerification::with('user')
             ->submitted()
             ->latest('submitted_at')
-            ->paginate(50);
+            ->get();
 
         return view('admin.pages.verification.index', compact('verifications'));
     }
