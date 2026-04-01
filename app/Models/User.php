@@ -50,10 +50,10 @@ class User extends Authenticatable
         return $this->hasMany(Wallet::class);
     }
 
-  public function transactions()
-{
-    return $this->hasMany(\App\Models\Transaction::class);
-}
+    public function transactions()
+    {
+        return $this->hasMany(Transaction::class);
+    }
 
     public function commissionSources()
     {
