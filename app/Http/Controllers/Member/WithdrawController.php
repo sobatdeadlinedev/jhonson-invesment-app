@@ -233,7 +233,7 @@ class WithdrawController extends Controller
             $user->addExchangeBalance($transaction->total_amount);
 
             $transaction->update([
-                'status' => 'cancelled',
+                'status' => 'rejected',
             ]);
 
             DB::commit();

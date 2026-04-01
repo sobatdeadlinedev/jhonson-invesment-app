@@ -55,6 +55,7 @@
                                     <th class="min-w-100px">Verified</th>
                                     <th class="min-w-100px">Deposit</th>
                                     <th class="min-w-100px">Withdrawals</th>
+                                    <th class="min-w-175px">Volume</th>
                                     <th class="min-w-125px">Joined Date</th>
                                     <th class="text-end min-w-80px">Actions</th>
                                 </tr>
@@ -62,7 +63,7 @@
                             <tbody class="text-gray-600 fw-semibold">
                                 @forelse($users as $user)
                                     @php
-                                        $wdTransactions = $user->transactions->whereIn('type', ['withdrawal', 'deduction']);
+                                        $wdTransactions      = $user->transactions->whereIn('type', ['withdrawal', 'deduction']);
                                         $depositTransactions = $user->transactions->where('type', 'deposit');
                                     @endphp
                                     <tr>
@@ -103,6 +104,33 @@
                                                 <span class="badge badge-light-secondary">No WD</span>
                                             @endif
                                         </td>
+
+                                        {{-- Kolom Volume --}}
+                                        <td>
+                                            @if($user->target_volume > 0)
+                                                @php
+                                                    $pct   = min(100, ($user->achieved_volume / $user->target_volume) * 100);
+                                                    $color = $pct >= 100 ? 'success' : ($pct >= 50 ? 'primary' : 'warning');
+                                                @endphp
+                                                <div class="d-flex flex-column gap-1" style="min-width:160px">
+                                                    <div class="d-flex justify-content-between fs-8 text-muted">
+                                                        <span>{{ number_format($user->achieved_volume, 2) }} / {{ number_format($user->target_volume, 2) }}</span>
+                                                        <span class="fw-bold text-{{ $color }}">{{ number_format($pct, 1) }}%</span>
+                                                    </div>
+                                                    <div class="progress h-6px">
+                                                        <div class="progress-bar bg-{{ $color }}" style="width: {{ $pct }}%"></div>
+                                                    </div>
+                                                    @if($pct >= 100)
+                                                        <span class="badge badge-light-success fs-8">Completed</span>
+                                                    @else
+                                                        <span class="badge badge-light-warning fs-8">In Progress</span>
+                                                    @endif
+                                                </div>
+                                            @else
+                                                <span class="badge badge-light-secondary">No Target</span>
+                                            @endif
+                                        </td>
+
                                         <td>{{ $user->created_at->format('d M Y, h:i a') }}</td>
                                         <td class="text-end">
                                             <button class="btn btn-light btn-active-light-primary btn-sm"
@@ -114,7 +142,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="8" class="text-center py-10">
+                                        <td colspan="9" class="text-center py-10">
                                             <div class="text-gray-600">No users found</div>
                                         </td>
                                     </tr>
@@ -130,7 +158,7 @@
     {{-- ===================== SEMUA MODAL DI LUAR TABEL ===================== --}}
     @foreach($users as $user)
         @php
-            $wdTransactions = $user->transactions->whereIn('type', ['withdrawal', 'deduction']);
+            $wdTransactions      = $user->transactions->whereIn('type', ['withdrawal', 'deduction']);
             $depositTransactions = $user->transactions->where('type', 'deposit');
         @endphp
 
@@ -148,34 +176,68 @@
                         <form action="{{ route('admin.user.update', $user->id) }}" method="POST">
                             @csrf
                             @method('PUT')
+
                             <div class="fv-row mb-7">
                                 <label class="required fw-semibold fs-6 mb-2">Full Name</label>
                                 <input type="text" name="name"
                                     class="form-control form-control-solid @error('name') is-invalid @enderror"
-                                    placeholder="Full name" value="{{ old('name', $user->name) }}" required />
+                                    placeholder="Full name"
+                                    value="{{ old('name', $user->name) }}" required />
                                 @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             </div>
+
                             <div class="fv-row mb-7">
                                 <label class="required fw-semibold fs-6 mb-2">Username</label>
                                 <input type="text" name="username"
                                     class="form-control form-control-solid @error('username') is-invalid @enderror"
-                                    placeholder="Username" value="{{ old('username', $user->username) }}" required />
+                                    placeholder="Username"
+                                    value="{{ old('username', $user->username) }}" required />
                                 @error('username')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             </div>
+
                             <div class="fv-row mb-7">
                                 <label class="required fw-semibold fs-6 mb-2">Email</label>
                                 <input type="email" name="email"
                                     class="form-control form-control-solid @error('email') is-invalid @enderror"
-                                    placeholder="example@domain.com" value="{{ old('email', $user->email) }}" required />
+                                    placeholder="example@domain.com"
+                                    value="{{ old('email', $user->email) }}" required />
                                 @error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             </div>
+
                             <div class="fv-row mb-7">
                                 <label class="required fw-semibold fs-6 mb-2">Phone</label>
                                 <input type="text" name="phone"
                                     class="form-control form-control-solid @error('phone') is-invalid @enderror"
-                                    placeholder="08123456789" value="{{ old('phone', $user->phone) }}" required />
+                                    placeholder="08123456789"
+                                    value="{{ old('phone', $user->phone) }}" required />
                                 @error('phone')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             </div>
+
+                            {{-- Target Volume (read-only, hanya untuk referensi) --}}
+                            <div class="fv-row mb-7">
+                                <label class="fw-semibold fs-6 mb-2">Target Volume</label>
+                                <input type="text"
+                                    class="form-control form-control-solid"
+                                    value="{{ number_format($user->target_volume, 2) }} USDT"
+                                    disabled />
+                                <div class="form-text text-muted">Target volume tidak bisa diubah dari sini.</div>
+                            </div>
+
+                            {{-- Achieved Volume (editable oleh admin) --}}
+                            <div class="fv-row mb-7">
+                                <label class="required fw-semibold fs-6 mb-2">Achieved Volume</label>
+                                <input type="number" name="achieved_volume" step="0.01" min="0"
+                                    class="form-control form-control-solid @error('achieved_volume') is-invalid @enderror"
+                                    placeholder="0.00"
+                                    value="{{ old('achieved_volume', $user->achieved_volume) }}" />
+                                @error('achieved_volume')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                                <div class="form-text text-muted">
+                                    Sisa: {{ number_format($user->getRemainingVolume(), 2) }} USDT
+                                </div>
+                            </div>
+
                             <div class="text-center pt-10">
                                 <button type="button" class="btn btn-light me-3" data-bs-dismiss="modal">Cancel</button>
                                 <button type="submit" class="btn btn-primary">Update</button>
