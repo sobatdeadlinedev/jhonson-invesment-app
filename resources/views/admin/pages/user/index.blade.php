@@ -54,6 +54,8 @@
                                     <th class="min-w-100px">Username</th>
                                     <th class="min-w-125px">Phone</th>
                                     <th class="min-w-100px">Verified</th>
+                                    <th class="min-w-100px">Active</th>
+                                    <th class="min-w-150px">Referred By</th>
                                     <th class="min-w-120px">Exchange</th>
                                     <th class="min-w-120px">Trade</th>
                                     <th class="min-w-100px">Deposit</th>
@@ -69,6 +71,10 @@
                                     @php
                                         $wdTransactions      = $user->transactions->whereIn('type', ['withdrawal', 'deduction']);
                                         $depositTransactions = $user->transactions->where('type', 'deposit');
+
+                                        $totalApprovedDeposit = $depositTransactions->where('status', 'approved')->sum('total_amount');
+                                        $isActiveMember       = $totalApprovedDeposit >= 200;
+                                        $remainingForActive   = max(0, 200 - $totalApprovedDeposit);
 
                                         $level1Users = $user->referrals->map->referred->filter();
                                         $level2Users = $user->referrals->flatMap(function ($ref) {
@@ -103,6 +109,33 @@
                                                 <span class="badge badge-light-success">Verified</span>
                                             @else
                                                 <span class="badge badge-light-warning">Unverified</span>
+                                            @endif
+                                        </td>
+
+                                        {{-- Active Member --}}
+                                        <td>
+                                            @if($isActiveMember)
+                                                <span class="badge badge-light-success">
+                                                    <i class="ki-outline ki-check-circle fs-7 me-1"></i>Active
+                                                </span>
+                                            @else
+                                                <span class="badge badge-light-danger"
+                                                      data-bs-toggle="tooltip"
+                                                      data-bs-placement="top"
+                                                      title="Butuh {{ number_format($remainingForActive, 2) }} USDT lagi (Total deposit: {{ number_format($totalApprovedDeposit, 2) }} USDT)">
+                                                    <i class="ki-outline ki-cross-circle fs-7 me-1"></i>Inactive
+                                                </span>
+                                            @endif
+                                        </td>
+
+                                        {{-- Referred By --}}
+                                        <td>
+                                            @if($user->usedReferral?->referrer)
+                                                <span class="fw-semibold text-gray-800">
+                                                    {{ $user->usedReferral->referrer->name }}
+                                                </span>
+                                            @else
+                                                <span class="badge badge-light-secondary">—</span>
                                             @endif
                                         </td>
 
@@ -207,7 +240,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="12" class="text-center py-10">
+                                        <td colspan="14" class="text-center py-10">
                                             <div class="text-gray-600">No users found</div>
                                         </td>
                                     </tr>
@@ -498,6 +531,7 @@
                                                 <th>Name / Email</th>
                                                 <th>Username</th>
                                                 <th>Status</th>
+                                                <th>Active</th>
                                                 <th class="text-end">Deposit</th>
                                                 <th>Joined</th>
                                             </tr>
@@ -505,10 +539,9 @@
                                         <tbody>
                                             @foreach($level1Users as $ref)
                                                 @php
-                                                    $refDeposit = $ref->transactions
-                                                        ->where('type', 'deposit')
-                                                        ->where('status', 'approved')
-                                                        ->sum('total_amount');
+                                                    $refDeposit       = $ref->transactions->where('type', 'deposit')->where('status', 'approved')->sum('total_amount');
+                                                    $refIsActive      = $refDeposit >= 200;
+                                                    $refRemaining     = max(0, 200 - $refDeposit);
                                                 @endphp
                                                 <tr>
                                                     <td>
@@ -520,6 +553,17 @@
                                                         <span class="badge badge-light-{{ $ref->is_verified ? 'success' : 'warning' }}">
                                                             {{ $ref->is_verified ? 'Verified' : 'Unverified' }}
                                                         </span>
+                                                    </td>
+                                                    <td>
+                                                        @if($refIsActive)
+                                                            <span class="badge badge-light-success">Active</span>
+                                                        @else
+                                                            <span class="badge badge-light-danger"
+                                                                  data-bs-toggle="tooltip"
+                                                                  title="Butuh {{ number_format($refRemaining, 2) }} USDT lagi">
+                                                                Inactive
+                                                            </span>
+                                                        @endif
                                                     </td>
                                                     <td class="text-end fw-bold {{ $refDeposit > 0 ? 'text-success' : 'text-muted' }}">
                                                         {{ number_format($refDeposit, 2) }} USDT
@@ -547,6 +591,7 @@
                                                     <th>Username</th>
                                                     <th>Referred By</th>
                                                     <th>Status</th>
+                                                    <th>Active</th>
                                                     <th class="text-end">Deposit</th>
                                                     <th>Joined</th>
                                                 </tr>
@@ -554,10 +599,9 @@
                                             <tbody>
                                                 @foreach($level2Users as $ref)
                                                     @php
-                                                        $refDeposit = $ref->transactions
-                                                            ->where('type', 'deposit')
-                                                            ->where('status', 'approved')
-                                                            ->sum('total_amount');
+                                                        $refDeposit   = $ref->transactions->where('type', 'deposit')->where('status', 'approved')->sum('total_amount');
+                                                        $refIsActive  = $refDeposit >= 200;
+                                                        $refRemaining = max(0, 200 - $refDeposit);
                                                     @endphp
                                                     <tr>
                                                         <td>
@@ -574,6 +618,17 @@
                                                             <span class="badge badge-light-{{ $ref->is_verified ? 'success' : 'warning' }}">
                                                                 {{ $ref->is_verified ? 'Verified' : 'Unverified' }}
                                                             </span>
+                                                        </td>
+                                                        <td>
+                                                            @if($refIsActive)
+                                                                <span class="badge badge-light-success">Active</span>
+                                                            @else
+                                                                <span class="badge badge-light-danger"
+                                                                      data-bs-toggle="tooltip"
+                                                                      title="Butuh {{ number_format($refRemaining, 2) }} USDT lagi">
+                                                                    Inactive
+                                                                </span>
+                                                            @endif
                                                         </td>
                                                         <td class="text-end fw-bold {{ $refDeposit > 0 ? 'text-success' : 'text-muted' }}">
                                                             {{ number_format($refDeposit, 2) }} USDT
@@ -602,6 +657,7 @@
                                                     <th>Username</th>
                                                     <th>Referred By</th>
                                                     <th>Status</th>
+                                                    <th>Active</th>
                                                     <th class="text-end">Deposit</th>
                                                     <th>Joined</th>
                                                 </tr>
@@ -609,10 +665,9 @@
                                             <tbody>
                                                 @foreach($level3Users as $ref)
                                                     @php
-                                                        $refDeposit = $ref->transactions
-                                                            ->where('type', 'deposit')
-                                                            ->where('status', 'approved')
-                                                            ->sum('total_amount');
+                                                        $refDeposit   = $ref->transactions->where('type', 'deposit')->where('status', 'approved')->sum('total_amount');
+                                                        $refIsActive  = $refDeposit >= 200;
+                                                        $refRemaining = max(0, 200 - $refDeposit);
                                                     @endphp
                                                     <tr>
                                                         <td>
@@ -629,6 +684,17 @@
                                                             <span class="badge badge-light-{{ $ref->is_verified ? 'success' : 'warning' }}">
                                                                 {{ $ref->is_verified ? 'Verified' : 'Unverified' }}
                                                             </span>
+                                                        </td>
+                                                        <td>
+                                                            @if($refIsActive)
+                                                                <span class="badge badge-light-success">Active</span>
+                                                            @else
+                                                                <span class="badge badge-light-danger"
+                                                                      data-bs-toggle="tooltip"
+                                                                      title="Butuh {{ number_format($refRemaining, 2) }} USDT lagi">
+                                                                    Inactive
+                                                                </span>
+                                                            @endif
                                                         </td>
                                                         <td class="text-end fw-bold {{ $refDeposit > 0 ? 'text-success' : 'text-muted' }}">
                                                             {{ number_format($refDeposit, 2) }} USDT
@@ -653,15 +719,21 @@
     @push('scripts')
         <script>
             $(document).ready(function () {
+                // Search
                 $('#search-user').on('keyup', function () {
                     const value = $(this).val().toLowerCase();
                     $('#kt_table_users tbody tr').filter(function () {
                         $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
                     });
                 });
+
+                // Auto-dismiss alert
                 setTimeout(function () {
                     $('.alert').fadeOut('slow');
                 }, 5000);
+
+                // Init tooltips
+                $('[data-bs-toggle="tooltip"]').tooltip();
             });
         </script>
     @endpush

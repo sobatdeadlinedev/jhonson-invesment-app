@@ -10,29 +10,28 @@ use App\Http\Controllers\Controller;
 class UserController extends Controller
 {
     public function index()
-{
-    $users = User::role('member')
-        ->with([
-            'roles',
-            'transactions' => function ($q) {
-                $q->whereIn('type', ['withdrawal', 'deduction', 'deposit'])->latest();
-            },
-            'referrals.referred.transactions',
-            'referrals.referred.referrals.referred.transactions',
-            'referrals.referred.referrals.referred.referrals.referred.transactions',
-        ])
-        ->withCount([
-            'transactions as withdrawal_count' => fn($q) => $q->whereIn('type', ['withdrawal', 'deduction']),
-            'transactions as deposit_count'    => fn($q) => $q->where('type', 'deposit'),
-            'referrals as direct_referral_count',
-        ])
-        ->latest()
-        ->get();
+    {
+        $users = User::role('member')
+            ->with([
+                'roles',
+                'transactions' => function ($q) {
+                    $q->whereIn('type', ['withdrawal', 'deduction', 'deposit'])->latest();
+                },
+                'referrals.referred.transactions',
+                'referrals.referred.referrals.referred.transactions',
+                'referrals.referred.referrals.referred.referrals.referred.transactions',
+                'usedReferral.referrer',
+            ])
+            ->withCount([
+                'transactions as withdrawal_count' => fn($q) => $q->whereIn('type', ['withdrawal', 'deduction']),
+                'transactions as deposit_count'    => fn($q) => $q->where('type', 'deposit'),
+                'referrals as direct_referral_count',
+            ])
+            ->latest()
+            ->get();
 
-    // Hapus loop balance di sini
-
-    return view('admin.pages.user.index', compact('users'));
-}
+        return view('admin.pages.user.index', compact('users'));
+    }
 
     public function update(Request $request, User $user)
     {

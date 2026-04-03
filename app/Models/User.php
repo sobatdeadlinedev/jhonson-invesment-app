@@ -80,6 +80,14 @@ class User extends Authenticatable
         return $this->hasOne(ReferralUsage::class, 'referred_id');
     }
 
+    public function getIsActiveMemberAttribute(): bool
+{
+    return $this->transactions
+        ->where('type', 'deposit')
+        ->where('status', 'approved')
+        ->sum('total_amount') >= 200;
+}
+
     public function referredUsers()
     {
         return $this->hasManyThrough(
