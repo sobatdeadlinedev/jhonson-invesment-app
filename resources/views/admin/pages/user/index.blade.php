@@ -69,24 +69,14 @@
                             <tbody class="text-gray-600 fw-semibold">
                                 @forelse($users as $user)
                                     @php
+                                        $ld = $userLevelData[$user->id];
+
                                         $wdTransactions      = $user->transactions->whereIn('type', ['withdrawal', 'deduction']);
                                         $depositTransactions = $user->transactions->where('type', 'deposit');
 
                                         $totalApprovedDeposit = $depositTransactions->where('status', 'approved')->sum('total_amount');
                                         $isActiveMember       = $totalApprovedDeposit >= 200;
                                         $remainingForActive   = max(0, 200 - $totalApprovedDeposit);
-
-                                        $level1Users = $user->referrals->map->referred->filter();
-                                        $level2Users = $user->referrals->flatMap(function ($ref) {
-                                            return $ref->referred?->referrals?->map->referred ?? collect();
-                                        })->filter();
-                                        $level3Users = $user->referrals->flatMap(function ($ref) {
-                                            return $ref->referred?->referrals?->flatMap(function ($ref2) {
-                                                return $ref2->referred?->referrals?->map->referred ?? collect();
-                                            }) ?? collect();
-                                        })->filter();
-
-                                        $totalTeam = $level1Users->count() + $level2Users->count() + $level3Users->count();
                                     @endphp
                                     <tr>
                                         {{-- User --}}
@@ -189,11 +179,11 @@
 
                                         {{-- Team --}}
                                         <td>
-                                            @if($totalTeam > 0)
+                                            @if($ld['totalTeam'] > 0)
                                                 <button class="btn btn-light-primary btn-sm" data-bs-toggle="modal"
                                                     data-bs-target="#kt_modal_team_{{ $user->id }}">
                                                     <i class="ki-outline ki-people fs-5"></i>
-                                                    {{ $totalTeam }}
+                                                    {{ $ld['totalTeam'] }}
                                                 </button>
                                             @else
                                                 <span class="badge badge-light-secondary">-</span>
@@ -256,28 +246,30 @@
     {{-- ===================== SEMUA MODAL ===================== --}}
     @foreach($users as $user)
         @php
+            $ld = $userLevelData[$user->id];
+
             $wdTransactions      = $user->transactions->whereIn('type', ['withdrawal', 'deduction']);
             $depositTransactions = $user->transactions->where('type', 'deposit');
 
-            $level1Users = $user->referrals->map->referred->filter();
-            $level2Users = $user->referrals->flatMap(function ($ref) {
-                return $ref->referred?->referrals?->map->referred ?? collect();
-            })->filter();
-            $level3Users = $user->referrals->flatMap(function ($ref) {
-                return $ref->referred?->referrals?->flatMap(function ($ref2) {
-                    return $ref2->referred?->referrals?->map->referred ?? collect();
-                }) ?? collect();
-            })->filter();
+            $levels          = $ld['levels'];          // array [1..10] of Collection
+            $totalTeam       = $ld['totalTeam'];
+            $activeTeam      = $ld['activeTeam'];
+            $depositPerLevel = $ld['depositPerLevel']; // array [1..10] of float
+            $teamDeposit     = $ld['totalDeposit'];
 
-            $totalTeam  = $level1Users->count() + $level2Users->count() + $level3Users->count();
-            $activeTeam = $level1Users->where('is_verified', true)->count()
-                        + $level2Users->where('is_verified', true)->count()
-                        + $level3Users->where('is_verified', true)->count();
-
-            $depositL1   = $level1Users->flatMap->transactions->where('type', 'deposit')->where('status', 'approved')->sum('total_amount');
-            $depositL2   = $level2Users->flatMap->transactions->where('type', 'deposit')->where('status', 'approved')->sum('total_amount');
-            $depositL3   = $level3Users->flatMap->transactions->where('type', 'deposit')->where('status', 'approved')->sum('total_amount');
-            $teamDeposit = $depositL1 + $depositL2 + $depositL3;
+            // Badge color per level (cycling)
+            $levelColors = [
+                1  => 'primary',
+                2  => 'info',
+                3  => 'warning',
+                4  => 'success',
+                5  => 'danger',
+                6  => 'dark',
+                7  => 'primary',
+                8  => 'info',
+                9  => 'warning',
+                10 => 'success',
+            ];
         @endphp
 
         {{-- ===== Modal Edit User ===== --}}
@@ -444,9 +436,9 @@
             </div>
         </div>
 
-        {{-- ===== Modal Team ===== --}}
+        {{-- ===== Modal Team (Level 1–10) ===== --}}
         <div class="modal fade" id="kt_modal_team_{{ $user->id }}" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered mw-900px">
+            <div class="modal-dialog modal-dialog-centered mw-1000px">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h2 class="fw-bold">
@@ -487,226 +479,125 @@
                             </div>
                         </div>
 
-                        {{-- Deposit per Level --}}
-                        <div class="d-flex gap-3 mb-7 flex-wrap">
-                            <div class="d-flex align-items-center bg-light-primary rounded px-4 py-2 flex-fill">
-                                <span class="badge badge-primary me-2">L1</span>
-                                <div>
-                                    <div class="fw-bold text-gray-800">{{ $level1Users->count() }} member</div>
-                                    <div class="fs-8 text-muted">Deposit: {{ number_format($depositL1, 2) }} USDT</div>
-                                </div>
-                            </div>
-                            <div class="d-flex align-items-center bg-light-info rounded px-4 py-2 flex-fill">
-                                <span class="badge badge-info me-2">L2</span>
-                                <div>
-                                    <div class="fw-bold text-gray-800">{{ $level2Users->count() }} member</div>
-                                    <div class="fs-8 text-muted">Deposit: {{ number_format($depositL2, 2) }} USDT</div>
-                                </div>
-                            </div>
-                            <div class="d-flex align-items-center bg-light-warning rounded px-4 py-2 flex-fill">
-                                <span class="badge badge-warning me-2">L3</span>
-                                <div>
-                                    <div class="fw-bold text-gray-800">{{ $level3Users->count() }} member</div>
-                                    <div class="fs-8 text-muted">Deposit: {{ number_format($depositL3, 2) }} USDT</div>
-                                </div>
-                            </div>
+                        {{-- Deposit per Level (grid 5 kolom × 2 baris) --}}
+                        <div class="row g-2 mb-7">
+                            @for($i = 1; $i <= 10; $i++)
+                                @if($levels[$i]->isNotEmpty())
+                                    <div class="col-6 col-md-2">
+                                        <div class="d-flex align-items-center bg-light-{{ $levelColors[$i] }} rounded px-3 py-2 h-100">
+                                            <span class="badge badge-{{ $levelColors[$i] }} me-2 flex-shrink-0">L{{ $i }}</span>
+                                            <div>
+                                                <div class="fw-bold text-gray-800 fs-7">{{ $levels[$i]->count() }} member</div>
+                                                <div class="fs-8 text-muted">{{ number_format($depositPerLevel[$i], 2) }} USDT</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endif
+                            @endfor
                         </div>
 
-                        @if($level1Users->isEmpty())
+                        @if($levels[1]->isEmpty())
                             <div class="text-center text-muted py-5">
                                 <i class="ki-outline ki-people fs-3x text-muted mb-3 d-block"></i>
                                 <div>Belum ada anggota tim</div>
                             </div>
                         @else
-                            {{-- Level 1 --}}
-                            <div class="mb-6">
-                                <div class="d-flex align-items-center mb-3">
-                                    <span class="badge badge-primary fs-7 me-2">L1</span>
-                                    <h5 class="fw-bold text-primary m-0">Direct Referrals</h5>
-                                </div>
-                                <div class="table-responsive">
-                                    <table class="table table-bordered align-middle fs-7 gy-2">
-                                        <thead>
-                                            <tr class="text-muted fw-bold text-uppercase bg-light">
-                                                <th>Name / Email</th>
-                                                <th>Username</th>
-                                                <th>Status</th>
-                                                <th>Active</th>
-                                                <th class="text-end">Deposit</th>
-                                                <th>Joined</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @foreach($level1Users as $ref)
-                                                @php
-                                                    $refDeposit       = $ref->transactions->where('type', 'deposit')->where('status', 'approved')->sum('total_amount');
-                                                    $refIsActive      = $refDeposit >= 200;
-                                                    $refRemaining     = max(0, 200 - $refDeposit);
-                                                @endphp
-                                                <tr>
-                                                    <td>
-                                                        <div class="fw-semibold text-gray-800">{{ $ref->name }}</div>
-                                                        <div class="text-muted fs-8">{{ $ref->email }}</div>
-                                                    </td>
-                                                    <td>{{ $ref->username }}</td>
-                                                    <td>
-                                                        <span class="badge badge-light-{{ $ref->is_verified ? 'success' : 'warning' }}">
-                                                            {{ $ref->is_verified ? 'Verified' : 'Unverified' }}
-                                                        </span>
-                                                    </td>
-                                                    <td>
-                                                        @if($refIsActive)
-                                                            <span class="badge badge-light-success">Active</span>
-                                                        @else
-                                                            <span class="badge badge-light-danger"
-                                                                  data-bs-toggle="tooltip"
-                                                                  title="Butuh {{ number_format($refRemaining, 2) }} USDT lagi">
-                                                                Inactive
-                                                            </span>
-                                                        @endif
-                                                    </td>
-                                                    <td class="text-end fw-bold {{ $refDeposit > 0 ? 'text-success' : 'text-muted' }}">
-                                                        {{ number_format($refDeposit, 2) }} USDT
-                                                    </td>
-                                                    <td>{{ $ref->created_at->format('d M Y') }}</td>
-                                                </tr>
-                                            @endforeach
-                                        </tbody>
-                                    </table>
-                                </div>
+                            {{-- Accordion per level --}}
+                            <div class="accordion" id="team_accordion_{{ $user->id }}">
+                                @for($lvl = 1; $lvl <= 10; $lvl++)
+                                    @if($levels[$lvl]->isNotEmpty())
+                                        @php
+                                            $color     = $levelColors[$lvl];
+                                            $levelName = $lvl === 1 ? 'Direct Referrals' : "Level $lvl";
+                                            $collapseId = "collapse_u{$user->id}_l{$lvl}";
+                                            $headingId  = "heading_u{$user->id}_l{$lvl}";
+                                        @endphp
+                                        <div class="accordion-item border mb-3">
+                                            <h2 class="accordion-header" id="{{ $headingId }}">
+                                                <button class="accordion-button {{ $lvl > 1 ? 'collapsed' : '' }} py-3"
+                                                    type="button"
+                                                    data-bs-toggle="collapse"
+                                                    data-bs-target="#{{ $collapseId }}"
+                                                    aria-expanded="{{ $lvl === 1 ? 'true' : 'false' }}"
+                                                    aria-controls="{{ $collapseId }}">
+                                                    <span class="badge badge-{{ $color }} me-3">L{{ $lvl }}</span>
+                                                    <span class="fw-bold text-{{ $color }}">{{ $levelName }}</span>
+                                                    <span class="ms-3 text-muted fs-7">
+                                                        {{ $levels[$lvl]->count() }} member
+                                                        &nbsp;·&nbsp;
+                                                        {{ number_format($depositPerLevel[$lvl], 2) }} USDT deposit
+                                                    </span>
+                                                </button>
+                                            </h2>
+                                            <div id="{{ $collapseId }}"
+                                                class="accordion-collapse collapse {{ $lvl === 1 ? 'show' : '' }}"
+                                                aria-labelledby="{{ $headingId }}"
+                                                data-bs-parent="#team_accordion_{{ $user->id }}">
+                                                <div class="accordion-body p-0">
+                                                    <div class="table-responsive">
+                                                        <table class="table table-bordered align-middle fs-7 gy-2 mb-0">
+                                                            <thead>
+                                                                <tr class="text-muted fw-bold text-uppercase bg-light">
+                                                                    <th>Name / Email</th>
+                                                                    <th>Username</th>
+                                                                    @if($lvl > 1)<th>Referred By</th>@endif
+                                                                    <th>Status</th>
+                                                                    <th>Active</th>
+                                                                    <th class="text-end">Deposit</th>
+                                                                    <th>Joined</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                @foreach($levels[$lvl] as $ref)
+                                                                    @php
+                                                                        $refDeposit   = $ref->transactions->where('type', 'deposit')->where('status', 'approved')->sum('total_amount');
+                                                                        $refIsActive  = $refDeposit >= 200;
+                                                                        $refRemaining = max(0, 200 - $refDeposit);
+                                                                    @endphp
+                                                                    <tr>
+                                                                        <td>
+                                                                            <div class="fw-semibold text-gray-800">{{ $ref->name }}</div>
+                                                                            <div class="text-muted fs-8">{{ $ref->email }}</div>
+                                                                        </td>
+                                                                        <td>{{ $ref->username }}</td>
+                                                                        @if($lvl > 1)
+                                                                            <td>
+                                                                                <span class="badge badge-light-{{ $color }}">
+                                                                                    {{ $ref->usedReferral?->referrer?->name ?? '-' }}
+                                                                                </span>
+                                                                            </td>
+                                                                        @endif
+                                                                        <td>
+                                                                            <span class="badge badge-light-{{ $ref->is_verified ? 'success' : 'warning' }}">
+                                                                                {{ $ref->is_verified ? 'Verified' : 'Unverified' }}
+                                                                            </span>
+                                                                        </td>
+                                                                        <td>
+                                                                            @if($refIsActive)
+                                                                                <span class="badge badge-light-success">Active</span>
+                                                                            @else
+                                                                                <span class="badge badge-light-danger"
+                                                                                      data-bs-toggle="tooltip"
+                                                                                      title="Butuh {{ number_format($refRemaining, 2) }} USDT lagi">
+                                                                                    Inactive
+                                                                                </span>
+                                                                            @endif
+                                                                        </td>
+                                                                        <td class="text-end fw-bold {{ $refDeposit > 0 ? 'text-success' : 'text-muted' }}">
+                                                                            {{ number_format($refDeposit, 2) }} USDT
+                                                                        </td>
+                                                                        <td>{{ $ref->created_at->format('d M Y') }}</td>
+                                                                    </tr>
+                                                                @endforeach
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endif
+                                @endfor
                             </div>
-
-                            {{-- Level 2 --}}
-                            @if($level2Users->isNotEmpty())
-                                <div class="mb-6">
-                                    <div class="d-flex align-items-center mb-3">
-                                        <span class="badge badge-info fs-7 me-2">L2</span>
-                                        <h5 class="fw-bold text-info m-0">Level 2</h5>
-                                    </div>
-                                    <div class="table-responsive">
-                                        <table class="table table-bordered align-middle fs-7 gy-2">
-                                            <thead>
-                                                <tr class="text-muted fw-bold text-uppercase bg-light">
-                                                    <th>Name / Email</th>
-                                                    <th>Username</th>
-                                                    <th>Referred By</th>
-                                                    <th>Status</th>
-                                                    <th>Active</th>
-                                                    <th class="text-end">Deposit</th>
-                                                    <th>Joined</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                @foreach($level2Users as $ref)
-                                                    @php
-                                                        $refDeposit   = $ref->transactions->where('type', 'deposit')->where('status', 'approved')->sum('total_amount');
-                                                        $refIsActive  = $refDeposit >= 200;
-                                                        $refRemaining = max(0, 200 - $refDeposit);
-                                                    @endphp
-                                                    <tr>
-                                                        <td>
-                                                            <div class="fw-semibold text-gray-800">{{ $ref->name }}</div>
-                                                            <div class="text-muted fs-8">{{ $ref->email }}</div>
-                                                        </td>
-                                                        <td>{{ $ref->username }}</td>
-                                                        <td>
-                                                            <span class="badge badge-light-primary">
-                                                                {{ $ref->usedReferral?->referrer?->name ?? '-' }}
-                                                            </span>
-                                                        </td>
-                                                        <td>
-                                                            <span class="badge badge-light-{{ $ref->is_verified ? 'success' : 'warning' }}">
-                                                                {{ $ref->is_verified ? 'Verified' : 'Unverified' }}
-                                                            </span>
-                                                        </td>
-                                                        <td>
-                                                            @if($refIsActive)
-                                                                <span class="badge badge-light-success">Active</span>
-                                                            @else
-                                                                <span class="badge badge-light-danger"
-                                                                      data-bs-toggle="tooltip"
-                                                                      title="Butuh {{ number_format($refRemaining, 2) }} USDT lagi">
-                                                                    Inactive
-                                                                </span>
-                                                            @endif
-                                                        </td>
-                                                        <td class="text-end fw-bold {{ $refDeposit > 0 ? 'text-success' : 'text-muted' }}">
-                                                            {{ number_format($refDeposit, 2) }} USDT
-                                                        </td>
-                                                        <td>{{ $ref->created_at->format('d M Y') }}</td>
-                                                    </tr>
-                                                @endforeach
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            @endif
-
-                            {{-- Level 3 --}}
-                            @if($level3Users->isNotEmpty())
-                                <div class="mb-6">
-                                    <div class="d-flex align-items-center mb-3">
-                                        <span class="badge badge-warning fs-7 me-2">L3</span>
-                                        <h5 class="fw-bold text-warning m-0">Level 3</h5>
-                                    </div>
-                                    <div class="table-responsive">
-                                        <table class="table table-bordered align-middle fs-7 gy-2">
-                                            <thead>
-                                                <tr class="text-muted fw-bold text-uppercase bg-light">
-                                                    <th>Name / Email</th>
-                                                    <th>Username</th>
-                                                    <th>Referred By</th>
-                                                    <th>Status</th>
-                                                    <th>Active</th>
-                                                    <th class="text-end">Deposit</th>
-                                                    <th>Joined</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                @foreach($level3Users as $ref)
-                                                    @php
-                                                        $refDeposit   = $ref->transactions->where('type', 'deposit')->where('status', 'approved')->sum('total_amount');
-                                                        $refIsActive  = $refDeposit >= 200;
-                                                        $refRemaining = max(0, 200 - $refDeposit);
-                                                    @endphp
-                                                    <tr>
-                                                        <td>
-                                                            <div class="fw-semibold text-gray-800">{{ $ref->name }}</div>
-                                                            <div class="text-muted fs-8">{{ $ref->email }}</div>
-                                                        </td>
-                                                        <td>{{ $ref->username }}</td>
-                                                        <td>
-                                                            <span class="badge badge-light-info">
-                                                                {{ $ref->usedReferral?->referrer?->name ?? '-' }}
-                                                            </span>
-                                                        </td>
-                                                        <td>
-                                                            <span class="badge badge-light-{{ $ref->is_verified ? 'success' : 'warning' }}">
-                                                                {{ $ref->is_verified ? 'Verified' : 'Unverified' }}
-                                                            </span>
-                                                        </td>
-                                                        <td>
-                                                            @if($refIsActive)
-                                                                <span class="badge badge-light-success">Active</span>
-                                                            @else
-                                                                <span class="badge badge-light-danger"
-                                                                      data-bs-toggle="tooltip"
-                                                                      title="Butuh {{ number_format($refRemaining, 2) }} USDT lagi">
-                                                                    Inactive
-                                                                </span>
-                                                            @endif
-                                                        </td>
-                                                        <td class="text-end fw-bold {{ $refDeposit > 0 ? 'text-success' : 'text-muted' }}">
-                                                            {{ number_format($refDeposit, 2) }} USDT
-                                                        </td>
-                                                        <td>{{ $ref->created_at->format('d M Y') }}</td>
-                                                    </tr>
-                                                @endforeach
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            @endif
                         @endif
                     </div>
                 </div>
