@@ -33,7 +33,6 @@
 
                 <!--begin:Menu item - Dashboard-->
                 <div class="menu-item">
-                    <!--begin:Menu link-->
                     <a class="menu-link {{ request()->routeIs('admin.dashboard.*') ? 'active' : '' }}"
                         href="{{ route('admin.dashboard.index') }}">
                         <span class="menu-icon">
@@ -41,23 +40,19 @@
                         </span>
                         <span class="menu-title">Dashboard</span>
                     </a>
-                    <!--end:Menu link-->
                 </div>
                 <!--end:Menu item-->
 
                 <!--begin:Menu item - Section Header-->
                 <div class="menu-item pt-5">
-                    <!--begin:Menu content-->
                     <div class="menu-content">
                         <span class="menu-heading fw-bold text-uppercase fs-7">User Management</span>
                     </div>
-                    <!--end:Menu content-->
                 </div>
                 <!--end:Menu item-->
 
                 <!--begin:Menu item - Users-->
                 <div class="menu-item">
-                    <!--begin:Menu link-->
                     <a class="menu-link {{ request()->routeIs('admin.user.*') ? 'active' : '' }}"
                         href="{{ route('admin.user.index') }}">
                         <span class="menu-icon">
@@ -65,13 +60,11 @@
                         </span>
                         <span class="menu-title">Member List</span>
                     </a>
-                    <!--end:Menu link-->
                 </div>
                 <!--end:Menu item-->
 
                 <!--begin:Menu item - Verification-->
                 <div class="menu-item">
-                    <!--begin:Menu link-->
                     <a class="menu-link {{ request()->routeIs('admin.verification.*') ? 'active' : '' }}"
                         href="{{ route('admin.verification.index') }}">
                         <span class="menu-icon">
@@ -79,13 +72,11 @@
                         </span>
                         <span class="menu-title">Verification</span>
                     </a>
-                    <!--end:Menu link-->
                 </div>
                 <!--end:Menu item-->
 
                 <!--begin:Menu item - Wallet-->
                 <div class="menu-item">
-                    <!--begin:Menu link-->
                     <a class="menu-link {{ request()->routeIs('admin.wallet.*') ? 'active' : '' }}"
                         href="{{ route('admin.wallet.index') }}">
                         <span class="menu-icon">
@@ -93,13 +84,11 @@
                         </span>
                         <span class="menu-title">Wallet List</span>
                     </a>
-                    <!--end:Menu link-->
                 </div>
                 <!--end:Menu item-->
 
                 <!--begin:Menu item - Team-->
                 <div class="menu-item">
-                    <!--begin:Menu link-->
                     <a class="menu-link {{ request()->routeIs('admin.team.*') ? 'active' : '' }}"
                         href="{{ route('admin.team.index') }}">
                         <span class="menu-icon">
@@ -107,13 +96,23 @@
                         </span>
                         <span class="menu-title">Team List</span>
                     </a>
-                    <!--end:Menu link-->
+                </div>
+                <!--end:Menu item-->
+
+                <!--begin:Menu item - User Level-->
+                <div class="menu-item">
+                    <a class="menu-link {{ request()->routeIs('admin.user-levels.*') ? 'active' : '' }}"
+                        href="{{ route('admin.user-levels.index') }}">
+                        <span class="menu-icon">
+                            <i class="ki-outline ki-award fs-2"></i>
+                        </span>
+                        <span class="menu-title">User Level</span>
+                    </a>
                 </div>
                 <!--end:Menu item-->
 
                 <!--begin:Menu item - Referral Usage-->
                 <div class="menu-item">
-                    <!--begin:Menu link-->
                     <a class="menu-link {{ request()->routeIs('admin.refferal.*') ? 'active' : '' }}"
                         href="{{ route('admin.refferal.index') }}">
                         <span class="menu-icon">
@@ -121,7 +120,6 @@
                         </span>
                         <span class="menu-title">Referral Usage</span>
                     </a>
-                    <!--end:Menu link-->
                 </div>
                 <!--end:Menu item-->
 
@@ -139,17 +137,14 @@
 
                 <!--begin:Menu item - Section Header-->
                 <div class="menu-item pt-5">
-                    <!--begin:Menu content-->
                     <div class="menu-content">
                         <span class="menu-heading fw-bold text-uppercase fs-7">Trading</span>
                     </div>
-                    <!--end:Menu content-->
                 </div>
                 <!--end:Menu item-->
 
-                <!--begin:Menu item - Trading Signals - NEW-->
+                <!--begin:Menu item - Trading Signals-->
                 <div class="menu-item">
-                    <!--begin:Menu link-->
                     <a class="menu-link {{ request()->routeIs('admin.signals.*') ? 'active' : '' }}"
                         href="{{ route('admin.signals.index') }}">
                         <span class="menu-icon">
@@ -157,23 +152,19 @@
                         </span>
                         <span class="menu-title">Trading Signals</span>
                     </a>
-                    <!--end:Menu link-->
                 </div>
                 <!--end:Menu item-->
 
                 <!--begin:Menu item - Section Header-->
                 <div class="menu-item pt-5">
-                    <!--begin:Menu content-->
                     <div class="menu-content">
                         <span class="menu-heading fw-bold text-uppercase fs-7">Transactions</span>
                     </div>
-                    <!--end:Menu content-->
                 </div>
                 <!--end:Menu item-->
 
                 <!--begin:Menu item - Commission-->
                 <div class="menu-item">
-                    <!--begin:Menu link-->
                     <a class="menu-link {{ request()->routeIs('admin.commission.*') ? 'active' : '' }}"
                         href="{{ route('admin.commission.index') }}">
                         <span class="menu-icon">
@@ -181,13 +172,11 @@
                         </span>
                         <span class="menu-title">Commission</span>
                     </a>
-                    <!--end:Menu link-->
                 </div>
                 <!--end:Menu item-->
 
                 <!--begin:Menu item - Deposit-->
                 <div class="menu-item">
-                    <!--begin:Menu link-->
                     <a class="menu-link {{ request()->routeIs('admin.deposit.*') ? 'active' : '' }}"
                         href="{{ route('admin.deposit.index') }}">
                         <span class="menu-icon">
@@ -195,13 +184,11 @@
                         </span>
                         <span class="menu-title">Deposit</span>
                     </a>
-                    <!--end:Menu link-->
                 </div>
                 <!--end:Menu item-->
 
                 <!--begin:Menu item - Withdrawal-->
                 <div class="menu-item">
-                    <!--begin:Menu link-->
                     <a class="menu-link {{ request()->routeIs('admin.withdrawal.*') ? 'active' : '' }}"
                         href="{{ route('admin.withdrawal.index') }}">
                         <span class="menu-icon">
@@ -209,23 +196,19 @@
                         </span>
                         <span class="menu-title">Withdrawal</span>
                     </a>
-                    <!--end:Menu link-->
                 </div>
                 <!--end:Menu item-->
 
                 <!--begin:Menu item - Section Header-->
                 <div class="menu-item pt-5">
-                    <!--begin:Menu content-->
                     <div class="menu-content">
                         <span class="menu-heading fw-bold text-uppercase fs-7">Configuration</span>
                     </div>
-                    <!--end:Menu content-->
                 </div>
                 <!--end:Menu item-->
 
                 <!--begin:Menu item - Configuration-->
                 <div class="menu-item">
-                    <!--begin:Menu link-->
                     <a class="menu-link {{ request()->routeIs('admin.config.*') ? 'active' : '' }}"
                         href="{{ route('admin.config.index') }}">
                         <span class="menu-icon">
@@ -233,7 +216,6 @@
                         </span>
                         <span class="menu-title">Configuration</span>
                     </a>
-                    <!--end:Menu link-->
                 </div>
                 <!--end:Menu item-->
 
@@ -270,12 +252,9 @@
                 <!--begin::Menu item-->
                 <div class="menu-item px-3">
                     <div class="menu-content d-flex align-items-center px-3">
-                        <!--begin::Avatar-->
                         <div class="symbol symbol-50px me-5">
                             <img alt="Logo" src="{{ asset('assets/media/avatars/blank.png') }}" />
                         </div>
-                        <!--end::Avatar-->
-                        <!--begin::Username-->
                         <div class="d-flex flex-column">
                             <div class="fw-bold d-flex align-items-center fs-5">{{ auth()->user()->name }}
                                 <span class="badge badge-light-success fw-bold fs-8 px-2 py-1 ms-2">Admin</span>
@@ -283,24 +262,17 @@
                             <a href="#"
                                 class="fw-semibold text-muted text-hover-primary fs-7">{{ auth()->user()->email }}</a>
                         </div>
-                        <!--end::Username-->
                     </div>
                 </div>
                 <!--end::Menu item-->
 
-                <!--begin::Menu separator-->
                 <div class="separator my-2"></div>
-                <!--end::Menu separator-->
 
-                <!--begin::Menu item-->
                 <div class="menu-item px-5">
                     <a href="#" class="menu-link px-5">My Profile</a>
                 </div>
-                <!--end::Menu item-->
 
-                <!--begin::Menu separator-->
                 <div class="separator my-2"></div>
-                <!--end::Menu separator-->
 
                 <!--begin::Menu item - Theme Mode-->
                 <div class="menu-item px-5" data-kt-menu-trigger="{default: 'click', lg: 'hover'}"
@@ -310,48 +282,38 @@
                             <span class="ms-5 position-absolute translate-middle-y top-50 end-0">
                                 <i class="ki-outline ki-night-day theme-light-show fs-2"></i>
                                 <i class="ki-outline ki-moon theme-dark-show fs-2"></i>
-                            </span></span>
+                            </span>
+                        </span>
                     </a>
-                    <!--begin::Menu-->
                     <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-title-gray-700 menu-icon-gray-500 menu-active-bg menu-state-color fw-semibold py-4 fs-base w-150px"
                         data-kt-menu="true" data-kt-element="theme-mode-menu">
-                        <!--begin::Menu item-->
                         <div class="menu-item px-3 my-0">
-                            <a href="#" class="menu-link px-3 py-2" data-kt-element="mode"
-                                data-kt-value="light">
+                            <a href="#" class="menu-link px-3 py-2" data-kt-element="mode" data-kt-value="light">
                                 <span class="menu-icon" data-kt-element="icon">
                                     <i class="ki-outline ki-night-day fs-2"></i>
                                 </span>
                                 <span class="menu-title">Light</span>
                             </a>
                         </div>
-                        <!--end::Menu item-->
-                        <!--begin::Menu item-->
                         <div class="menu-item px-3 my-0">
-                            <a href="#" class="menu-link px-3 py-2" data-kt-element="mode"
-                                data-kt-value="dark">
+                            <a href="#" class="menu-link px-3 py-2" data-kt-element="mode" data-kt-value="dark">
                                 <span class="menu-icon" data-kt-element="icon">
                                     <i class="ki-outline ki-moon fs-2"></i>
                                 </span>
                                 <span class="menu-title">Dark</span>
                             </a>
                         </div>
-                        <!--end::Menu item-->
-                        <!--begin::Menu item-->
                         <div class="menu-item px-3 my-0">
-                            <a href="#" class="menu-link px-3 py-2" data-kt-element="mode"
-                                data-kt-value="system">
+                            <a href="#" class="menu-link px-3 py-2" data-kt-element="mode" data-kt-value="system">
                                 <span class="menu-icon" data-kt-element="icon">
                                     <i class="ki-outline ki-screen fs-2"></i>
                                 </span>
                                 <span class="menu-title">System</span>
                             </a>
                         </div>
-                        <!--end::Menu item-->
                     </div>
-                    <!--end::Menu-->
                 </div>
-                <!--end::Menu item-->
+                <!--end::Menu item - Theme Mode-->
 
                 <!--begin::Menu item - Sign Out-->
                 <div class="menu-item px-5">

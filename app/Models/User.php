@@ -527,4 +527,19 @@ class User extends Authenticatable
     {
         return $this->multi_level_referrals->count();
     }
+
+    public function userLevel(): \Illuminate\Database\Eloquent\Relations\HasOne
+{
+    return $this->hasOne(\App\Models\UserLevel::class);
+}
+
+public function getManualLevelAttribute(): ?int
+{
+    return $this->userLevel?->level;
+}
+ 
+public function getHasManualLevelAttribute(): bool
+{
+    return $this->userLevel !== null;
+}
 }

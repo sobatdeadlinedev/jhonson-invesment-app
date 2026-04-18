@@ -11,21 +11,21 @@ class TeamController extends Controller
 {
     public function index()
     {
-        $user = User::current();
+        $user = User::with('userLevel')->find(auth()->id());
 
         // Get multi-level team members
         $teamMembers = $this->getMultiLevelReferrals($user->id);
 
-        // Hitung statistik per level
+        // Statistik per level
         $levelStats = $teamMembers->groupBy('level')->map(function ($items) {
-            return [
-                'count' => $items->count(),
-                'members' => $items
-            ];
+            return ['count' => $items->count(), 'members' => $items];
         });
 
-        $totalTeam = $teamMembers->count();
+        $totalTeam  = $teamMembers->count();
         $directTeam = $teamMembers->where('level', 1)->count();
+
+        // Level manual dari admin (null jika belum di-set)
+        $manualLevel = $user->userLevel?->level;
 
         // Generate referral link
         $referralLink = route('register', ['ref' => $user->refferal_code]);
@@ -36,12 +36,13 @@ class TeamController extends Controller
             'totalTeam',
             'directTeam',
             'levelStats',
-            'referralLink'
+            'referralLink',
+            'manualLevel',
         ));
     }
 
     /**
-     * Dapatkan semua referrals dengan level hierarchy
+     * Dapatkan semua referrals dengan level hierarchy (rekursif).
      */
     private function getMultiLevelReferrals($userId, $level = 1, $processed = [])
     {
@@ -52,7 +53,6 @@ class TeamController extends Controller
         $processed[] = $userId;
         $result = collect([]);
 
-        // Ambil direct referrals
         $directReferrals = ReferralUsage::where('referrer_id', $userId)
             ->with(['referred' => function ($query) {
                 $query->select('id', 'name', 'username', 'phone', 'email', 'created_at');
@@ -62,24 +62,22 @@ class TeamController extends Controller
         foreach ($directReferrals as $referral) {
             if (!$referral->referred) continue;
 
-            // Tambahkan info level dan referrer
             $referralData = [
-                'id' => $referral->referred->id,
-                'name' => $referral->referred->name,
-                'username' => $referral->referred->username,
-                'phone' => $referral->referred->phone,
-                'email' => $referral->referred->email,
-                'created_at' => $referral->referred->created_at,
-                'joined_at' => $referral->used_at,
-                'level' => $level,
-                'referrer_id' => $userId,
+                'id'            => $referral->referred->id,
+                'name'          => $referral->referred->name,
+                'username'      => $referral->referred->username,
+                'phone'         => $referral->referred->phone,
+                'email'         => $referral->referred->email,
+                'created_at'    => $referral->referred->created_at,
+                'joined_at'     => $referral->used_at,
+                'level'         => $level,
+                'referrer_id'   => $userId,
                 'referrer_name' => User::find($userId)->name,
-                'referral_code' => $referral->referral_code
+                'referral_code' => $referral->referral_code,
             ];
 
             $result->push((object) $referralData);
 
-            // Recursive untuk level berikutnya
             $subReferrals = $this->getMultiLevelReferrals(
                 $referral->referred->id,
                 $level + 1,

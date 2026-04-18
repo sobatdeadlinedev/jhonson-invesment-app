@@ -17,6 +17,7 @@ use App\Http\Controllers\Admin\BalanceController as AdminBalanceController;
 use App\Http\Controllers\Admin\DepositController as AdminDepositController;
 use App\Http\Controllers\Member\InvestController as MemberInvestController;
 use App\Http\Controllers\Member\SignalController as MemberSignalController;
+use App\Http\Controllers\Admin\UserLevelController;
 
 // Member Controllers
 use App\Http\Controllers\Member\WalletController as MemberWalletController;
@@ -59,6 +60,13 @@ Route::middleware('guest')->group(function () {
     Route::get('/reset-password', [ForgetPasswordController::class, 'showResetPasswordForm'])->name('reset-password');
     Route::post('/reset-password', [ForgetPasswordController::class, 'resetPassword'])->name('reset-password.post');
 });
+
+Route::prefix('user-levels')->name('admin.user-levels.')->group(function () {
+    Route::get('/',          [UserLevelController::class, 'index'])   ->name('index');
+    Route::post('/',         [UserLevelController::class, 'store'])   ->name('store');
+    Route::delete('/{userId}', [UserLevelController::class, 'destroy'])->name('destroy');
+});
+ 
 
 // Logout Route
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->middleware('auth');

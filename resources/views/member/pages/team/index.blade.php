@@ -28,6 +28,40 @@
 
             </div>
 
+            {{-- ── MANUAL LEVEL BADGE ───────────────────────────── --}}
+            @if (!is_null($manualLevel))
+                @php
+                    $lvlColors = [
+                        1  => ['bg' => 'rgba(0,212,138,.12)',   'border' => 'rgba(0,212,138,.25)',   'text' => '#00d48a'],
+                        2  => ['bg' => 'rgba(100,160,255,.12)', 'border' => 'rgba(100,160,255,.25)', 'text' => '#64a0ff'],
+                        3  => ['bg' => 'rgba(245,166,35,.12)',  'border' => 'rgba(245,166,35,.25)',  'text' => '#f5a623'],
+                        4  => ['bg' => 'rgba(153,69,255,.12)',  'border' => 'rgba(153,69,255,.25)',  'text' => '#9945ff'],
+                        5  => ['bg' => 'rgba(240,79,90,.12)',   'border' => 'rgba(240,79,90,.25)',   'text' => '#f04f5a'],
+                        6  => ['bg' => 'rgba(20,184,166,.12)',  'border' => 'rgba(20,184,166,.25)',  'text' => '#14b8a6'],
+                        7  => ['bg' => 'rgba(251,146,60,.12)',  'border' => 'rgba(251,146,60,.25)',  'text' => '#fb923c'],
+                        8  => ['bg' => 'rgba(236,72,153,.12)',  'border' => 'rgba(236,72,153,.25)',  'text' => '#ec4899'],
+                        9  => ['bg' => 'rgba(99,102,241,.12)',  'border' => 'rgba(99,102,241,.25)',  'text' => '#6366f1'],
+                        10 => ['bg' => 'rgba(234,179,8,.12)',   'border' => 'rgba(234,179,8,.25)',   'text' => '#eab308'],
+                    ];
+                    $c = $lvlColors[$manualLevel] ?? ['bg' => 'rgba(122,143,173,.10)', 'border' => 'rgba(122,143,173,.20)', 'text' => '#7a8fad'];
+                @endphp
+                <div class="mb-3" style="background:linear-gradient(135deg,#0f1c2e 0%,#0d1420 100%);border:1px solid {{ $c['border'] }};border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:12px;">
+                    <div style="width:40px;height:40px;border-radius:12px;background:{{ $c['bg'] }};border:1px solid {{ $c['border'] }};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                        <i class="bi bi-award-fill" style="font-size:18px;color:{{ $c['text'] }};"></i>
+                    </div>
+                    <div style="flex:1;">
+                        <div style="font-size:10px;color:#3a4d66;letter-spacing:.6px;text-transform:uppercase;margin-bottom:3px;">Level Keanggotaan</div>
+                        <div style="font-family:monospace;font-size:20px;font-weight:700;color:{{ $c['text'] }};">Level {{ $manualLevel }}</div>
+                       
+                    </div>
+                    <div style="display:flex;gap:3px;">
+                        @for ($s = 1; $s <= min($manualLevel, 5); $s++)
+                            <i class="bi bi-star-fill" style="font-size:12px;color:{{ $c['text'] }};opacity:{{ 0.4 + $s * 0.12 }};"></i>
+                        @endfor
+                    </div>
+                </div>
+            @endif
+
             {{-- ── REFERRAL CARD ────────────────────────────────── --}}
             <div class="mb-3" style="background:linear-gradient(135deg,#0f1c2e 0%,#0d1420 60%,#0a1118 100%);border:1px solid #1a2235;border-radius:20px;padding:16px;position:relative;overflow:hidden;">
                 <div style="position:absolute;top:-25px;right:-25px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(245,166,35,.08) 0%,transparent 65%);pointer-events:none;"></div>
@@ -167,12 +201,16 @@
         }
 
         /* ── Level badge colors ── */
-        .xt-lvl-1 { background: rgba(0,212,138,.12);  color: #00d48a; }
-        .xt-lvl-2 { background: rgba(100,160,255,.12); color: #64a0ff; }
-        .xt-lvl-3 { background: rgba(245,166,35,.12);  color: #f5a623; }
-        .xt-lvl-4 { background: rgba(153,69,255,.12);  color: #9945ff; }
-        .xt-lvl-5 { background: rgba(240,79,90,.12);   color: #f04f5a; }
-        .xt-lvl-6 { background: rgba(122,143,173,.10); color: #7a8fad; }
+        .xt-lvl-1  { background: rgba(0,212,138,.12);   color: #00d48a; }
+        .xt-lvl-2  { background: rgba(100,160,255,.12); color: #64a0ff; }
+        .xt-lvl-3  { background: rgba(245,166,35,.12);  color: #f5a623; }
+        .xt-lvl-4  { background: rgba(153,69,255,.12);  color: #9945ff; }
+        .xt-lvl-5  { background: rgba(240,79,90,.12);   color: #f04f5a; }
+        .xt-lvl-6  { background: rgba(20,184,166,.12);  color: #14b8a6; }
+        .xt-lvl-7  { background: rgba(251,146,60,.12);  color: #fb923c; }
+        .xt-lvl-8  { background: rgba(236,72,153,.12);  color: #ec4899; }
+        .xt-lvl-9  { background: rgba(99,102,241,.12);  color: #6366f1; }
+        .xt-lvl-10 { background: rgba(234,179,8,.12);   color: #eab308; }
 
         /* ── Member row hover ── */
         .xt-member:hover { background: rgba(255,255,255,.02) !important; }
