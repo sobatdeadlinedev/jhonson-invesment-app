@@ -162,7 +162,7 @@
                 <div>
                     <div style="font-size:12px;font-weight:700;color:#e2eaf8;margin-bottom:6px;">How It Works</div>
                     <div style="display:flex;flex-direction:column;gap:4px;">
-                        @foreach(['View signal details before joining','Bet amount is 1% of your Trade Balance','Minimum $100.00 available balance required','Your bet will be locked until settlement'] as $info)
+                        @foreach(['View signal details before joining','Minimum $100.00 available balance required','Your bet will be locked until settlement'] as $info)
                         <div style="display:flex;align-items:flex-start;gap:6px;">
                             <span style="width:4px;height:4px;border-radius:50%;background:#3a4d66;flex-shrink:0;margin-top:5px;"></span>
                             <span style="font-size:12px;color:#7a8fad;line-height:1.5;">{{ $info }}</span>

@@ -241,32 +241,7 @@
                 </div>
             @endif
 
-            {{-- ── INFO CARD ────────────────────────────────────── --}}
-            <div class="mb-3" style="background:#0d1120;border:1px solid #1a2235;border-left:3px solid #f5a623;border-radius:14px;padding:14px 16px;display:flex;align-items:flex-start;gap:10px;">
-                <i class="bi bi-info-circle-fill" style="font-size:16px;color:#f5a623;flex-shrink:0;margin-top:1px;"></i>
-                <div>
-                    <div style="font-size:12px;font-weight:700;color:#e2eaf8;margin-bottom:6px;">Important Information</div>
-                    <div style="display:flex;flex-direction:column;gap:4px;">
-                        @php
-                        $infos = [
-                            'Bet amount is determined by signal configuration (percentage or fixed)',
-                            $signal->bet_type == 'percentage'
-                                ? 'This signal uses '.number_format($signal->bet_value, 2).'% of your Trade Balance'
-                                : 'This signal uses a fixed amount of '.number_format($signal->bet_value, 2).' USDT',
-                            'Minimum $100.00 available balance required (for percentage-based signals)',
-                            'Your bet will be locked until signal settlement',
-                        ];
-                        if (!$signal->is_public) array_splice($infos, 2, 0, ['Private Signal: Only selected users can access']);
-                        @endphp
-                        @foreach($infos as $info)
-                        <div style="display:flex;align-items:flex-start;gap:6px;">
-                            <span style="width:4px;height:4px;border-radius:50%;background:#3a4d66;flex-shrink:0;margin-top:5px;"></span>
-                            <span style="font-size:12px;color:#7a8fad;line-height:1.5;">{!! $info !!}</span>
-                        </div>
-                        @endforeach
-                    </div>
-                </div>
-            </div>
+          
 
         </div>
     </div>

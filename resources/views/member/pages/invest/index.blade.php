@@ -173,17 +173,7 @@
                 @endforeach
             </div>
 
-            {{-- ── INFO CARD ────────────────────────────────────── --}}
-            <div class="mb-3" style="background:#0d1120;border:1px solid #1a2235;border-left:3px solid #f5a623;border-radius:14px;padding:14px 16px;display:flex;align-items:flex-start;gap:10px;">
-                <i class="bi bi-info-circle-fill" style="font-size:16px;color:#f5a623;flex-shrink:0;margin-top:1px;"></i>
-                <div>
-                    <div style="font-size:12px;font-weight:700;color:#e2eaf8;margin-bottom:4px;">How to Trade</div>
-                    <div style="font-size:12px;color:#7a8fad;line-height:1.55;">
-                        Select a coin to view available trading signals. Minimum $100.00 available Trade Balance
-                        required to join signals. Your bet is calculated as 1% of your Trade Balance.
-                    </div>
-                </div>
-            </div>
+           
 
         </div>
     </div>
