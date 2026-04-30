@@ -4,7 +4,7 @@
         <div class="content-section">
 
             {{-- ── STATS CARDS ─────────────────────────────────── --}}
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px;">
 
                 {{-- Total Network --}}
                 <div style="background:linear-gradient(135deg,#0f1c2e 0%,#0d1420 100%);border:1px solid #1a2235;border-radius:16px;padding:16px;position:relative;overflow:hidden;">
@@ -24,6 +24,16 @@
                     </div>
                     <div style="font-size:10px;color:#3a4d66;letter-spacing:.6px;text-transform:uppercase;margin-bottom:4px;">Direct Team</div>
                     <div style="font-family:monospace;font-size:26px;font-weight:700;color:#64a0ff;letter-spacing:-1px;line-height:1;">{{ $directTeam }}</div>
+                </div>
+
+                {{-- Sudah Deposit --}}
+                <div style="background:linear-gradient(135deg,#0f1c2e 0%,#0d1420 100%);border:1px solid #1a2235;border-radius:16px;padding:16px;position:relative;overflow:hidden;">
+                    <div style="position:absolute;top:-20px;right:-20px;width:80px;height:80px;border-radius:50%;background:radial-gradient(circle,rgba(0,212,138,.12) 0%,transparent 65%);pointer-events:none;"></div>
+                    <div style="width:34px;height:34px;border-radius:10px;background:rgba(0,212,138,.10);border:1px solid rgba(0,212,138,.18);display:flex;align-items:center;justify-content:center;margin-bottom:10px;">
+                        <i class="bi bi-cash-coin" style="font-size:15px;color:#00d48a;"></i>
+                    </div>
+                    <div style="font-size:10px;color:#3a4d66;letter-spacing:.6px;text-transform:uppercase;margin-bottom:4px;">Sudah Deposit</div>
+                    <div style="font-family:monospace;font-size:26px;font-weight:700;color:#00d48a;letter-spacing:-1px;line-height:1;">{{ $depositedTeam }}</div>
                 </div>
 
             </div>
@@ -52,7 +62,6 @@
                     <div style="flex:1;">
                         <div style="font-size:10px;color:#3a4d66;letter-spacing:.6px;text-transform:uppercase;margin-bottom:3px;">Level Keanggotaan</div>
                         <div style="font-family:monospace;font-size:20px;font-weight:700;color:{{ $c['text'] }};">Level {{ $manualLevel }}</div>
-                       
                     </div>
                     <div style="display:flex;gap:3px;">
                         @for ($s = 1; $s <= min($manualLevel, 5); $s++)
@@ -101,14 +110,20 @@
             @if ($totalTeam > 0)
                 <div class="mb-3" style="background:#0d1120;border:1px solid #1a2235;border-radius:14px;padding:10px;">
                     <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;">
-                        <button class="xt-tab active" onclick="filterLevel('all', this)">
+                        <button class="xt-tab active" onclick="filterMembers('all', 'level', this)">
                             <i class="bi bi-grid-fill"></i> Semua ({{ $totalTeam }})
                         </button>
                         @foreach ($levelStats as $level => $stats)
-                            <button class="xt-tab" onclick="filterLevel({{ $level }}, this)">
+                            <button class="xt-tab" onclick="filterMembers({{ $level }}, 'level', this)">
                                 L{{ $level }} ({{ $stats['count'] }})
                             </button>
                         @endforeach
+                        <button class="xt-tab xt-tab-deposit" onclick="filterMembers('deposited', 'deposit', this)">
+                            <i class="bi bi-check-circle-fill" style="color:#00d48a;"></i> Deposit ({{ $depositedTeam }})
+                        </button>
+                        <button class="xt-tab xt-tab-nodeposit" onclick="filterMembers('not_deposited', 'deposit', this)">
+                            <i class="bi bi-x-circle-fill" style="color:#f04f5a;"></i> Belum ({{ $totalTeam - $depositedTeam }})
+                        </button>
                     </div>
                 </div>
             @endif
@@ -125,7 +140,10 @@
                 </div>
 
                 @forelse($teamMembers->sortBy('level') as $member)
-                    <div class="xt-member" data-level="{{ $member->level }}" style="display:flex;align-items:flex-start;gap:12px;padding:13px 16px;border-bottom:1px solid rgba(26,34,53,.8);transition:background .15s;cursor:default;">
+                    <div class="xt-member"
+                         data-level="{{ $member->level }}"
+                         data-deposited="{{ $member->has_deposited ? '1' : '0' }}"
+                         style="display:flex;align-items:flex-start;gap:12px;padding:13px 16px;border-bottom:1px solid rgba(26,34,53,.8);transition:background .15s;cursor:default;">
 
                         {{-- Level Badge --}}
                         <div class="xt-lvl xt-lvl-{{ $member->level }}" style="flex-shrink:0;padding:5px 9px;border-radius:8px;font-size:10px;font-weight:700;text-align:center;min-width:34px;">
@@ -133,21 +151,30 @@
                         </div>
 
                         {{-- Avatar --}}
-                        <div style="width:36px;height:36px;border-radius:11px;background:#0a1118;border:1px solid #1a2235;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                            <i class="bi bi-person-circle" style="font-size:18px;color:#3a4d66;"></i>
+                        <div style="width:36px;height:36px;border-radius:11px;background:#0a1118;border:1px solid {{ $member->has_deposited ? 'rgba(0,212,138,.25)' : '#1a2235' }};display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative;">
+                            <i class="bi bi-person-circle" style="font-size:18px;color:{{ $member->has_deposited ? '#00d48a' : '#3a4d66' }};"></i>
+                            {{-- Deposit dot indicator --}}
+                            <div style="position:absolute;bottom:-2px;right:-2px;width:10px;height:10px;border-radius:50%;background:{{ $member->has_deposited ? '#00d48a' : '#f04f5a' }};border:2px solid #0d1120;"></div>
                         </div>
 
                         {{-- Info --}}
                         <div style="flex:1;min-width:0;">
-                            <div style="font-size:13px;font-weight:700;color:#e2eaf8;margin-bottom:3px;">{{ $member->username }}</div>
 
-                            <div style="display:flex;align-items:center;gap:5px;margin-bottom:3px;">
+                            {{-- Username + deposit icon --}}
+                            <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">
+                                <div style="font-size:13px;font-weight:700;color:#e2eaf8;">{{ $member->username }}</div>
+                                <i class="bi {{ $member->has_deposited ? 'bi-check-circle-fill' : 'bi-x-circle-fill' }}"
+                                   style="font-size:14px;color:{{ $member->has_deposited ? '#00d48a' : '#f04f5a' }};flex-shrink:0;"
+                                   title="{{ $member->has_deposited ? 'Sudah Deposit' : 'Belum Deposit' }}"></i>
+                            </div>
+
+                            <div style="display:flex;align-items:center;gap:5px;margin-bottom:5px;">
                                 <i class="bi bi-telephone-fill" style="font-size:10px;color:#3a4d66;"></i>
                                 <span style="font-size:11px;color:#7a8fad;">{{ $member->phone }}</span>
                             </div>
 
                             @if ($member->level > 1)
-                                <div style="display:inline-flex;align-items:center;gap:5px;background:rgba(245,166,35,.06);border-left:2px solid rgba(245,166,35,.35);padding:3px 8px;border-radius:4px;margin-bottom:3px;">
+                                <div style="display:inline-flex;align-items:center;gap:5px;background:rgba(245,166,35,.06);border-left:2px solid rgba(245,166,35,.35);padding:3px 8px;border-radius:4px;margin-bottom:5px;">
                                     <i class="bi bi-arrow-return-right" style="font-size:10px;color:#f5a623;"></i>
                                     <span style="font-size:11px;color:#7a8fad;">Direferral oleh: <span style="color:#f5a623;">{{ $member->referrer_name }}</span></span>
                                 </div>
@@ -195,10 +222,16 @@
             border-color: #f5a623;
             font-weight: 700;
         }
+        .xt-tab.active .bi-check-circle-fill,
+        .xt-tab.active .bi-x-circle-fill {
+            color: #080b12 !important;
+        }
         .xt-tab:hover:not(.active) {
             background: rgba(255,255,255,.08);
             color: #e2eaf8;
         }
+        .xt-tab-deposit.active  { background: #00d48a; border-color: #00d48a; }
+        .xt-tab-nodeposit.active { background: #f04f5a; border-color: #f04f5a; }
 
         /* ── Level badge colors ── */
         .xt-lvl-1  { background: rgba(0,212,138,.12);   color: #00d48a; }
@@ -250,15 +283,27 @@
             }).catch(() => showToast('Gagal menyalin', 'error'));
         }
 
-        function filterLevel(level, btn) {
+        function filterMembers(value, type, btn) {
+            // Update active tab
             document.querySelectorAll('.xt-tab').forEach(t => t.classList.remove('active'));
             btn.classList.add('active');
+
             document.querySelectorAll('.xt-member').forEach(m => {
-                if (level === 'all' || parseInt(m.dataset.level) === level) {
-                    m.classList.remove('hidden');
-                } else {
-                    m.classList.add('hidden');
+                let show = false;
+
+                if (value === 'all') {
+                    show = true;
+                } else if (type === 'level') {
+                    show = parseInt(m.dataset.level) === parseInt(value);
+                } else if (type === 'deposit') {
+                    if (value === 'deposited') {
+                        show = m.dataset.deposited === '1';
+                    } else if (value === 'not_deposited') {
+                        show = m.dataset.deposited === '0';
+                    }
                 }
+
+                m.classList.toggle('hidden', !show);
             });
         }
     </script>

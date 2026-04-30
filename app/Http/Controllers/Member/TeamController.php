@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Member;
 
 use App\Models\User;
+use App\Models\Transaction;
 use App\Models\ReferralUsage;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
@@ -13,21 +14,17 @@ class TeamController extends Controller
     {
         $user = User::with('userLevel')->find(auth()->id());
 
-        // Get multi-level team members
         $teamMembers = $this->getMultiLevelReferrals($user->id);
 
-        // Statistik per level
         $levelStats = $teamMembers->groupBy('level')->map(function ($items) {
             return ['count' => $items->count(), 'members' => $items];
         });
 
-        $totalTeam  = $teamMembers->count();
-        $directTeam = $teamMembers->where('level', 1)->count();
+        $totalTeam    = $teamMembers->count();
+        $directTeam   = $teamMembers->where('level', 1)->count();
+        $depositedTeam = $teamMembers->where('has_deposited', true)->count(); // NEW
 
-        // Level manual dari admin (null jika belum di-set)
-        $manualLevel = $user->userLevel?->level;
-
-        // Generate referral link
+        $manualLevel  = $user->userLevel?->level;
         $referralLink = route('register', ['ref' => $user->refferal_code]);
 
         return view('member.pages.team.index', compact(
@@ -35,15 +32,13 @@ class TeamController extends Controller
             'teamMembers',
             'totalTeam',
             'directTeam',
+            'depositedTeam', // NEW
             'levelStats',
             'referralLink',
             'manualLevel',
         ));
     }
 
-    /**
-     * Dapatkan semua referrals dengan level hierarchy (rekursif).
-     */
     private function getMultiLevelReferrals($userId, $level = 1, $processed = [])
     {
         if (in_array($userId, $processed)) {
@@ -62,6 +57,12 @@ class TeamController extends Controller
         foreach ($directReferrals as $referral) {
             if (!$referral->referred) continue;
 
+            // Cek apakah user sudah pernah deposit approved
+            $hasDeposited = Transaction::where('user_id', $referral->referred->id)
+                ->where('type', 'deposit')
+                ->where('status', 'approved')
+                ->exists();
+
             $referralData = [
                 'id'            => $referral->referred->id,
                 'name'          => $referral->referred->name,
@@ -74,6 +75,7 @@ class TeamController extends Controller
                 'referrer_id'   => $userId,
                 'referrer_name' => User::find($userId)->name,
                 'referral_code' => $referral->referral_code,
+                'has_deposited' => $hasDeposited, // NEW
             ];
 
             $result->push((object) $referralData);
