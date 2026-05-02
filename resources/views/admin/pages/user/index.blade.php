@@ -256,6 +256,8 @@
             $activeTeam      = $ld['activeTeam'];
             $depositPerLevel = $ld['depositPerLevel']; // array [1..10] of float
             $teamDeposit     = $ld['totalDeposit'];
+            $wdPerLevel      = $ld['wdPerLevel'];      // array [1..10] of float
+            $teamWd          = $ld['totalWd'];
 
             // Badge color per level (cycling)
             $levelColors = [
@@ -453,19 +455,19 @@
 
                         {{-- Summary Cards --}}
                         <div class="row g-4 mb-7">
-                            <div class="col-6 col-md-3">
+                            <div class="col-6 col-md-2">
                                 <div class="border border-dashed border-gray-300 rounded text-center px-3 py-4">
                                     <div class="fs-2 fw-bold text-gray-800">{{ $totalTeam }}</div>
                                     <div class="fs-7 text-muted">Total Member</div>
                                 </div>
                             </div>
-                            <div class="col-6 col-md-3">
+                            <div class="col-6 col-md-2">
                                 <div class="border border-dashed border-success rounded text-center px-3 py-4">
                                     <div class="fs-2 fw-bold text-success">{{ $activeTeam }}</div>
                                     <div class="fs-7 text-muted">Member Aktif</div>
                                 </div>
                             </div>
-                            <div class="col-6 col-md-3">
+                            <div class="col-6 col-md-2">
                                 <div class="border border-dashed border-primary rounded text-center px-3 py-4">
                                     <div class="fs-2 fw-bold text-primary">{{ $user->direct_referral_count }}</div>
                                     <div class="fs-7 text-muted">Direct Referral</div>
@@ -475,20 +477,35 @@
                                 <div class="border border-dashed border-info rounded text-center px-3 py-4">
                                     <div class="fs-3 fw-bold text-info">{{ number_format($teamDeposit, 2) }}</div>
                                     <div class="fs-7 text-muted">Total Deposit Tim</div>
+                                    <div class="fs-8 text-muted">USDT</div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="border border-dashed border-warning rounded text-center px-3 py-4">
+                                    <div class="fs-3 fw-bold text-warning">{{ number_format($teamWd, 2) }}</div>
+                                    <div class="fs-7 text-muted">Total WD Tim</div>
+                                    <div class="fs-8 text-muted">USDT</div>
                                 </div>
                             </div>
                         </div>
 
-                        {{-- Deposit per Level (grid 5 kolom × 2 baris) --}}
+                        {{-- Deposit & WD per Level (grid) --}}
                         <div class="row g-2 mb-7">
                             @for($i = 1; $i <= 10; $i++)
                                 @if($levels[$i]->isNotEmpty())
                                     <div class="col-6 col-md-2">
-                                        <div class="d-flex align-items-center bg-light-{{ $levelColors[$i] }} rounded px-3 py-2 h-100">
-                                            <span class="badge badge-{{ $levelColors[$i] }} me-2 flex-shrink-0">L{{ $i }}</span>
+                                        <div class="d-flex align-items-start bg-light-{{ $levelColors[$i] }} rounded px-3 py-2 h-100">
+                                            <span class="badge badge-{{ $levelColors[$i] }} me-2 flex-shrink-0 mt-1">L{{ $i }}</span>
                                             <div>
                                                 <div class="fw-bold text-gray-800 fs-7">{{ $levels[$i]->count() }} member</div>
-                                                <div class="fs-8 text-muted">{{ number_format($depositPerLevel[$i], 2) }} USDT</div>
+                                                <div class="fs-8 text-muted">
+                                                    <i class="ki-outline ki-arrow-down fs-9 text-success"></i>
+                                                    {{ number_format($depositPerLevel[$i], 2) }} USDT
+                                                </div>
+                                                <div class="fs-8 text-muted">
+                                                    <i class="ki-outline ki-arrow-up fs-9 text-warning"></i>
+                                                    {{ number_format($wdPerLevel[$i], 2) }} USDT
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -525,7 +542,9 @@
                                                     <span class="ms-3 text-muted fs-7">
                                                         {{ $levels[$lvl]->count() }} member
                                                         &nbsp;·&nbsp;
-                                                        {{ number_format($depositPerLevel[$lvl], 2) }} USDT deposit
+                                                        <span class="text-success">Dep: {{ number_format($depositPerLevel[$lvl], 2) }} USDT</span>
+                                                        &nbsp;·&nbsp;
+                                                        <span class="text-warning">WD: {{ number_format($wdPerLevel[$lvl], 2) }} USDT</span>
                                                     </span>
                                                 </button>
                                             </h2>
@@ -544,6 +563,7 @@
                                                                     <th>Status</th>
                                                                     <th>Active</th>
                                                                     <th class="text-end">Deposit</th>
+                                                                    <th class="text-end">WD</th>
                                                                     <th>Joined</th>
                                                                 </tr>
                                                             </thead>
@@ -551,6 +571,7 @@
                                                                 @foreach($levels[$lvl] as $ref)
                                                                     @php
                                                                         $refDeposit   = $ref->transactions->where('type', 'deposit')->where('status', 'approved')->sum('total_amount');
+                                                                        $refWd        = $ref->transactions->whereIn('type', ['withdrawal', 'deduction'])->where('status', 'approved')->sum('total_amount');
                                                                         $refIsActive  = $refDeposit >= 200;
                                                                         $refRemaining = max(0, 200 - $refDeposit);
                                                                     @endphp
@@ -585,6 +606,9 @@
                                                                         </td>
                                                                         <td class="text-end fw-bold {{ $refDeposit > 0 ? 'text-success' : 'text-muted' }}">
                                                                             {{ number_format($refDeposit, 2) }} USDT
+                                                                        </td>
+                                                                        <td class="text-end fw-bold {{ $refWd > 0 ? 'text-warning' : 'text-muted' }}">
+                                                                            {{ number_format($refWd, 2) }} USDT
                                                                         </td>
                                                                         <td>{{ $ref->created_at->format('d M Y') }}</td>
                                                                     </tr>

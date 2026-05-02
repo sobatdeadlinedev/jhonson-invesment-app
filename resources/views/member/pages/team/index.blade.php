@@ -32,7 +32,7 @@
                     <div style="width:34px;height:34px;border-radius:10px;background:rgba(0,212,138,.10);border:1px solid rgba(0,212,138,.18);display:flex;align-items:center;justify-content:center;margin-bottom:10px;">
                         <i class="bi bi-cash-coin" style="font-size:15px;color:#00d48a;"></i>
                     </div>
-                    <div style="font-size:10px;color:#3a4d66;letter-spacing:.6px;text-transform:uppercase;margin-bottom:4px;">Sudah Deposit</div>
+                    <div style="font-size:10px;color:#3a4d66;letter-spacing:.6px;text-transform:uppercase;margin-bottom:4px;">Team Deposit</div>
                     <div style="font-family:monospace;font-size:26px;font-weight:700;color:#00d48a;letter-spacing:-1px;line-height:1;">{{ $depositedTeam }}</div>
                 </div>
 

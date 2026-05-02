@@ -76,13 +76,25 @@ class UserController extends Controller
 
             $depositPerLevel = [];
             $totalDeposit    = 0;
+            $wdPerLevel      = [];
+            $totalWd         = 0;
+
             for ($i = 1; $i <= 10; $i++) {
+                // Deposit per level
                 $dep = $levels[$i]->flatMap->transactions
                     ->where('type', 'deposit')
                     ->where('status', 'approved')
                     ->sum('total_amount');
                 $depositPerLevel[$i] = $dep;
                 $totalDeposit       += $dep;
+
+                // WD per level (withdrawal + deduction)
+                $wd = $levels[$i]->flatMap->transactions
+                    ->whereIn('type', ['withdrawal', 'deduction'])
+                    ->where('status', 'approved')
+                    ->sum('total_amount');
+                $wdPerLevel[$i] = $wd;
+                $totalWd       += $wd;
             }
 
             $userLevelData[$user->id] = [
@@ -91,6 +103,8 @@ class UserController extends Controller
                 'activeTeam'      => $activeTeam,
                 'depositPerLevel' => $depositPerLevel,
                 'totalDeposit'    => $totalDeposit,
+                'wdPerLevel'      => $wdPerLevel,
+                'totalWd'         => $totalWd,
             ];
         }
 
