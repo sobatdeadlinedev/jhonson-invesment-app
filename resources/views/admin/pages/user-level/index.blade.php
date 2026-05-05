@@ -76,7 +76,7 @@
                                     <th class="min-w-125px">Level Agen</th>
                                     <th class="min-w-100px text-center">Total Team</th>
                                     <th class="min-w-100px text-center">Aktif</th>
-                                    <th class="min-w-150px text-end">Volume Minggu Ini</th>
+                                    <th class="min-w-175px text-end">Volume Minggu Ini</th>
                                     <th class="min-w-150px text-end">Gaji Minggu Ini</th>
                                     <th class="min-w-175px">Di-set Oleh</th>
                                     <th class="text-end min-w-150px">Aksi</th>
@@ -90,6 +90,9 @@
                                         $colors = [1=>'success',2=>'info',3=>'warning',4=>'primary',5=>'danger',
                                                    6=>'dark',7=>'secondary',8=>'info',9=>'warning',10=>'primary'];
                                         $color  = $lvl ? ($colors[$lvl] ?? 'secondary') : null;
+
+                                        // Apakah volume start-nya custom (level naik di tengah periode)?
+                                        $isCustomStart = $stats['volumeStart']->ne($weekStart);
                                     @endphp
                                     <tr>
                                         {{-- User --}}
@@ -142,6 +145,13 @@
                                             <span class="fw-bold text-gray-700">
                                                 {{ number_format($stats['weeklyVolume'], 2, '.', ',') }} USDT
                                             </span>
+                                            {{-- Tampilkan keterangan jika start custom --}}
+                                            @if($isCustomStart)
+                                                <div class="text-muted fs-8 mt-1">
+                                                    <i class="ki-outline ki-information-5 fs-8 text-warning me-1"></i>
+                                                    Sejak {{ $stats['volumeStart']->format('d M Y') }}
+                                                </div>
+                                            @endif
                                         </td>
 
                                         {{-- Gaji Minggu Ini --}}
@@ -173,7 +183,6 @@
 
                                         {{-- Aksi --}}
                                         <td class="text-end">
-                                            {{-- Tombol Detail Team --}}
                                             <button class="btn btn-sm btn-light btn-active-light-info me-1"
                                                 onclick="loadTeamDetail({{ $user->id }}, '{{ addslashes($user->name) }}')"
                                                 data-bs-toggle="modal"
@@ -182,7 +191,6 @@
                                                 Team
                                             </button>
 
-                                            {{-- Tombol Set/Edit Level --}}
                                             <button class="btn btn-sm btn-light btn-active-light-primary me-1"
                                                 data-bs-toggle="modal"
                                                 data-bs-target="#modal_set_level_{{ $user->id }}">
@@ -190,7 +198,6 @@
                                                 {{ $user->userLevel ? 'Edit' : 'Set' }}
                                             </button>
 
-                                            {{-- Tombol Hapus Level --}}
                                             @if($user->userLevel)
                                                 <form action="{{ route('admin.user-levels.destroy', $user->id) }}"
                                                     method="POST" class="d-inline"
@@ -245,6 +252,16 @@
                     {{-- Content (hidden until loaded) --}}
                     <div id="team_detail_content" class="d-none">
 
+                        {{-- Custom start notice --}}
+                        <div id="sd_custom_start_notice" class="alert alert-warning d-flex align-items-center p-4 mb-5 d-none">
+                            <i class="ki-outline ki-information-5 fs-2 text-warning me-3"></i>
+                            <div class="fs-7">
+                                Level dinaikkan di tengah periode. Volume dihitung mulai
+                                <strong id="sd_custom_start_date"></strong> (bukan dari Rabu).
+                                Minggu berikutnya otomatis kembali ke periode normal Rabu–Selasa.
+                            </div>
+                        </div>
+
                         {{-- Summary Cards --}}
                         <div class="row g-4 mb-6">
                             <div class="col-sm-6 col-lg-3">
@@ -298,14 +315,13 @@
                                     </tr>
                                 </thead>
                                 <tbody id="sd_breakdown_body">
-                                    {{-- diisi via JS --}}
                                 </tbody>
                                 <tfoot>
                                     <tr class="fw-bold fs-6 border-top-2">
                                         <td>TOTAL</td>
                                         <td class="text-center" id="sd_total_members">0</td>
                                         <td class="text-center" id="sd_total_active">0</td>
-                                        <td class="text-end" id="sd_total_vol">Rp 0</td>
+                                        <td class="text-end" id="sd_total_vol">0.00 USDT</td>
                                     </tr>
                                 </tfoot>
                             </table>
@@ -325,7 +341,7 @@
                             </div>
                         </div>
 
-                    </div>{{-- end #team_detail_content --}}
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-light" data-bs-dismiss="modal">Tutup</button>
@@ -364,6 +380,16 @@
                                 <div>
                                     <div class="fw-bold text-gray-800">{{ $user->name }}</div>
                                     <div class="text-muted fs-7">{{ $user->email }}</div>
+                                </div>
+                            </div>
+
+                            {{-- Info: level naik di tengah periode --}}
+                            <div class="notice d-flex bg-light-warning rounded border-warning border border-dashed p-4 mb-5">
+                                <i class="ki-outline ki-information-5 fs-2 text-warning me-3"></i>
+                                <div class="fs-7 text-gray-700">
+                                    Jika level di-set hari ini (bukan Rabu), volume akan dihitung
+                                    mulai hari ini hingga Selasa. Minggu berikutnya otomatis
+                                    kembali ke periode normal <strong>Rabu–Selasa</strong>.
                                 </div>
                             </div>
 
@@ -431,7 +457,6 @@
 
         // ── Load Team Detail via AJAX ─────────────────────────────────────────
         function loadTeamDetail(userId, userName) {
-            // Reset modal state
             document.getElementById('modal_team_title').textContent = 'Detail Team: ' + userName;
             document.getElementById('team_detail_loading').classList.remove('d-none');
             document.getElementById('team_detail_content').classList.add('d-none');
@@ -445,7 +470,16 @@
             })
             .then(res => res.json())
             .then(data => {
-                // Summary cards
+                // ── Custom start notice ──────────────────────────────────────
+                const notice = document.getElementById('sd_custom_start_notice');
+                if (data.isCustomStart) {
+                    document.getElementById('sd_custom_start_date').textContent = data.weekStart;
+                    notice.classList.remove('d-none');
+                } else {
+                    notice.classList.add('d-none');
+                }
+
+                // ── Summary cards ────────────────────────────────────────────
                 document.getElementById('sd_agent_level').textContent =
                     data.agentLevel ? 'Level ' + data.agentLevel : '— Belum di-set';
                 document.getElementById('sd_rate').textContent =
@@ -456,13 +490,13 @@
                 document.getElementById('sd_period').textContent = data.weekStart + ' – ' + data.weekEnd;
                 document.getElementById('sd_weekly_salary').textContent = formatUSDT(data.weeklySalary);
 
-                // Formula detail
+                // ── Formula detail ───────────────────────────────────────────
                 document.getElementById('sd_formula_detail').textContent =
                     data.agentLevel
                         ? formatUSDT(data.weeklyVolume) + ' × ' + data.rate.toFixed(1) + '% = ' + formatUSDT(data.weeklySalary)
                         : 'Belum ada level agen yang di-set.';
 
-                // Breakdown table
+                // ── Breakdown table ──────────────────────────────────────────
                 const tbody = document.getElementById('sd_breakdown_body');
                 tbody.innerHTML = '';
                 let totalMem = 0, totalAct = 0, totalVol = 0;
@@ -494,7 +528,7 @@
                 document.getElementById('sd_total_active').textContent  = totalAct.toLocaleString('id-ID');
                 document.getElementById('sd_total_vol').textContent     = formatUSDT(totalVol);
 
-                // Show content
+                // ── Show content ─────────────────────────────────────────────
                 document.getElementById('team_detail_loading').classList.add('d-none');
                 document.getElementById('team_detail_content').classList.remove('d-none');
             })

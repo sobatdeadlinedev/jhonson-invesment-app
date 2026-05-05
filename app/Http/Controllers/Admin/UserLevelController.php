@@ -29,19 +29,14 @@ class UserLevelController extends Controller
     /**
      * Hitung periode minggu saat ini.
      * Periode: Rabu 00:00 – Selasa 23:59:59 (gajian setiap Rabu).
-     * Contoh: jika hari ini Jumat 9 Mei 2025,
-     *   start = Rabu 7 Mei 2025 00:00:00
-     *   end   = Selasa 13 Mei 2025 23:59:59
      */
     public static function getCurrentWeekPeriod(): array
     {
         $now = Carbon::now();
 
-        // Carbon: 0=Sun,1=Mon,...,3=Wed,6=Sat
         $dayOfWeek = $now->dayOfWeek;
 
         // Hitung berapa hari sejak Rabu terakhir
-        // Wed = 3; jika hari ini < 3 (Sun/Mon/Tue), mundur ke Rabu minggu lalu
         $daysFromLastWed = ($dayOfWeek >= 3) ? ($dayOfWeek - 3) : ($dayOfWeek + 4);
 
         $start = $now->copy()->subDays($daysFromLastWed)->startOfDay();
@@ -51,8 +46,31 @@ class UserLevelController extends Controller
     }
 
     /**
+     * Tentukan start volume untuk user tertentu.
+     *
+     * Logika:
+     * - Jika level di-set SETELAH weekStart (misal naik level hari Minggu),
+     *   maka volume dihitung mulai hari level di-set (bukan dari Rabu).
+     * - Jika level di-set SEBELUM atau SAMA dengan weekStart (sudah ada sebelum Rabu),
+     *   maka tetap pakai weekStart (Rabu) seperti biasa.
+     * - Minggu berikutnya, weekStart sudah baru (Rabu), levelSetAt < weekStart baru,
+     *   sehingga otomatis kembali ke periode normal Rabu–Selasa.
+     */
+    protected function resolveVolumeStart(User $user, Carbon $weekStart): Carbon
+    {
+        $levelSetAt = $user->userLevel?->updated_at;
+
+        if ($levelSetAt && $levelSetAt->gt($weekStart)) {
+            // Level naik di tengah periode → mulai dari hari level di-set
+            return $levelSetAt->copy()->startOfDay();
+        }
+
+        // Normal → mulai dari Rabu
+        return $weekStart->copy();
+    }
+
+    /**
      * Ambil semua downline (rekursif) sampai $maxLevel level ke bawah.
-     * Return: Collection of Users (flat, semua level).
      */
     protected function getAllDownlines(User $user, int $maxLevel = 10): \Illuminate\Support\Collection
     {
@@ -62,15 +80,14 @@ class UserLevelController extends Controller
         for ($i = 1; $i <= $maxLevel; $i++) {
             $nextLevel = collect();
             foreach ($currentLevel as $u) {
-                // Pastikan relasi referrals & referred sudah di-load atau lazy-load
-                $children = $u->referrals->map->referred->filter();
+                $children  = $u->referrals->map->referred->filter();
                 $nextLevel = $nextLevel->merge($children);
             }
 
             if ($nextLevel->isEmpty()) break;
 
-            $allDownlines = $allDownlines->merge($nextLevel);
-            $currentLevel = $nextLevel;
+            $allDownlines  = $allDownlines->merge($nextLevel);
+            $currentLevel  = $nextLevel;
         }
 
         return $allDownlines;
@@ -78,7 +95,6 @@ class UserLevelController extends Controller
 
     /**
      * Ambil downline per level (1–maxLevel).
-     * Return: array [1 => Collection, 2 => Collection, ...]
      */
     protected function getDownlinesByLevel(User $user, int $maxLevel = 10): array
     {
@@ -88,7 +104,7 @@ class UserLevelController extends Controller
         for ($i = 1; $i <= $maxLevel; $i++) {
             $nextLevel = collect();
             foreach ($currentLevel as $u) {
-                $children = $u->referrals->map->referred->filter();
+                $children  = $u->referrals->map->referred->filter();
                 $nextLevel = $nextLevel->merge($children);
             }
 
@@ -96,7 +112,6 @@ class UserLevelController extends Controller
             $currentLevel = $nextLevel;
 
             if ($nextLevel->isEmpty()) {
-                // Isi level sisanya dengan collection kosong
                 for ($j = $i + 1; $j <= $maxLevel; $j++) {
                     $levels[$j] = collect();
                 }
@@ -107,10 +122,8 @@ class UserLevelController extends Controller
         return $levels;
     }
 
-
     /**
-     * Hitung total achieved_volume downline yang DICAPAI dalam periode minggu ini.
-     * Menggunakan tabel achieved_volume_logs yang mencatat setiap kenaikan achieved_volume.
+     * Hitung total achieved_volume downline dalam rentang waktu tertentu.
      */
     protected function getWeeklyVolume(\Illuminate\Support\Collection $downlines, Carbon $start, Carbon $end): float
     {
@@ -136,26 +149,24 @@ class UserLevelController extends Controller
         $users = User::role('member')
             ->with([
                 'userLevel.assignedBy',
-                // Eager load referral tree sampai 10 level
                 'referrals.referred.referrals.referred.referrals.referred.referrals.referred.referrals.referred.referrals.referred.referrals.referred.referrals.referred.referrals.referred.referrals.referred',
             ])
             ->withCount('referrals')
             ->latest()
             ->get();
 
-        // Hitung data per user
         $userStats = [];
         foreach ($users as $user) {
-            $downlines   = $this->getAllDownlines($user, 10);
-            $totalTeam   = $downlines->count();
-            $activeTeam  = $downlines->where('is_verified', true)->count();
+            $downlines  = $this->getAllDownlines($user, 10);
+            $totalTeam  = $downlines->count();
+            $activeTeam = $downlines->where('is_verified', true)->count();
 
-            // Volume downline minggu ini
-            $weeklyVolume = $this->getWeeklyVolume($downlines, $weekStart, $weekEnd);
+            $level = $user->userLevel?->level;
+            $rate  = $level ? (self::BONUS_RATE[$level] ?? 0) : 0;
 
-            // Gaji = volume × rate sesuai level manual
-            $level       = $user->userLevel?->level;
-            $rate        = $level ? (self::BONUS_RATE[$level] ?? 0) : 0;
+            // ▼ Gunakan start yang menyesuaikan tanggal level di-set
+            $userStart    = $this->resolveVolumeStart($user, $weekStart);
+            $weeklyVolume = $this->getWeeklyVolume($downlines, $userStart, $weekEnd);
             $weeklySalary = $weeklyVolume * $rate;
 
             $userStats[$user->id] = [
@@ -164,6 +175,7 @@ class UserLevelController extends Controller
                 'weeklyVolume' => $weeklyVolume,
                 'weeklySalary' => $weeklySalary,
                 'rate'         => $rate,
+                'volumeStart'  => $userStart,   // untuk ditampilkan di view jika perlu
             ];
         }
 
@@ -176,38 +188,37 @@ class UserLevelController extends Controller
     }
 
     /**
-     * Tampilkan detail team dan breakdown gaji per level untuk 1 user.
-     * Dipanggil via AJAX / modal.
+     * Tampilkan detail team dan breakdown gaji per level untuk 1 user (AJAX).
      */
     public function show(User $user)
     {
         [$weekStart, $weekEnd] = self::getCurrentWeekPeriod();
 
-        // Load referral tree
         $user->load([
             'referrals.referred.referrals.referred.referrals.referred.referrals.referred.referrals.referred.referrals.referred.referrals.referred.referrals.referred.referrals.referred.referrals.referred',
             'userLevel',
         ]);
 
-        $levelData   = $this->getDownlinesByLevel($user, 10);
-        $downlines   = $this->getAllDownlines($user, 10);
-        $totalTeam   = $downlines->count();
-        $activeTeam  = $downlines->where('is_verified', true)->count();
+        $levelData  = $this->getDownlinesByLevel($user, 10);
+        $downlines  = $this->getAllDownlines($user, 10);
+        $totalTeam  = $downlines->count();
+        $activeTeam = $downlines->where('is_verified', true)->count();
 
-        $agentLevel  = $user->userLevel?->level;
-        $rate        = $agentLevel ? (self::BONUS_RATE[$agentLevel] ?? 0) : 0;
+        $agentLevel = $user->userLevel?->level;
+        $rate       = $agentLevel ? (self::BONUS_RATE[$agentLevel] ?? 0) : 0;
 
-        // Volume downline minggu ini (total)
-        $weeklyVolume = $this->getWeeklyVolume($downlines, $weekStart, $weekEnd);
+        // ▼ Resolve start yang menyesuaikan tanggal level di-set
+        $userStart    = $this->resolveVolumeStart($user, $weekStart);
+        $weeklyVolume = $this->getWeeklyVolume($downlines, $userStart, $weekEnd);
         $weeklySalary = $weeklyVolume * $rate;
 
-        // Breakdown per referral level (untuk tabel detail)
+        // Breakdown per referral level
         $breakdown = [];
         for ($i = 1; $i <= 10; $i++) {
             $members = $levelData[$i] ?? collect();
             if ($members->isEmpty()) continue;
 
-            $vol = $this->getWeeklyVolume($members, $weekStart, $weekEnd);
+            $vol = $this->getWeeklyVolume($members, $userStart, $weekEnd);
 
             $breakdown[$i] = [
                 'count'        => $members->count(),
@@ -223,14 +234,17 @@ class UserLevelController extends Controller
                 'email' => $user->email,
             ],
             'agentLevel'   => $agentLevel,
-            'rate'         => $rate * 100,   // kirim sebagai persen
+            'rate'         => $rate * 100,
             'totalTeam'    => $totalTeam,
             'activeTeam'   => $activeTeam,
             'weeklyVolume' => $weeklyVolume,
             'weeklySalary' => $weeklySalary,
-            'weekStart'    => $weekStart->format('d M Y'),
+            // ▼ weekStart di-response sesuai userStart (bukan weekStart global)
+            'weekStart'    => $userStart->format('d M Y'),
             'weekEnd'      => $weekEnd->format('d M Y'),
             'breakdown'    => $breakdown,
+            // ▼ Flag apakah start-nya custom (berguna untuk UI)
+            'isCustomStart' => $userStart->ne($weekStart),
         ]);
     }
 

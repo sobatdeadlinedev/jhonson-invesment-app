@@ -123,16 +123,17 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
 
     // Trading Signals Management
     Route::prefix('signals')->name('signals.')->group(function () {
-        Route::get('/', [TradingSignalController::class, 'index'])->name('index');
-        Route::get('/create', [TradingSignalController::class, 'create'])->name('create');
-        Route::post('/', [TradingSignalController::class, 'store'])->name('store');
-        Route::get('/{id}', [TradingSignalController::class, 'show'])->name('show');
-        Route::get('/{id}/edit', [TradingSignalController::class, 'edit'])->name('edit');
-        Route::put('/{id}', [TradingSignalController::class, 'update'])->name('update');
-        Route::post('/{id}/close', [TradingSignalController::class, 'close'])->name('close');
-        Route::post('/{id}/settle', [TradingSignalController::class, 'settle'])->name('settle');
-        Route::delete('/{id}', [TradingSignalController::class, 'destroy'])->name('destroy');
-    });
+    Route::get('/', [TradingSignalController::class, 'index'])->name('index');
+    Route::get('/create', [TradingSignalController::class, 'create'])->name('create');
+    Route::post('/', [TradingSignalController::class, 'store'])->name('store');
+    Route::post('/group-preview', [TradingSignalController::class, 'groupPreview'])->name('group-preview'); // ← harus sebelum /{id}
+    Route::get('/{id}', [TradingSignalController::class, 'show'])->name('show');
+    Route::get('/{id}/edit', [TradingSignalController::class, 'edit'])->name('edit');
+    Route::put('/{id}', [TradingSignalController::class, 'update'])->name('update');
+    Route::post('/{id}/close', [TradingSignalController::class, 'close'])->name('close');
+    Route::post('/{id}/settle', [TradingSignalController::class, 'settle'])->name('settle');
+    Route::delete('/{id}', [TradingSignalController::class, 'destroy'])->name('destroy');
+});
 
     // ✅ User Level Management — di dalam middleware admin
     Route::prefix('user-levels')->name('user-levels.')->group(function () {
