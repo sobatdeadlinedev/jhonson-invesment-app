@@ -5,11 +5,16 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
 use App\Http\View\Composers\ConfigComposer;
+use App\Models\User;
+use App\Observers\UserObserver;
 
 class AppServiceProvider extends ServiceProvider
 {
     public function boot(): void
     {
+        // ✅ Register User Observer
+        User::observe(UserObserver::class);
+
         View::composer([
             'admin.layouts.app',
             'admin.components.sidebar',

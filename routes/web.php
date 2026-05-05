@@ -44,15 +44,12 @@ Route::get('/', function () {
 
 // Guest Routes
 Route::middleware('guest')->group(function () {
-    // Login
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [LoginController::class, 'login'])->name('login.post');
 
-    // Register
     Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
     Route::post('/register', [RegisterController::class, 'register'])->name('register.post');
 
-    // Forgot password
     Route::get('/forget-password', [ForgetPasswordController::class, 'showForgetPasswordForm'])->name('forget-password');
     Route::post('/forget-password', [ForgetPasswordController::class, 'sendOtp'])->name('forget-password.send-otp');
     Route::get('/verify-otp', [ForgetPasswordController::class, 'showVerifyOtpForm'])->name('verify-otp');
@@ -61,18 +58,12 @@ Route::middleware('guest')->group(function () {
     Route::post('/reset-password', [ForgetPasswordController::class, 'resetPassword'])->name('reset-password.post');
 });
 
-Route::prefix('user-levels')->name('admin.user-levels.')->group(function () {
-    Route::get('/',          [UserLevelController::class, 'index'])   ->name('index');
-    Route::post('/',         [UserLevelController::class, 'store'])   ->name('store');
-    Route::delete('/{userId}', [UserLevelController::class, 'destroy'])->name('destroy');
-});
- 
-
 // Logout Route
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->middleware('auth');
 
 // Admin Routes
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->group(function () {
+
     Route::prefix('dashboard')->name('dashboard.')->group(function () {
         Route::get('/', [AdminDashboardController::class, 'index'])->name('index');
     });
@@ -103,8 +94,6 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::get('/{deposit}', [AdminDepositController::class, 'show'])->name('show');
         Route::post('/{deposit}/approve', [AdminDepositController::class, 'approve'])->name('approve');
         Route::post('/{deposit}/reject', [AdminDepositController::class, 'reject'])->name('reject');
-
-        // NEW: Manual adjustment (add balance)
         Route::post('/adjustment', [AdminDepositController::class, 'adjustment'])->name('adjustment');
     });
 
@@ -113,8 +102,6 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::get('/{withdrawal}', [AdminWithdrawalController::class, 'show'])->name('show');
         Route::post('/{withdrawal}/approve', [AdminWithdrawalController::class, 'approve'])->name('approve');
         Route::post('/{withdrawal}/reject', [AdminWithdrawalController::class, 'reject'])->name('reject');
-
-        // NEW: Manual deduction (reduce balance)
         Route::post('/deduction', [AdminWithdrawalController::class, 'deduction'])->name('deduction');
     });
 
@@ -146,22 +133,30 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::post('/{id}/settle', [TradingSignalController::class, 'settle'])->name('settle');
         Route::delete('/{id}', [TradingSignalController::class, 'destroy'])->name('destroy');
     });
+
+    // ✅ User Level Management — di dalam middleware admin
+    Route::prefix('user-levels')->name('user-levels.')->group(function () {
+        Route::get('/',            [UserLevelController::class, 'index'])  ->name('index');
+        Route::post('/',           [UserLevelController::class, 'store'])  ->name('store');
+        Route::get('/{user}',      [UserLevelController::class, 'show'])   ->name('show');
+        Route::delete('/{userId}', [UserLevelController::class, 'destroy'])->name('destroy');
+    });
+
 });
 
 // Member Routes
 Route::prefix('member')->name('member.')->middleware(['auth', 'role:member'])->group(function () {
+
     Route::prefix('dashboard')->name('dashboard.')->group(function () {
         Route::get('/', [MemberDashboardController::class, 'index'])->name('index');
     });
 
-    // Trading Signals (di invest)
     Route::prefix('invest')->name('invest.')->group(function () {
-        Route::get('/', [MemberInvestController::class, 'index'])->name('index'); // List signals
-        Route::get('/detail', [MemberInvestController::class, 'detail'])->name('detail'); // Signal detail
-        Route::get('/history', [MemberSignalController::class, 'history'])->name('history'); // Trading history
+        Route::get('/', [MemberInvestController::class, 'index'])->name('index');
+        Route::get('/detail', [MemberInvestController::class, 'detail'])->name('detail');
+        Route::get('/history', [MemberSignalController::class, 'history'])->name('history');
     });
 
-    // Signal actions
     Route::post('/signals/{id}/join', [MemberSignalController::class, 'join'])->name('signals.join');
 
     Route::prefix('team')->name('team.')->group(function () {
@@ -185,23 +180,21 @@ Route::prefix('member')->name('member.')->middleware(['auth', 'role:member'])->g
         Route::delete('/cancel/{reference}', [MemberWithdrawController::class, 'cancel'])->name('cancel');
     });
 
-    // Verification Routes
     Route::prefix('verification')->name('verification.')->group(function () {
         Route::get('/', [MemberVerificationController::class, 'index'])->name('index');
         Route::post('/store', [MemberVerificationController::class, 'store'])->name('store');
     });
 
-    // Wallet Routes
     Route::prefix('wallet')->name('wallet.')->group(function () {
         Route::post('/', [MemberWalletController::class, 'store'])->name('store');
         Route::put('/{wallet}', [MemberWalletController::class, 'update'])->name('update');
         Route::delete('/{wallet}', [MemberWalletController::class, 'destroy'])->name('destroy');
     });
 
-    // Balance Transfer
     Route::prefix('balance')->name('balance.')->group(function () {
         Route::get('/transfer', [BalanceTransferController::class, 'index'])->name('transfer');
         Route::post('/transfer/to-trade', [BalanceTransferController::class, 'exchangeToTrade'])->name('transfer.to-trade');
         Route::post('/transfer/to-exchange', [BalanceTransferController::class, 'tradeToExchange'])->name('transfer.to-exchange');
     });
+
 });
