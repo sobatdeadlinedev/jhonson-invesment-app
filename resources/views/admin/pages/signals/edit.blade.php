@@ -42,6 +42,7 @@
                         @csrf
                         @method('PUT')
 
+                        {{-- ── Coin ─────────────────────────────────────────────────── --}}
                         <div class="mb-10">
                             <label class="form-label required">Select Coin</label>
                             <select name="coin" class="form-select @error('coin') is-invalid @enderror" required>
@@ -58,6 +59,7 @@
                             @enderror
                         </div>
 
+                        {{-- ── Title ────────────────────────────────────────────────── --}}
                         <div class="mb-10">
                             <label class="form-label required">Signal Title</label>
                             <input type="text" name="title" class="form-control @error('title') is-invalid @enderror"
@@ -68,6 +70,7 @@
                             @enderror
                         </div>
 
+                        {{-- ── Description ──────────────────────────────────────────── --}}
                         <div class="mb-10">
                             <label class="form-label">Description</label>
                             <textarea name="description" class="form-control @error('description') is-invalid @enderror" rows="3"
@@ -76,7 +79,8 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
-                        <!-- Bet Configuration Section -->
+
+                        {{-- ── Bet Configuration ────────────────────────────────────── --}}
                         <div class="card mb-10">
                             <div class="card-header">
                                 <h3 class="card-title">Bet Configuration</h3>
@@ -92,8 +96,7 @@
                                                 required>
                                             <span class="form-check-label">
                                                 <span class="fw-bold">Percentage (%)</span>
-                                                <span class="text-muted d-block fs-7">Bet amount based on user's trade
-                                                    balance</span>
+                                                <span class="text-muted d-block fs-7">Bet amount based on user's trade balance</span>
                                             </span>
                                         </label>
                                         <label class="form-check form-check-custom form-check-solid">
@@ -125,13 +128,7 @@
                                     @error('bet_value')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
-                                    <div class="form-text" id="bet_value_help">
-                                        @if ($signal->bet_type == 'percentage')
-                                            Enter percentage of user's trade balance
-                                        @else
-                                            Enter fixed amount in USDT
-                                        @endif
-                                    </div>
+                                    <div class="form-text" id="bet_value_help"></div>
                                 </div>
 
                                 <div class="alert alert-primary d-flex align-items-center p-5">
@@ -143,57 +140,271 @@
                             </div>
                         </div>
 
-                        <!-- User Access Control Section -->
+                        {{-- ══════════════════════════════════════════════════════════════
+                             USER ACCESS CONTROL — sama persis dengan create.blade.php
+                        ═══════════════════════════════════════════════════════════════ --}}
                         <div class="card mb-10">
                             <div class="card-header">
                                 <h3 class="card-title">User Access Control</h3>
                             </div>
                             <div class="card-body">
+
+                                {{-- Tentukan current access_mode dari data signal --}}
+                                @php
+                                    // Deteksi mode dari signal yang ada:
+                                    //   - group_leader_id  → 'group'
+                                    //   - !is_public       → 'specific'
+                                    //   - is_public        → 'public'
+                                    $currentMode = old('access_mode',
+                                        $signal->group_leader_id ? 'group'
+                                        : ($signal->is_public ? 'public' : 'specific')
+                                    );
+                                @endphp
+
+                                {{-- ── Mode selector tabs ── --}}
                                 <div class="mb-7">
-                                    <label class="form-check form-check-custom form-check-solid">
-                                        <input class="form-check-input" type="checkbox" name="is_public" value="1"
-                                            id="is_public" {{ old('is_public', $signal->is_public) ? 'checked' : '' }}>
-                                        <span class="form-check-label fw-bold">
-                                            Public Signal (All Users Can Access)
-                                        </span>
-                                    </label>
-                                    <div class="form-text">If unchecked, only selected users below can access this signal
+                                    <label class="form-label required fw-bold">Access Mode</label>
+                                    <div class="d-flex gap-3 flex-wrap">
+
+                                        {{-- Public --}}
+                                        <label class="form-check form-check-custom form-check-solid border rounded p-4 cursor-pointer flex-grow-1"
+                                            id="tab_public" style="min-width:180px">
+                                            <input class="form-check-input" type="radio" name="access_mode"
+                                                value="public" id="access_mode_public"
+                                                {{ $currentMode === 'public' ? 'checked' : '' }}>
+                                            <span class="form-check-label">
+                                                <span class="fw-bold d-block">
+                                                    <i class="ki-outline ki-globe fs-4 text-primary me-1"></i>
+                                                    Public
+                                                </span>
+                                                <span class="text-muted fs-7">Semua user bisa akses</span>
+                                            </span>
+                                        </label>
+
+                                        {{-- Specific Users --}}
+                                        <label class="form-check form-check-custom form-check-solid border rounded p-4 cursor-pointer flex-grow-1"
+                                            id="tab_specific" style="min-width:180px">
+                                            <input class="form-check-input" type="radio" name="access_mode"
+                                                value="specific" id="access_mode_specific"
+                                                {{ $currentMode === 'specific' ? 'checked' : '' }}>
+                                            <span class="form-check-label">
+                                                <span class="fw-bold d-block">
+                                                    <i class="ki-outline ki-profile-user fs-4 text-warning me-1"></i>
+                                                    Specific Users
+                                                </span>
+                                                <span class="text-muted fs-7">Pilih user satu per satu</span>
+                                            </span>
+                                        </label>
+
+                                        {{-- By Group/Team --}}
+                                        <label class="form-check form-check-custom form-check-solid border rounded p-4 cursor-pointer flex-grow-1"
+                                            id="tab_group" style="min-width:180px">
+                                            <input class="form-check-input" type="radio" name="access_mode"
+                                                value="group" id="access_mode_group"
+                                                {{ $currentMode === 'group' ? 'checked' : '' }}>
+                                            <span class="form-check-label">
+                                                <span class="fw-bold d-block">
+                                                    <i class="ki-outline ki-people fs-4 text-success me-1"></i>
+                                                    By Group / Team
+                                                </span>
+                                                <span class="text-muted fs-7">Pilih ketua, downline ikut otomatis</span>
+                                            </span>
+                                        </label>
+
                                     </div>
                                 </div>
 
-                                <div id="user_selector"
-                                    style="display: {{ old('is_public', $signal->is_public) ? 'none' : 'block' }};">
-                                    <label class="form-label required">Select Allowed Users</label>
+                                {{-- ══════════════════════════════
+                                     PANEL: Specific Users
+                                ══════════════════════════════ --}}
+                                <div id="panel_specific" style="display:none;">
+
+                                    {{-- Quick Action Buttons --}}
+                                    <div class="d-flex align-items-center gap-3 mb-4 p-4 bg-light-primary rounded">
+                                        <span class="fw-bold text-gray-700 me-2">Quick Select:</span>
+                                        <button type="button" class="btn btn-sm btn-primary" id="btn_select_all">
+                                            <i class="ki-outline ki-check-square fs-4 me-1"></i>Select All
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-light-warning" id="btn_select_all_except_mode">
+                                            <i class="ki-outline ki-minus-square fs-4 me-1"></i>Select All Except...
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-light-danger" id="btn_clear_all">
+                                            <i class="ki-outline ki-cross-square fs-4 me-1"></i>Clear All
+                                        </button>
+                                        <span class="ms-auto badge badge-light-primary fs-7" id="selected_count_badge">0 users selected</span>
+                                    </div>
+
+                                    {{-- Select All Except exclusion panel --}}
+                                    <div id="exclude_panel" style="display:none;" class="mb-4 p-4 border border-warning border-dashed rounded bg-light-warning">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <i class="ki-outline ki-information-5 fs-4 text-warning me-2"></i>
+                                            <span class="fw-bold text-warning-emphasis">Select All Except Mode</span>
+                                            <span class="text-muted fs-7 ms-2">— Uncheck users to <strong>exclude</strong>.</span>
+                                            <button type="button" class="btn btn-sm btn-icon btn-light-warning ms-auto" id="btn_close_except_mode">
+                                                <i class="ki-outline ki-cross fs-4"></i>
+                                            </button>
+                                        </div>
+                                        <input type="text" id="exclude_search" class="form-control form-control-sm mb-3" placeholder="Search user to exclude...">
+                                        <div id="exclude_user_list" style="max-height:220px;overflow-y:auto;" class="border rounded bg-white p-3">
+                                            @foreach ($users as $user)
+                                                <label class="d-flex align-items-center gap-2 py-1 px-2 rounded user-exclude-item cursor-pointer"
+                                                    data-name="{{ strtolower($user->name) }}"
+                                                    data-email="{{ strtolower($user->email) }}"
+                                                    data-phone="{{ strtolower($user->phone ?? '') }}">
+                                                    <input type="checkbox" class="form-check-input exclude-user-checkbox"
+                                                        data-user-id="{{ $user->id }}" checked>
+                                                    <span>
+                                                        <span class="fw-semibold">{{ $user->name }}</span>
+                                                        <span class="text-muted fs-7 ms-1">{{ $user->email }}</span>
+                                                        @if($user->phone)<span class="text-muted fs-7">({{ $user->phone }})</span>@endif
+                                                    </span>
+                                                </label>
+                                            @endforeach
+                                        </div>
+                                        <div class="d-flex align-items-center justify-content-between mt-3">
+                                            <span class="text-muted fs-7" id="exclude_summary">All users included</span>
+                                            <button type="button" class="btn btn-sm btn-warning" id="btn_apply_except">
+                                                <i class="ki-outline ki-check fs-4 me-1"></i>Apply Selection
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <label class="form-label required">Selected Allowed Users</label>
+
+                                    {{-- Ambil IDs user yang sudah tersimpan (untuk mode specific) --}}
+                                    @php
+                                        $savedAllowedIds = old('allowed_user_ids',
+                                            $currentMode === 'specific'
+                                                ? $signal->allowedUsers->pluck('user_id')->toArray()
+                                                : []
+                                        );
+                                    @endphp
+
                                     <select name="allowed_user_ids[]" id="allowed_user_ids"
                                         class="form-select @error('allowed_user_ids') is-invalid @enderror" multiple
                                         data-control="select2" data-placeholder="Search by name, email, or phone..."
                                         data-allow-clear="true">
                                         @foreach ($users as $user)
                                             <option value="{{ $user->id }}"
-                                                {{ in_array($user->id, old('allowed_user_ids', $signal->allowed_user_ids)) ? 'selected' : '' }}>
+                                                {{ in_array($user->id, $savedAllowedIds) ? 'selected' : '' }}>
                                                 {{ $user->name }} - {{ $user->email }}
-                                                @if ($user->phone)
-                                                    ({{ $user->phone }})
-                                                @endif
+                                                @if($user->phone)({{ $user->phone }})@endif
                                             </option>
                                         @endforeach
                                     </select>
                                     @error('allowed_user_ids')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
-                                    <div class="form-text">Select one or more users who can access this private signal
-                                    </div>
+                                    <div class="form-text">Pilih satu atau lebih user yang boleh akses signal ini</div>
                                 </div>
+
+                                {{-- ══════════════════════════════
+                                     PANEL: By Group / Team
+                                ══════════════════════════════ --}}
+                                <div id="panel_group" style="display:none;">
+
+                                    <div class="alert alert-success d-flex align-items-center p-4 mb-5">
+                                        <i class="ki-outline ki-people fs-2hx text-success me-4"></i>
+                                        <div class="d-flex flex-column">
+                                            <h5 class="mb-1">Group / Team Mode</h5>
+                                            <span class="fs-7">
+                                                Pilih <strong>ketua grup</strong>. Sistem akan otomatis menyertakan <strong>ketua + semua downline</strong>
+                                                (referral level 1–10). Downline yang sama di beberapa ketua tidak akan duplikat.
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {{-- Depth selector --}}
+                                    <div class="mb-5">
+                                        <label class="form-label">Kedalaman Downline</label>
+                                        <select name="group_depth" id="group_depth" class="form-select form-select-sm w-auto">
+                                            <option value="1"  {{ old('group_depth', $signal->group_depth) == 1  ? 'selected' : '' }}>Level 1 saja (direct referral)</option>
+                                            <option value="3"  {{ old('group_depth', $signal->group_depth) == 3  ? 'selected' : '' }}>Level 1 – 3</option>
+                                            <option value="5"  {{ old('group_depth', $signal->group_depth) == 5  ? 'selected' : '' }}>Level 1 – 5</option>
+                                            <option value="10" {{ (old('group_depth', $signal->group_depth) == 10 || !$signal->group_depth) ? 'selected' : '' }}>Semua level (1 – 10)</option>
+                                        </select>
+                                        <div class="form-text">Pilih seberapa dalam downline yang ikut signal</div>
+                                    </div>
+
+                                    {{-- Leader picker --}}
+                                    <div class="mb-5">
+                                        <label class="form-label required">Pilih Ketua Grup</label>
+
+                                        @php
+                                            $savedLeaderIds = old('group_leader_ids',
+                                                $currentMode === 'group' && $signal->group_leader_id
+                                                    ? [$signal->group_leader_id]
+                                                    : []
+                                            );
+                                        @endphp
+
+                                        <select name="group_leader_ids[]" id="group_leader_ids"
+                                            class="form-select @error('group_leader_ids') is-invalid @enderror" multiple
+                                            data-control="select2"
+                                            data-placeholder="Cari ketua berdasarkan nama, email, atau no. hp..."
+                                            data-allow-clear="true">
+                                            @foreach ($users as $user)
+                                                <option value="{{ $user->id }}"
+                                                    {{ in_array($user->id, $savedLeaderIds) ? 'selected' : '' }}>
+                                                    {{ $user->name }} - {{ $user->email }}
+                                                    @if($user->phone)({{ $user->phone }})@endif
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        @error('group_leader_ids')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                        <div class="form-text">Bisa pilih lebih dari satu ketua. Semua downline mereka akan digabung.</div>
+                                    </div>
+
+                                    {{-- Info snapshot member lama (jika ada) --}}
+                                    @if($signal->group_total_members && $currentMode === 'group')
+                                        <div class="alert alert-light-info d-flex align-items-center p-4 mb-4">
+                                            <i class="ki-outline ki-information-5 fs-3 text-info me-3"></i>
+                                            <span class="fs-7">
+                                                Snapshot sebelumnya: <strong>{{ $signal->group_total_members }} member</strong>
+                                                (Ketua: {{ $signal->groupLeader->name ?? '-' }}, Depth: {{ $signal->group_depth }}).
+                                                Klik <em>Preview</em> untuk melihat komposisi terbaru.
+                                            </span>
+                                        </div>
+                                    @endif
+
+                                    {{-- Preview button --}}
+                                    <button type="button" class="btn btn-light-primary btn-sm mb-5" id="btn_preview_group">
+                                        <i class="ki-outline ki-eye fs-4 me-1"></i>Preview Team Members
+                                    </button>
+
+                                    {{-- Preview panel --}}
+                                    <div id="group_preview_panel" style="display:none;" class="border border-dashed border-primary rounded p-4 mb-5">
+                                        <div class="d-flex align-items-center justify-content-between mb-4">
+                                            <h5 class="mb-0 text-primary">
+                                                <i class="ki-outline ki-people fs-4 me-1"></i>
+                                                Team Preview
+                                            </h5>
+                                            <span class="badge badge-light-primary fs-6" id="preview_total_badge">0 users</span>
+                                        </div>
+                                        <div id="group_preview_loading" style="display:none;" class="text-center py-5">
+                                            <div class="spinner-border text-primary" role="status"></div>
+                                            <div class="text-muted mt-2 fs-7">Memuat data tim...</div>
+                                        </div>
+                                        <div id="group_preview_tree"></div>
+                                    </div>
+
+                                </div>
+
+                                {{-- Hidden field is_public --}}
+                                <input type="hidden" name="is_public" id="is_public_hidden" value="{{ $currentMode === 'public' ? '1' : '0' }}">
+
                             </div>
                         </div>
+                        {{-- ═══════════════════════════════════════════════════════════ --}}
 
+                        {{-- ── Prices ────────────────────────────────────────────────── --}}
                         <div class="row mb-10">
                             <div class="col-md-6">
                                 <label class="form-label required">Opening Price (USDT)</label>
-                                <!-- Hidden input for actual value -->
                                 <input type="hidden" name="entry_price" id="entry_price_hidden"
                                     value="{{ old('entry_price', $signal->entry_price) }}">
-                                <!-- Display input with formatting -->
                                 <input type="text" id="entry_price_display"
                                     class="form-control @error('entry_price') is-invalid @enderror"
                                     placeholder="92,920.80"
@@ -206,10 +417,8 @@
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label required">Settlement Price (USDT)</label>
-                                <!-- Hidden input for actual value -->
                                 <input type="hidden" name="target_price" id="target_price_hidden"
                                     value="{{ old('target_price', $signal->target_price) }}">
-                                <!-- Display input with formatting -->
                                 <input type="text" id="target_price_display"
                                     class="form-control @error('target_price') is-invalid @enderror"
                                     placeholder="95,840.50"
@@ -226,8 +435,7 @@
                             <i class="ki-outline ki-information fs-2hx text-warning me-4"></i>
                             <div class="d-flex flex-column">
                                 <h5 class="mb-1">Note</h5>
-                                <span>You can only edit this signal while it's still OPEN. Once closed or settled, changes
-                                    are not allowed.</span>
+                                <span>You can only edit this signal while it's still OPEN. Once closed or settled, changes are not allowed.</span>
                             </div>
                         </div>
 
@@ -244,176 +452,307 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Bet Type Toggle
-            const betTypePercentage = document.getElementById('bet_type_percentage');
-            const betTypeFixed = document.getElementById('bet_type_fixed');
-            const betValueUnit = document.getElementById('bet_value_unit');
-            const betValueHelp = document.getElementById('bet_value_help');
-            const betInfoText = document.getElementById('bet_info_text');
-            const betValueInput = document.getElementById('bet_value');
+    document.addEventListener('DOMContentLoaded', function () {
 
-            function updateBetType() {
-                if (betTypePercentage.checked) {
-                    betValueUnit.textContent = '%';
-                    betValueHelp.innerHTML =
-                        'Enter percentage of user\'s trade balance (e.g., 1.00 = 1%, 5.00 = 5%)';
-                    betInfoText.innerHTML =
-                        '<strong>Percentage:</strong> Users with 10,000 USDT trade balance will bet ' +
-                        (betValueInput.value * 100).toFixed(0) + ' USDT (' + betValueInput.value + '%)<br>' +
-                        'Example: 1% = 100 USDT, 2% = 200 USDT, 5% = 500 USDT';
-                } else {
-                    betValueUnit.textContent = 'USDT';
-                    betValueHelp.innerHTML = 'Enter fixed amount in USDT (e.g., 100.00 = all users bet 100 USDT)';
-                    betInfoText.innerHTML = '<strong>Fixed:</strong> All users will bet exactly ' +
-                        parseFloat(betValueInput.value).toFixed(2) + ' USDT regardless of their balance<br>' +
-                        'Make sure users have sufficient balance to join';
-                }
+        // ─── Bet Type Toggle ──────────────────────────────────────────────────────
+        const betTypePercentage = document.getElementById('bet_type_percentage');
+        const betTypeFixed      = document.getElementById('bet_type_fixed');
+        const betValueUnit      = document.getElementById('bet_value_unit');
+        const betValueHelp      = document.getElementById('bet_value_help');
+        const betInfoText       = document.getElementById('bet_info_text');
+        const betValueInput     = document.getElementById('bet_value');
+
+        function updateBetType() {
+            if (betTypePercentage.checked) {
+                betValueUnit.textContent = '%';
+                betValueHelp.innerHTML   = "Enter percentage of user's trade balance (e.g., 1.00 = 1%, 5.00 = 5%)";
+                betInfoText.innerHTML    =
+                    '<strong>Percentage:</strong> Users with 10,000 USDT trade balance will bet ' +
+                    (betValueInput.value * 100).toFixed(0) + ' USDT (' + betValueInput.value + '%)<br>' +
+                    'Example: 1% = 100 USDT, 2% = 200 USDT, 5% = 500 USDT';
+            } else {
+                betValueUnit.textContent = 'USDT';
+                betValueHelp.innerHTML   = 'Enter fixed amount in USDT (e.g., 100.00 = all users bet 100 USDT)';
+                betInfoText.innerHTML    =
+                    '<strong>Fixed:</strong> All users will bet exactly ' +
+                    parseFloat(betValueInput.value).toFixed(2) + ' USDT regardless of their balance<br>' +
+                    'Make sure users have sufficient balance to join';
+            }
+        }
+        betTypePercentage.addEventListener('change', updateBetType);
+        betTypeFixed.addEventListener('change', updateBetType);
+        betValueInput.addEventListener('input', updateBetType);
+        updateBetType();
+
+        // ─── Access Mode Tabs ─────────────────────────────────────────────────────
+        const panelSpecific  = document.getElementById('panel_specific');
+        const panelGroup     = document.getElementById('panel_group');
+        const isPublicHidden = document.getElementById('is_public_hidden');
+        const radios         = document.querySelectorAll('input[name="access_mode"]');
+        const selectSpecific = document.getElementById('allowed_user_ids');
+        const selectLeaders  = document.getElementById('group_leader_ids');
+
+        function applyAccessMode(mode) {
+            panelSpecific.style.display = (mode === 'specific') ? 'block' : 'none';
+            panelGroup.style.display    = (mode === 'group')    ? 'block' : 'none';
+            isPublicHidden.value        = (mode === 'public')   ? '1'     : '0';
+            selectSpecific.required     = (mode === 'specific');
+            selectLeaders.required      = (mode === 'group');
+        }
+
+        radios.forEach(function (r) {
+            r.addEventListener('change', function () { applyAccessMode(this.value); });
+        });
+
+        // Initial state dari nilai PHP
+        const initialMode = document.querySelector('input[name="access_mode"]:checked')?.value || 'public';
+        applyAccessMode(initialMode);
+
+        // ─── Initialize Select2 (Specific Users) ─────────────────────────────────
+        const $select = $('#allowed_user_ids');
+        $select.select2({
+            width: '100%',
+            placeholder: 'Search by name, email, or phone...',
+            allowClear: true,
+            matcher: function (params, data) {
+                if ($.trim(params.term) === '') return data;
+                return data.text.toLowerCase().indexOf(params.term.toLowerCase()) > -1 ? data : null;
+            }
+        });
+
+        function updateBadge() {
+            const count = $select.val() ? $select.val().length : 0;
+            document.getElementById('selected_count_badge').textContent =
+                count + (count === 1 ? ' user selected' : ' users selected');
+        }
+        $select.on('change', updateBadge);
+        updateBadge();
+
+        document.getElementById('btn_select_all').addEventListener('click', function () {
+            $select.find('option').prop('selected', true);
+            $select.trigger('change');
+        });
+        document.getElementById('btn_clear_all').addEventListener('click', function () {
+            $select.val(null).trigger('change');
+        });
+
+        // Select All Except
+        const excludePanel      = document.getElementById('exclude_panel');
+        const excludeSearch     = document.getElementById('exclude_search');
+        const excludeSummary    = document.getElementById('exclude_summary');
+        const excludeCheckboxes = document.querySelectorAll('.exclude-user-checkbox');
+
+        document.getElementById('btn_select_all_except_mode').addEventListener('click', function () {
+            excludeCheckboxes.forEach(cb => cb.checked = true);
+            updateExcludeSummary();
+            excludeSearch.value = '';
+            filterExcludeList('');
+            excludePanel.style.display = 'block';
+        });
+        document.getElementById('btn_close_except_mode').addEventListener('click', function () {
+            excludePanel.style.display = 'none';
+        });
+        excludeSearch.addEventListener('input', function () { filterExcludeList(this.value.toLowerCase()); });
+
+        function filterExcludeList(term) {
+            document.querySelectorAll('.user-exclude-item').forEach(function (item) {
+                const name  = item.dataset.name  || '';
+                const email = item.dataset.email || '';
+                const phone = item.dataset.phone || '';
+                item.style.display = (!term || name.includes(term) || email.includes(term) || phone.includes(term)) ? '' : 'none';
+            });
+        }
+
+        excludeCheckboxes.forEach(function (cb) { cb.addEventListener('change', updateExcludeSummary); });
+
+        function updateExcludeSummary() {
+            const total    = excludeCheckboxes.length;
+            const excluded = Array.from(excludeCheckboxes).filter(cb => !cb.checked).length;
+            const included = total - excluded;
+            excludeSummary.textContent = excluded === 0
+                ? 'All ' + total + ' users included'
+                : included + ' users included, ' + excluded + ' excluded';
+        }
+
+        document.getElementById('btn_apply_except').addEventListener('click', function () {
+            const includedIds = Array.from(excludeCheckboxes)
+                .filter(cb => cb.checked)
+                .map(cb => cb.dataset.userId);
+            $select.val(includedIds).trigger('change');
+            excludePanel.style.display = 'none';
+        });
+
+        // ─── Initialize Select2 (Group Leaders) ──────────────────────────────────
+        const $leaders = $('#group_leader_ids');
+        $leaders.select2({
+            width: '100%',
+            placeholder: 'Cari ketua berdasarkan nama, email, atau no. hp...',
+            allowClear: true,
+            matcher: function (params, data) {
+                if ($.trim(params.term) === '') return data;
+                return data.text.toLowerCase().indexOf(params.term.toLowerCase()) > -1 ? data : null;
+            }
+        });
+
+        // ─── Group Preview ────────────────────────────────────────────────────────
+        document.getElementById('btn_preview_group').addEventListener('click', function () {
+            const leaderIds = $leaders.val();
+            const depth     = document.getElementById('group_depth').value;
+
+            if (!leaderIds || leaderIds.length === 0) {
+                alert('Pilih minimal satu ketua grup terlebih dahulu.');
+                return;
             }
 
-            betTypePercentage.addEventListener('change', updateBetType);
-            betTypeFixed.addEventListener('change', updateBetType);
-            betValueInput.addEventListener('input', updateBetType);
+            const panel   = document.getElementById('group_preview_panel');
+            const loading = document.getElementById('group_preview_loading');
+            const tree    = document.getElementById('group_preview_tree');
 
-            // Initial update
-            updateBetType();
+            panel.style.display   = 'block';
+            loading.style.display = 'block';
+            tree.innerHTML        = '';
 
-            // Public/Private Toggle
-            const isPublicCheckbox = document.getElementById('is_public');
-            const userSelector = document.getElementById('user_selector');
-            const allowedUserIds = document.getElementById('allowed_user_ids');
+            fetch('{{ route("admin.signals.group-preview") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                },
+                body: JSON.stringify({ leader_ids: leaderIds, depth: depth }),
+            })
+            .then(r => r.json())
+            .then(function (data) {
+                loading.style.display = 'none';
 
-            function toggleUserSelector() {
-                if (isPublicCheckbox.checked) {
-                    userSelector.style.display = 'none';
-                    allowedUserIds.removeAttribute('required');
-                } else {
-                    userSelector.style.display = 'block';
-                    allowedUserIds.setAttribute('required', 'required');
+                if (data.error) {
+                    tree.innerHTML = '<div class="alert alert-danger">' + data.error + '</div>';
+                    return;
                 }
-            }
 
-            isPublicCheckbox.addEventListener('change', toggleUserSelector);
-            toggleUserSelector(); // Initial state
+                document.getElementById('preview_total_badge').textContent = data.total + ' users';
 
-            // Initialize Select2 with search
-            $('#allowed_user_ids').select2({
-                width: '100%',
-                placeholder: 'Search by name, email, or phone...',
-                allowClear: true,
-                matcher: function(params, data) {
-                    if ($.trim(params.term) === '') {
-                        return data;
+                let html = '';
+                data.leaders.forEach(function (leader) {
+                    html += `
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <span class="badge badge-success fs-7">Ketua</span>
+                            <span class="fw-bold">${leader.name}</span>
+                            <span class="text-muted fs-7">${leader.email}</span>
+                            <span class="ms-auto text-muted fs-7">${leader.total_downline} downline</span>
+                        </div>`;
+
+                    if (leader.levels && Object.keys(leader.levels).length > 0) {
+                        html += '<div class="ps-5 border-start border-dashed border-success">';
+                        Object.entries(leader.levels).forEach(function ([lvl, members]) {
+                            if (members.length === 0) return;
+                            html += `<div class="mb-2">
+                                <span class="badge badge-light-primary fs-8 me-2">Level ${lvl}</span>
+                                <span class="text-muted fs-7">${members.length} user</span>
+                                <div class="ps-3 mt-1">`;
+                            members.forEach(function (m) {
+                                html += `<span class="d-inline-flex align-items-center gap-1 me-3 mb-1">
+                                    <i class="ki-outline ki-user fs-7 text-muted"></i>
+                                    <span class="fs-7">${m.name}</span>
+                                </span>`;
+                            });
+                            html += `</div></div>`;
+                        });
+                        html += '</div>';
+                    } else {
+                        html += '<div class="text-muted fs-7 ps-5">Tidak ada downline</div>';
                     }
-                    if (data.text.toLowerCase().indexOf(params.term.toLowerCase()) > -1) {
-                        return data;
-                    }
-                    return null;
-                }
+
+                    html += '</div><hr>';
+                });
+
+                tree.innerHTML = html;
+            })
+            .catch(function (err) {
+                loading.style.display = 'none';
+                tree.innerHTML = '<div class="alert alert-danger">Gagal memuat preview: ' + err + '</div>';
             });
         });
-        document.addEventListener('DOMContentLoaded', function() {
-            // Function to format number with commas
-            function formatNumber(value) {
-                // Remove all non-digit and non-decimal characters
-                let num = value.replace(/[^\d.]/g, '');
 
-                // Split by decimal point
-                let parts = num.split('.');
+        // ─── Price Formatting ─────────────────────────────────────────────────────
+        function formatNumber(value) {
+            let num   = value.replace(/[^\d.]/g, '');
+            let parts = num.split('.');
+            parts[0]  = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+            if (parts[1]) parts[1] = parts[1].substring(0, 2);
+            return parts.join('.');
+        }
+        function parseFormattedNumber(value) { return value.replace(/,/g, ''); }
 
-                // Format integer part with commas
-                parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        const entryPriceDisplay = document.getElementById('entry_price_display');
+        const entryPriceHidden  = document.getElementById('entry_price_hidden');
 
-                // Limit decimal places to 2
-                if (parts[1]) {
-                    parts[1] = parts[1].substring(0, 2);
-                }
-
-                return parts.join('.');
-            }
-
-            // Function to parse formatted number to float
-            function parseFormattedNumber(value) {
-                return value.replace(/,/g, '');
-            }
-
-            // Entry Price formatting
-            const entryPriceDisplay = document.getElementById('entry_price_display');
-            const entryPriceHidden = document.getElementById('entry_price_hidden');
-
-            entryPriceDisplay.addEventListener('input', function(e) {
-                let cursorPosition = e.target.selectionStart;
-                let oldValue = e.target.value;
-                let formatted = formatNumber(e.target.value);
-
-                e.target.value = formatted;
-                entryPriceHidden.value = parseFormattedNumber(formatted);
-
-                // Adjust cursor position after formatting
-                let diff = formatted.length - oldValue.length;
-                e.target.selectionStart = e.target.selectionEnd = cursorPosition + diff;
-            });
-
-            entryPriceDisplay.addEventListener('blur', function(e) {
-                let value = parseFormattedNumber(e.target.value);
-                if (value && !isNaN(value)) {
-                    let num = parseFloat(value);
-                    e.target.value = num.toLocaleString('en-US', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                    });
-                    entryPriceHidden.value = num;
-                }
-            });
-
-            // Target Price formatting
-            const targetPriceDisplay = document.getElementById('target_price_display');
-            const targetPriceHidden = document.getElementById('target_price_hidden');
-
-            targetPriceDisplay.addEventListener('input', function(e) {
-                let cursorPosition = e.target.selectionStart;
-                let oldValue = e.target.value;
-                let formatted = formatNumber(e.target.value);
-
-                e.target.value = formatted;
-                targetPriceHidden.value = parseFormattedNumber(formatted);
-
-                // Adjust cursor position after formatting
-                let diff = formatted.length - oldValue.length;
-                e.target.selectionStart = e.target.selectionEnd = cursorPosition + diff;
-            });
-
-            targetPriceDisplay.addEventListener('blur', function(e) {
-                let value = parseFormattedNumber(e.target.value);
-                if (value && !isNaN(value)) {
-                    let num = parseFloat(value);
-                    e.target.value = num.toLocaleString('en-US', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                    });
-                    targetPriceHidden.value = num;
-                }
-            });
-
-            // Form validation before submit
-            document.getElementById('signalForm').addEventListener('submit', function(e) {
-                const entryPrice = parseFloat(entryPriceHidden.value);
-                const targetPrice = parseFloat(targetPriceHidden.value);
-
-                if (isNaN(entryPrice) || entryPrice <= 0) {
-                    e.preventDefault();
-                    alert('Please enter a valid Opening Price');
-                    entryPriceDisplay.focus();
-                    return false;
-                }
-
-                if (isNaN(targetPrice) || targetPrice <= 0) {
-                    e.preventDefault();
-                    alert('Please enter a valid Settlement Price');
-                    targetPriceDisplay.focus();
-                    return false;
-                }
-            });
+        entryPriceDisplay.addEventListener('input', function (e) {
+            let cursor    = e.target.selectionStart;
+            let old       = e.target.value;
+            let formatted = formatNumber(e.target.value);
+            e.target.value         = formatted;
+            entryPriceHidden.value = parseFormattedNumber(formatted);
+            e.target.selectionStart = e.target.selectionEnd = cursor + (formatted.length - old.length);
         });
+        entryPriceDisplay.addEventListener('blur', function (e) {
+            let value = parseFormattedNumber(e.target.value);
+            if (value && !isNaN(value)) {
+                let num = parseFloat(value);
+                e.target.value         = num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                entryPriceHidden.value = num;
+            }
+        });
+
+        const targetPriceDisplay = document.getElementById('target_price_display');
+        const targetPriceHidden  = document.getElementById('target_price_hidden');
+
+        targetPriceDisplay.addEventListener('input', function (e) {
+            let cursor    = e.target.selectionStart;
+            let old       = e.target.value;
+            let formatted = formatNumber(e.target.value);
+            e.target.value          = formatted;
+            targetPriceHidden.value = parseFormattedNumber(formatted);
+            e.target.selectionStart = e.target.selectionEnd = cursor + (formatted.length - old.length);
+        });
+        targetPriceDisplay.addEventListener('blur', function (e) {
+            let value = parseFormattedNumber(e.target.value);
+            if (value && !isNaN(value)) {
+                let num = parseFloat(value);
+                e.target.value          = num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                targetPriceHidden.value = num;
+            }
+        });
+
+        // ─── Form Validation ──────────────────────────────────────────────────────
+        document.getElementById('signalForm').addEventListener('submit', function (e) {
+            const entryPrice  = parseFloat(entryPriceHidden.value);
+            const targetPrice = parseFloat(targetPriceHidden.value);
+
+            if (isNaN(entryPrice) || entryPrice <= 0) {
+                e.preventDefault();
+                alert('Please enter a valid Opening Price');
+                entryPriceDisplay.focus();
+                return false;
+            }
+            if (isNaN(targetPrice) || targetPrice <= 0) {
+                e.preventDefault();
+                alert('Please enter a valid Settlement Price');
+                targetPriceDisplay.focus();
+                return false;
+            }
+
+            const mode = document.querySelector('input[name="access_mode"]:checked')?.value;
+            if (mode === 'group') {
+                const leaders = $leaders.val();
+                if (!leaders || leaders.length === 0) {
+                    e.preventDefault();
+                    alert('Pilih minimal satu ketua grup.');
+                    return false;
+                }
+            }
+        });
+
+    });
     </script>
 @endsection
