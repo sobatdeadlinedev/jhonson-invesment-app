@@ -55,6 +55,7 @@
                                     <th class="min-w-125px">Phone</th>
                                     <th class="min-w-100px">Verified</th>
                                     <th class="min-w-100px">Active</th>
+                                    <th class="min-w-100px">Status</th>{{-- ← BARU --}}
                                     <th class="min-w-150px">Referred By</th>
                                     <th class="min-w-120px">Exchange</th>
                                     <th class="min-w-120px">Trade</th>
@@ -102,7 +103,7 @@
                                             @endif
                                         </td>
 
-                                        {{-- Active Member --}}
+                                        {{-- Active Member (berdasarkan deposit) --}}
                                         <td>
                                             @if($isActiveMember)
                                                 <span class="badge badge-light-success">
@@ -114,6 +115,19 @@
                                                       data-bs-placement="top"
                                                       title="Butuh {{ number_format($remainingForActive, 2) }} USDT lagi (Total deposit: {{ number_format($totalApprovedDeposit, 2) }} USDT)">
                                                     <i class="ki-outline ki-cross-circle fs-7 me-1"></i>Inactive
+                                                </span>
+                                            @endif
+                                        </td>
+
+                                        {{-- ← BARU: Status Akun (bisa login / tidak) --}}
+                                        <td>
+                                            @if($user->is_active)
+                                                <span class="badge badge-light-success">
+                                                    <i class="ki-outline ki-lock-3 fs-7 me-1"></i>Enabled
+                                                </span>
+                                            @else
+                                                <span class="badge badge-light-danger">
+                                                    <i class="ki-outline ki-lock fs-7 me-1"></i>Disabled
                                                 </span>
                                             @endif
                                         </td>
@@ -226,11 +240,23 @@
                                                 data-bs-target="#kt_modal_edit_user_{{ $user->id }}">
                                                 <i class="ki-outline ki-pencil fs-5"></i> Edit
                                             </button>
+
+                                            {{-- ← BARU: Tombol Toggle Aktif/Nonaktif --}}
+                                            <button
+                                                class="btn btn-sm ms-1 {{ $user->is_active ? 'btn-light-danger' : 'btn-light-success' }}"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#kt_modal_toggle_active_{{ $user->id }}">
+                                                @if($user->is_active)
+                                                    <i class="ki-outline ki-lock fs-5"></i> Disable
+                                                @else
+                                                    <i class="ki-outline ki-lock-3 fs-5"></i> Enable
+                                                @endif
+                                            </button>
                                         </td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="14" class="text-center py-10">
+                                        <td colspan="15" class="text-center py-10">
                                             <div class="text-gray-600">No users found</div>
                                         </td>
                                     </tr>
@@ -251,28 +277,74 @@
             $wdTransactions      = $user->transactions->whereIn('type', ['withdrawal', 'deduction']);
             $depositTransactions = $user->transactions->where('type', 'deposit');
 
-            $levels          = $ld['levels'];          // array [1..10] of Collection
+            $levels          = $ld['levels'];
             $totalTeam       = $ld['totalTeam'];
             $activeTeam      = $ld['activeTeam'];
-            $depositPerLevel = $ld['depositPerLevel']; // array [1..10] of float
+            $depositPerLevel = $ld['depositPerLevel'];
             $teamDeposit     = $ld['totalDeposit'];
-            $wdPerLevel      = $ld['wdPerLevel'];      // array [1..10] of float
+            $wdPerLevel      = $ld['wdPerLevel'];
             $teamWd          = $ld['totalWd'];
 
-            // Badge color per level (cycling)
             $levelColors = [
-                1  => 'primary',
-                2  => 'info',
-                3  => 'warning',
-                4  => 'success',
-                5  => 'danger',
-                6  => 'dark',
-                7  => 'primary',
-                8  => 'info',
-                9  => 'warning',
+                1  => 'primary', 2  => 'info',    3  => 'warning',
+                4  => 'success', 5  => 'danger',   6  => 'dark',
+                7  => 'primary', 8  => 'info',     9  => 'warning',
                 10 => 'success',
             ];
         @endphp
+
+        {{-- ===== BARU: Modal Konfirmasi Toggle Aktif/Nonaktif ===== --}}
+        <div class="modal fade" id="kt_modal_toggle_active_{{ $user->id }}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered mw-500px">
+                <div class="modal-content">
+                    <div class="modal-header border-0 pb-0">
+                        <div class="btn btn-icon btn-sm btn-active-icon-primary ms-auto" data-bs-dismiss="modal">
+                            <i class="ki-outline ki-cross fs-1"></i>
+                        </div>
+                    </div>
+                    <div class="modal-body px-10 pb-10 pt-0 text-center">
+
+                        {{-- Icon & warna sesuai kondisi --}}
+                        @if($user->is_active)
+                            <div class="mb-5">
+                                <i class="ki-outline ki-lock fs-5tx text-danger"></i>
+                            </div>
+                            <h2 class="fw-bold text-gray-900 mb-3">Nonaktifkan Akun?</h2>
+                            <div class="text-muted fs-6 mb-7">
+                                User <strong class="text-gray-800">{{ $user->name }}</strong> tidak akan bisa login
+                                sampai akun diaktifkan kembali.
+                            </div>
+                            <form action="{{ route('admin.user.toggle-active', $user->id) }}" method="POST">
+    @csrf
+    @method('PATCH')
+    <button type="button" class="btn btn-light me-3" data-bs-dismiss="modal">Batal</button>
+    <button type="submit" class="btn btn-danger">
+        <i class="ki-outline ki-lock fs-4 me-1"></i>Ya, Nonaktifkan
+    </button>
+</form>
+                        @else
+                            <div class="mb-5">
+                                <i class="ki-outline ki-lock-3 fs-5tx text-success"></i>
+                            </div>
+                            <h2 class="fw-bold text-gray-900 mb-3">Aktifkan Akun?</h2>
+                            <div class="text-muted fs-6 mb-7">
+                                User <strong class="text-gray-800">{{ $user->name }}</strong> akan bisa login kembali
+                                setelah diaktifkan.
+                            </div>
+                            <form action="{{ route('admin.user.toggle-active', $user->id) }}" method="POST">
+    @csrf
+    @method('PATCH')
+    <button type="button" class="btn btn-light me-3" data-bs-dismiss="modal">Batal</button>
+    <button type="submit" class="btn btn-success">
+        <i class="ki-outline ki-lock-3 fs-4 me-1"></i>Ya, Aktifkan
+    </button>
+</form>
+                        @endif
+
+                    </div>
+                </div>
+            </div>
+        </div>
 
         {{-- ===== Modal Edit User ===== --}}
         <div class="modal fade" id="kt_modal_edit_user_{{ $user->id }}" tabindex="-1" aria-hidden="true">
@@ -524,8 +596,8 @@
                                 @for($lvl = 1; $lvl <= 10; $lvl++)
                                     @if($levels[$lvl]->isNotEmpty())
                                         @php
-                                            $color     = $levelColors[$lvl];
-                                            $levelName = $lvl === 1 ? 'Direct Referrals' : "Level $lvl";
+                                            $color      = $levelColors[$lvl];
+                                            $levelName  = $lvl === 1 ? 'Direct Referrals' : "Level $lvl";
                                             $collapseId = "collapse_u{$user->id}_l{$lvl}";
                                             $headingId  = "heading_u{$user->id}_l{$lvl}";
                                         @endphp

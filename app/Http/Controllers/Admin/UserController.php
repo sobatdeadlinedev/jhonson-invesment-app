@@ -38,6 +38,20 @@ class UserController extends Controller
         return $levels;
     }
 
+
+     public function toggleActive(User $user)
+{
+    $newStatus = !$user->is_active;
+    
+    $user->update([
+        'is_active' => $newStatus,
+    ]);
+
+    $status = $newStatus ? 'diaktifkan' : 'dinonaktifkan';
+
+    return redirect()->back()->with('success', "User {$user->name} berhasil {$status}.");
+}
+
     public function index()
     {
         $users = User::role('member')

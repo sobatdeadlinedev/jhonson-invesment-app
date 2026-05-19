@@ -14,19 +14,20 @@ class User extends Authenticatable
     use HasRoles;
 
     protected $fillable = [
-        'name',
-        'username',
-        'phone',
-        'email',
-        'password',
-        'refferal_code',
-        'is_verified',
-        'exchange_balance',
-        'trade_balance',
-        'locked_balance',
-        'target_volume',
-        'achieved_volume',
-    ];
+    'name',
+    'username',
+    'phone',
+    'email',
+    'password',
+    'refferal_code',
+    'is_verified',
+    'exchange_balance',
+    'trade_balance',
+    'locked_balance',
+    'target_volume',
+    'achieved_volume',
+    'is_active', // ← tambah ini
+];
 
     protected $hidden = [
         'password',
@@ -34,14 +35,15 @@ class User extends Authenticatable
     ];
 
     protected $casts = [
-        'password' => 'hashed',
-        'is_verified' => 'boolean',
-        'exchange_balance' => 'decimal:2',
-        'trade_balance' => 'decimal:2',
-        'locked_balance' => 'decimal:2',
-        'target_volume' => 'decimal:2',
-        'achieved_volume' => 'decimal:2',
-    ];
+    'password' => 'hashed',
+    'is_verified' => 'boolean',
+    'is_active' => 'boolean', // ← tambah ini
+    'exchange_balance' => 'decimal:2',
+    'trade_balance' => 'decimal:2',
+    'locked_balance' => 'decimal:2',
+    'target_volume' => 'decimal:2',
+    'achieved_volume' => 'decimal:2',
+];
 
     // ==================== EXISTING RELATIONS ====================
 

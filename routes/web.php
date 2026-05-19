@@ -69,9 +69,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     });
 
     Route::prefix('user')->name('user.')->group(function () {
-        Route::get('/', [AdminUserController::class, 'index'])->name('index');
-        Route::put('/{user}', [AdminUserController::class, 'update'])->name('update');
-    });
+    Route::get('/', [AdminUserController::class, 'index'])->name('index');
+    Route::patch('/{user}/toggle-active', [AdminUserController::class, 'toggleActive'])->name('toggle-active');
+    Route::put('/{user}', [AdminUserController::class, 'update'])->name('update');
+});
 
     Route::prefix('wallet')->name('wallet.')->group(function () {
         Route::get('/', [AdminWalletController::class, 'index'])->name('index');

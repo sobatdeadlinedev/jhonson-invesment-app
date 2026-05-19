@@ -11,7 +11,6 @@ class LoginController extends Controller
 {
     public function showLoginForm()
     {
-        // Redirect jika sudah login
         if (Auth::check()) {
             return $this->redirectBasedOnRole();
         }
@@ -32,15 +31,24 @@ class LoginController extends Controller
         $loginField = $request->input('login');
         $password = $request->input('password');
 
-        // Cek apakah input adalah nomor telepon atau username
         $fieldType = filter_var($loginField, FILTER_VALIDATE_REGEXP, [
             'options' => ['regexp' => '/^[0-9]+$/']
         ]) ? 'phone' : 'username';
 
-        // Attempt login
         if (Auth::attempt([$fieldType => $loginField, 'password' => $password], $request->filled('remember'))) {
-            $request->session()->regenerate();
+            
+            // ✅ Cek status aktif setelah login berhasil
+            if (!Auth::user()->is_active) {
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
 
+                throw ValidationException::withMessages([
+                    'login' => 'Akun Anda telah dinonaktifkan. Hubungi administrator.',
+                ]);
+            }
+
+            $request->session()->regenerate();
             return $this->redirectBasedOnRole();
         }
 
