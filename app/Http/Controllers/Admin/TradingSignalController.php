@@ -41,66 +41,66 @@ class TradingSignalController extends Controller
     // Mengembalikan flat array of user IDs (tidak termasuk leader itu sendiri)
     // ─────────────────────────────────────────────────────────────────────────
     private function getDownlineIds(int $leaderId, int $maxDepth = 10): array
-{
-    $allIds = [];
-    $queue  = [$leaderId];
-    $depth  = 0;
+    {
+        $allIds = [];
+        $queue  = [$leaderId];
+        $depth  = 0;
 
-    while (!empty($queue) && $depth < $maxDepth) {
-        $depth++;
+        while (!empty($queue) && $depth < $maxDepth) {
+            $depth++;
 
-        $nextLevel = DB::table('referral_usages')
-            ->whereIn('referrer_id', $queue)
-            ->pluck('referred_id')
-            ->toArray();
+            $nextLevel = DB::table('referral_usages')
+                ->whereIn('referrer_id', $queue)
+                ->pluck('referred_id')
+                ->toArray();
 
-        if (empty($nextLevel)) {
-            break;
+            if (empty($nextLevel)) {
+                break;
+            }
+
+            $allIds = array_merge($allIds, $nextLevel);
+            $queue  = $nextLevel;
         }
 
-        $allIds = array_merge($allIds, $nextLevel);
-        $queue  = $nextLevel;
+        return array_unique($allIds);
     }
-
-    return array_unique($allIds);
-}
 
     // ─────────────────────────────────────────────────────────────────────────
     // HELPER: ambil downline per-level (untuk preview UI)
     // Mengembalikan ['1' => [users...], '2' => [users...], ...]
     // ─────────────────────────────────────────────────────────────────────────
-   private function getDownlineByLevel(int $leaderId, int $maxDepth = 10): array
-{
-    $levels = [];
-    $queue  = [$leaderId];
-    $depth  = 0;
+    private function getDownlineByLevel(int $leaderId, int $maxDepth = 10): array
+    {
+        $levels = [];
+        $queue  = [$leaderId];
+        $depth  = 0;
 
-    while (!empty($queue) && $depth < $maxDepth) {
-        $depth++;
+        while (!empty($queue) && $depth < $maxDepth) {
+            $depth++;
 
-        $referredIds = DB::table('referral_usages')
-            ->whereIn('referrer_id', $queue)
-            ->pluck('referred_id')
-            ->toArray();
+            $referredIds = DB::table('referral_usages')
+                ->whereIn('referrer_id', $queue)
+                ->pluck('referred_id')
+                ->toArray();
 
-        if (empty($referredIds)) {
-            break;
+            if (empty($referredIds)) {
+                break;
+            }
+
+            $nextLevel = User::whereIn('id', $referredIds)
+                ->get(['id', 'name', 'email', 'phone'])
+                ->toArray();
+
+            if (empty($nextLevel)) {
+                break;
+            }
+
+            $levels[(string)$depth] = $nextLevel;
+            $queue = array_column($nextLevel, 'id');
         }
 
-        $nextLevel = User::whereIn('id', $referredIds)
-            ->get(['id', 'name', 'email', 'phone'])
-            ->toArray();
-
-        if (empty($nextLevel)) {
-            break;
-        }
-
-        $levels[(string)$depth] = $nextLevel;
-        $queue = array_column($nextLevel, 'id');
+        return $levels;
     }
-
-    return $levels;
-}
 
     // ─────────────────────────────────────────────────────────────────────────
     // AJAX: Preview anggota grup sebelum signal disimpan
@@ -122,7 +122,6 @@ class TradingSignalController extends Controller
             $leader = User::findOrFail($leaderId);
             $levels = $this->getDownlineByLevel($leaderId, $depth);
 
-            // Hitung total downline (semua level digabung, sudah unique per-level)
             $totalDownline = array_sum(array_map('count', $levels));
 
             return response()->json([
@@ -148,15 +147,16 @@ class TradingSignalController extends Controller
         $accessMode = $request->input('access_mode', 'public');
 
         $rules = [
-            'title'       => 'required|string|max:255',
-            'coin'        => 'required|string|in:' . implode(',', array_keys(TradingSignal::getAvailableCoins())),
-            'description' => 'nullable|string',
-            'entry_price' => 'required|numeric|min:0',
-            'target_price'=> 'required|numeric|min:0',
-            'bet_type'    => 'required|in:percentage,fixed',
-            'bet_value'   => 'required|numeric|min:0.01',
-            'is_public'   => 'nullable|boolean',
-            'access_mode' => 'required|in:public,specific,group',
+            'title'        => 'required|string|max:255',
+            'coin'         => 'required|string|in:' . implode(',', array_keys(TradingSignal::getAvailableCoins())),
+            'description'  => 'nullable|string',
+            'entry_price'  => 'required|numeric|min:0',
+            'target_price' => 'required|numeric|min:0',
+            'bet_type'     => 'required|in:percentage,fixed',
+            'bet_value'    => 'required|numeric|min:0.01',
+            'is_public'    => 'nullable|boolean',
+            'access_mode'  => 'required|in:public,specific,group',
+            'scheduled_at' => 'nullable|date',
         ];
 
         if ($accessMode === 'specific') {
@@ -165,9 +165,9 @@ class TradingSignalController extends Controller
         }
 
         if ($accessMode === 'group') {
-            $rules['group_leader_ids']    = 'required|array|min:1|max:1';
-            $rules['group_leader_ids.*']  = 'exists:users,id';
-            $rules['group_depth']         = 'required|integer|in:1,3,5,10';
+            $rules['group_leader_ids']   = 'required|array|min:1|max:1';
+            $rules['group_leader_ids.*'] = 'exists:users,id';
+            $rules['group_depth']        = 'required|integer|in:1,3,5,10';
         }
 
         $request->validate($rules);
@@ -177,26 +177,31 @@ class TradingSignalController extends Controller
 
             $isPublic = ($accessMode === 'public');
 
+            $scheduledAt = $request->filled('scheduled_at')
+                ? \Carbon\Carbon::parse($request->scheduled_at)
+                : now();
+
             // ── Simpan signal ──────────────────────────────────────────────
             $signalData = [
-                'title'       => $request->title,
-                'coin'        => strtoupper($request->coin),
-                'description' => $request->description,
-                'entry_price' => $request->entry_price,
-                'target_price'=> $request->target_price,
-                'bet_type'    => $request->bet_type,
-                'bet_value'   => $request->bet_value,
-                'is_public'   => $isPublic,
-                'status'      => 'open',
-                'created_by'  => auth()->id(),
+                'title'        => $request->title,
+                'coin'         => strtoupper($request->coin),
+                'description'  => $request->description,
+                'entry_price'  => $request->entry_price,
+                'target_price' => $request->target_price,
+                'bet_type'     => $request->bet_type,
+                'bet_value'    => $request->bet_value,
+                'is_public'    => $isPublic,
+                'status'       => 'open',
+                'created_by'   => auth()->id(),
+                'scheduled_at' => $scheduledAt,
             ];
 
             // Simpan group meta jika mode group
             if ($accessMode === 'group') {
-                $leaderId              = (int) $request->group_leader_ids[0];
-                $depth                 = (int) $request->group_depth;
-                $signalData['group_leader_id']      = $leaderId;
-                $signalData['group_depth']          = $depth;
+                $leaderId = (int) $request->group_leader_ids[0];
+                $depth    = (int) $request->group_depth;
+                $signalData['group_leader_id'] = $leaderId;
+                $signalData['group_depth']     = $depth;
                 // total members akan dihitung setelah allowed users disync
             }
 
@@ -211,25 +216,24 @@ class TradingSignalController extends Controller
                 $depth       = (int) $request->group_depth;
                 $downlineIds = $this->getDownlineIds($leaderId, $depth);
 
-                // Gabungkan leader + semua downline, hapus duplikat
                 $allMemberIds = array_unique(array_merge([$leaderId], $downlineIds));
 
                 SignalAllowedUser::syncAllowedUsers($signal->id, $allMemberIds);
 
-                // Update snapshot jumlah member
                 $signal->update(['group_total_members' => count($allMemberIds)]);
             }
 
             DB::commit();
 
             Log::info('Signal created', [
-                'signal_id'   => $signal->id,
-                'title'       => $signal->title,
-                'access_mode' => $accessMode,
-                'entry_price' => $signal->entry_price,
-                'target_price'=> $signal->target_price,
-                'group_leader_id'    => $signal->group_leader_id ?? null,
-                'group_total_members'=> $signal->group_total_members ?? null,
+                'signal_id'           => $signal->id,
+                'title'                => $signal->title,
+                'access_mode'          => $accessMode,
+                'entry_price'          => $signal->entry_price,
+                'target_price'         => $signal->target_price,
+                'scheduled_at'         => $signal->scheduled_at,
+                'group_leader_id'      => $signal->group_leader_id ?? null,
+                'group_total_members'  => $signal->group_total_members ?? null,
             ]);
 
             return redirect()
@@ -285,15 +289,16 @@ class TradingSignalController extends Controller
         $accessMode = $request->input('access_mode', 'public');
 
         $rules = [
-            'title'       => 'required|string|max:255',
-            'coin'        => 'required|string|in:' . implode(',', array_keys(TradingSignal::getAvailableCoins())),
-            'description' => 'nullable|string',
-            'entry_price' => 'required|numeric|min:0',
-            'target_price'=> 'required|numeric|min:0',
-            'bet_type'    => 'required|in:percentage,fixed',
-            'bet_value'   => 'required|numeric|min:0.01',
-            'is_public'   => 'nullable|boolean',
-            'access_mode' => 'required|in:public,specific,group',
+            'title'        => 'required|string|max:255',
+            'coin'         => 'required|string|in:' . implode(',', array_keys(TradingSignal::getAvailableCoins())),
+            'description'  => 'nullable|string',
+            'entry_price'  => 'required|numeric|min:0',
+            'target_price' => 'required|numeric|min:0',
+            'bet_type'     => 'required|in:percentage,fixed',
+            'bet_value'    => 'required|numeric|min:0.01',
+            'is_public'    => 'nullable|boolean',
+            'access_mode'  => 'required|in:public,specific,group',
+            'scheduled_at' => 'nullable|date',
         ];
 
         if ($accessMode === 'specific') {
@@ -326,6 +331,9 @@ class TradingSignalController extends Controller
                 'group_leader_id'     => null,
                 'group_depth'         => 10,
                 'group_total_members' => 0,
+                'scheduled_at'        => $request->filled('scheduled_at')
+                    ? \Carbon\Carbon::parse($request->scheduled_at)
+                    : $signal->scheduled_at,
             ];
 
             if ($accessMode === 'group') {
@@ -366,20 +374,27 @@ class TradingSignalController extends Controller
 
     /**
      * Close signal - Admin memilih CALL atau PUT
+     * System akan bandingkan dengan kondisi harga sebenarnya
      */
     public function close(Request $request, $id)
     {
         Log::info('=== CLOSE SIGNAL START ===', [
-            'signal_id'   => $id,
-            'request_data'=> $request->all(),
-            'user_id'     => auth()->id(),
+            'signal_id'    => $id,
+            'request_data' => $request->all(),
+            'user_id'      => auth()->id(),
         ]);
 
         try {
             $signal = TradingSignal::findOrFail($id);
 
             if ($signal->status !== 'open') {
-                return redirect()->route('admin.signals.index')
+                Log::warning('Signal status invalid', [
+                    'signal_id' => $signal->id,
+                    'status'    => $signal->status,
+                ]);
+
+                return redirect()
+                    ->route('admin.signals.index')
                     ->with('error', 'Signal is not open. Current status: ' . $signal->status);
             }
 
@@ -396,46 +411,67 @@ class TradingSignalController extends Controller
 
             DB::beginTransaction();
 
-            $actualResult   = ($signal->entry_price < $signal->target_price) ? 'call' : 'put';
-            $adminChoice    = $request->admin_choice;
-            $isAdminCorrect = ($adminChoice === $actualResult);
-            $result         = $isAdminCorrect ? 'win' : 'loss';
+            // Tentukan kondisi harga sebenarnya
+            $actualResult = ($signal->entry_price < $signal->target_price) ? 'call' : 'put';
 
+            // Admin choice
+            $adminChoice = $request->admin_choice;
+
+            // Apakah admin benar?
+            $isAdminCorrect = ($adminChoice === $actualResult);
+
+            // Result untuk database (win = user menang, loss = user kalah)
+            $result = $isAdminCorrect ? 'win' : 'loss';
+
+            // Close signal dengan result, rate of return, dan admin choice
             $signal->closeSignal($result, $request->rate_of_return, $adminChoice);
 
             DB::commit();
 
             Log::info('=== CLOSE SIGNAL SUCCESS ===', [
-                'signal_id'      => $signal->id,
-                'actual_result'  => strtoupper($actualResult),
-                'admin_choice'   => strtoupper($adminChoice),
-                'is_admin_correct' => $isAdminCorrect,
-                'user_result'    => $result === 'win' ? 'USERS WIN' : 'USERS LOSE',
-                'rate_of_return' => $request->rate_of_return,
+                'signal_id'         => $signal->id,
+                'entry_price'       => $signal->entry_price,
+                'target_price'      => $signal->target_price,
+                'actual_result'     => strtoupper($actualResult),
+                'admin_choice'      => strtoupper($adminChoice),
+                'is_admin_correct'  => $isAdminCorrect,
+                'user_result'       => $result === 'win' ? 'USERS WIN' : 'USERS LOSE',
+                'rate_of_return'    => $request->rate_of_return,
             ]);
 
             $priceDirection  = $actualResult === 'call' ? 'UP (CALL)' : 'DOWN (PUT)';
             $adminChoiceText = strtoupper($adminChoice);
             $userOutcome     = $isAdminCorrect ? 'USERS WIN' : 'USERS LOSE';
 
-            return redirect()->route('admin.signals.show', $signal->id)
+            return redirect()
+                ->route('admin.signals.show', $signal->id)
                 ->with('success', "Signal closed! Price went {$priceDirection}. Admin chose {$adminChoiceText}. Result: {$userOutcome} with {$request->rate_of_return}% rate.");
-
         } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::error('Validation failed', [
+                'errors'    => $e->errors(),
+                'signal_id' => $id,
+            ]);
             throw $e;
         } catch (\Exception $e) {
             DB::rollBack();
+
             Log::error('=== CLOSE SIGNAL FAILED ===', [
                 'signal_id'     => $id,
                 'error_message' => $e->getMessage(),
+                'stack_trace'   => $e->getTraceAsString(),
             ]);
-            return redirect()->back()->withInput()
+
+            return redirect()
+                ->back()
+                ->withInput()
                 ->with('error', 'Failed to close signal: ' . $e->getMessage());
         }
     }
 
     /**
      * Settle signal
+     * - result = 'win' → Users menang (get profit)
+     * - result = 'loss' → Users kalah (lose bet amount)
      */
     public function settle($id)
     {
@@ -444,7 +480,13 @@ class TradingSignalController extends Controller
         $signal = TradingSignal::with('participants.user')->findOrFail($id);
 
         if ($signal->status !== 'closed') {
-            return redirect()->route('admin.signals.show', $signal->id)
+            Log::warning('Signal not closed yet', [
+                'signal_id' => $signal->id,
+                'status'    => $signal->status,
+            ]);
+
+            return redirect()
+                ->route('admin.signals.show', $signal->id)
                 ->with('error', 'Signal must be closed before settling. Current status: ' . $signal->status);
         }
 
@@ -457,7 +499,15 @@ class TradingSignalController extends Controller
             $usersWin     = ($signal->result === 'win');
 
             foreach ($signal->participants as $participant) {
+                Log::info('=== PARTICIPANT BEFORE SETTLEMENT ===', [
+                    'participant_id' => $participant->id,
+                    'user_id'        => $participant->user_id,
+                    'joined_at'      => $participant->joined_at?->format('Y-m-d H:i:s'),
+                    'bet_amount'     => $participant->bet_amount,
+                ]);
+
                 if ($participant->isSettled()) {
+                    Log::info('Participant already settled, skipping');
                     continue;
                 }
 
@@ -470,19 +520,40 @@ class TradingSignalController extends Controller
                     $user->addTradeBalance($profit);
                     $profitLoss    = $profit;
                     $totalRewards += $profit;
+
+                    Log::info('Participant WON', [
+                        'participant_id' => $participant->id,
+                        'bet_amount'     => $betAmount,
+                        'profit'         => $profit,
+                    ]);
                 } else {
                     $user->removeLockedBalance($betAmount);
                     $profitLoss   = -$betAmount;
                     $totalLosses += $betAmount;
+
+                    Log::info('Participant LOST', [
+                        'participant_id' => $participant->id,
+                        'bet_amount'     => $betAmount,
+                    ]);
                 }
 
                 $user->addAchievedVolume($betAmount);
 
-                $participant->update([
-                    'profit_loss' => $profitLoss,
-                    'fee_amount'  => 0,
-                    'status'      => 'settled',
-                    'settled_at'  => now(),
+                // ✅ GUNAKAN SAVE() INDIVIDUAL - BUKAN UPDATE()
+                $participant->profit_loss = $profitLoss;
+                $participant->fee_amount  = 0;
+                $participant->status      = 'settled';
+                $participant->settled_at  = now();
+                $participant->save();
+
+                // ❌ HAPUS REFRESH - INI PENYEBAB JOINED_AT BERUBAH
+                // $participant->refresh();
+
+                Log::info('=== PARTICIPANT AFTER SETTLEMENT ===', [
+                    'participant_id' => $participant->id,
+                    'joined_at'      => $participant->joined_at?->format('Y-m-d H:i:s'),
+                    'settled_at'     => $participant->settled_at?->format('Y-m-d H:i:s'),
+                    'status'         => $participant->status,
                 ]);
 
                 $settledCount++;
@@ -492,21 +563,32 @@ class TradingSignalController extends Controller
 
             DB::commit();
 
+            Log::info('=== SETTLE SIGNAL SUCCESS ===', [
+                'signal_id'     => $signal->id,
+                'total_settled' => $settledCount,
+                'users_outcome' => $usersWin ? 'ALL WIN' : 'ALL LOSE',
+            ]);
+
             if ($usersWin) {
-                return redirect()->route('admin.signals.show', $signal->id)
+                return redirect()
+                    ->route('admin.signals.show', $signal->id)
                     ->with('success', "Signal settled! All {$settledCount} participants WON. Total rewards: " . number_format($totalRewards, 2) . " USDT.");
             } else {
-                return redirect()->route('admin.signals.show', $signal->id)
+                return redirect()
+                    ->route('admin.signals.show', $signal->id)
                     ->with('success', "Signal settled! All {$settledCount} participants LOST. Total losses: " . number_format($totalLosses, 2) . " USDT.");
             }
-
         } catch (\Exception $e) {
             DB::rollBack();
+
             Log::error('=== SETTLE SIGNAL FAILED ===', [
                 'signal_id'     => $signal->id,
                 'error_message' => $e->getMessage(),
+                'stack_trace'   => $e->getTraceAsString(),
             ]);
-            return redirect()->route('admin.signals.show', $signal->id)
+
+            return redirect()
+                ->route('admin.signals.show', $signal->id)
                 ->with('error', 'Failed to settle signal: ' . $e->getMessage());
         }
     }
@@ -516,13 +598,15 @@ class TradingSignalController extends Controller
         $signal = TradingSignal::withCount('participants')->findOrFail($id);
 
         if ($signal->participants_count > 0) {
-            return redirect()->route('admin.signals.index')
+            return redirect()
+                ->route('admin.signals.index')
                 ->with('error', 'Cannot delete signal with participants.');
         }
 
         $signal->delete();
 
-        return redirect()->route('admin.signals.index')
+        return redirect()
+            ->route('admin.signals.index')
             ->with('success', 'Signal deleted successfully.');
     }
 }

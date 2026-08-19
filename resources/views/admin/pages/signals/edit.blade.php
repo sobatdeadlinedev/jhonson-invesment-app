@@ -80,6 +80,24 @@
                             @enderror
                         </div>
 
+                        {{-- ═══════════════════════════════════════════════════════════
+                             JADWAL TAYANG (SCHEDULED AT)
+                        ════════════════════════════════════════════════════════════ --}}
+                        <div class="mb-10">
+                            <label class="form-label">Jadwal Tayang (Scheduled At)</label>
+                            <input type="datetime-local" name="scheduled_at"
+                                class="form-control @error('scheduled_at') is-invalid @enderror"
+                                value="{{ old('scheduled_at', $signal->scheduled_at ? $signal->scheduled_at->format('Y-m-d\TH:i') : '') }}">
+                            @error('scheduled_at')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                            <div class="form-text">
+                                Kosongkan untuk tetap menggunakan jadwal tayang yang sudah ada.
+                                Ubah nilainya jika ingin menggeser waktu signal ini mulai muncul ke user.
+                            </div>
+                        </div>
+                        {{-- ═══════════════════════════════════════════════════════════ --}}
+
                         {{-- ── Bet Configuration ────────────────────────────────────── --}}
                         <div class="card mb-10">
                             <div class="card-header">
@@ -151,10 +169,6 @@
 
                                 {{-- Tentukan current access_mode dari data signal --}}
                                 @php
-                                    // Deteksi mode dari signal yang ada:
-                                    //   - group_leader_id  → 'group'
-                                    //   - !is_public       → 'specific'
-                                    //   - is_public        → 'public'
                                     $currentMode = old('access_mode',
                                         $signal->group_leader_id ? 'group'
                                         : ($signal->is_public ? 'public' : 'specific')

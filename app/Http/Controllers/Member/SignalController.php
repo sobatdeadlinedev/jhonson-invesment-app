@@ -33,6 +33,15 @@ class SignalController extends Controller
                 ->with('error', 'This signal is no longer available for joining.');
         }
 
+        // ── DITAMBAH: cegah user join signal yang belum waktunya tayang
+        //    (misal join langsung lewat request manual ke route join/{id}
+        //    sebelum scheduled_at tiba)
+        if (!$signal->isLive()) {
+            return redirect()
+                ->back()
+                ->with('error', 'This signal is not available yet.');
+        }
+
         // Check if user already joined
         $alreadyJoined = SignalParticipant::where('signal_id', $signal->id)
             ->where('user_id', $user->id)

@@ -66,7 +66,7 @@
                                 <th class="min-w-100px">Access</th>
                                 <th class="min-w-100px">Opening Price</th>
                                 <th class="min-w-100px">Settlement Price</th>
-                                <th class="min-w-100px">Status</th>
+                                <th class="min-w-150px">Status</th>
                                 <th class="min-w-100px">Participants</th>
                                 <th class="min-w-125px">Created</th>
                                 <th class="text-end min-w-125px">Action</th>
@@ -139,9 +139,16 @@
                                     <!-- Status -->
                                     <td>
                                         @if ($signal->status === 'open')
-                                            <span class="badge badge-light-success">
-                                                <i class="ki-outline ki-check-circle fs-5"></i> Open
-                                            </span>
+                                            @if ($signal->scheduled_at && $signal->scheduled_at->isFuture())
+                                                <span class="badge badge-light-info">
+                                                    <i class="ki-outline ki-time fs-5"></i>
+                                                    Terjadwal: {{ $signal->scheduled_at->format('d M Y, H:i') }}
+                                                </span>
+                                            @else
+                                                <span class="badge badge-light-success">
+                                                    <i class="ki-outline ki-check-circle fs-5"></i> Open
+                                                </span>
+                                            @endif
                                         @elseif($signal->status === 'closed')
                                             <span class="badge badge-light-warning">
                                                 <i class="ki-outline ki-time fs-5"></i> Closed

@@ -76,6 +76,25 @@
                             @enderror
                         </div>
 
+                        <!-- ═══════════════════════════════════════════════════════════
+                             JADWAL TAYANG (SCHEDULED AT)
+                        ════════════════════════════════════════════════════════════ -->
+                        <div class="mb-10">
+                            <label class="form-label">Jadwal Tayang (Scheduled At)</label>
+                            <input type="datetime-local" name="scheduled_at"
+                                class="form-control @error('scheduled_at') is-invalid @enderror"
+                                value="{{ old('scheduled_at') }}">
+                            @error('scheduled_at')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                            <div class="form-text">
+                                Kosongkan jika signal ingin langsung tayang saat ini.
+                                Isi jika ingin signal baru muncul untuk user pada waktu tertentu
+                                (misal signal dibuat jam 14:00 tapi baru tayang jam 15:00).
+                            </div>
+                        </div>
+                        <!-- ═══════════════════════════════════════════════════════════ -->
+
                         <!-- Bet Configuration Section -->
                         <div class="card mb-10">
                             <div class="card-header">
@@ -399,7 +418,8 @@
                                     • Both Opening and Settlement prices must be set when creating the signal<br>
                                     • When closing, you'll only need to select Call/Put and set the win rate<br>
                                     • Call = Market up (settlement > opening) | Put = Market down (settlement &lt; opening)<br>
-                                    • All participants will receive rewards based on the win rate you set
+                                    • All participants will receive rewards based on the win rate you set<br>
+                                    • Jika Jadwal Tayang diisi, signal baru akan muncul ke user pada waktu tersebut
                                 </span>
                             </div>
                         </div>

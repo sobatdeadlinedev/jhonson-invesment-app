@@ -18,10 +18,13 @@ class InvestController extends Controller
     $coins = TradingSignal::getAvailableCoins();
 
     // Count open signals per coin yang user bisa akses
+    // ── DITAMBAH: ->live() supaya signal yang scheduled_at-nya masih di masa
+    //    depan tidak ikut dihitung/ditampilkan sebelum waktunya tayang
     $signalCounts = [];
     foreach (array_keys($coins) as $coinSymbol) {
         $signalCounts[$coinSymbol] = TradingSignal::forCoin($coinSymbol)
             ->open()
+            ->live()
             ->accessibleBy($user->id)
             ->count();
     }
@@ -86,6 +89,13 @@ class InvestController extends Controller
                 abort(403, 'You do not have access to this signal.');
             }
 
+            // ── DITAMBAH: cegah user akses langsung via URL (signal_id manual)
+            //    sebelum jadwal tayangnya tiba. Admin/creator tetap bisa lihat
+            //    kalau nanti perlu di-exclude, tapi untuk member biasa ini di-block.
+            if (!$signal->isLive()) {
+                abort(404, 'Signal belum tersedia.');
+            }
+
             $participant = SignalParticipant::where('signal_id', $signal->id)
                 ->where('user_id', $user->id)
                 ->first();
@@ -103,8 +113,11 @@ class InvestController extends Controller
         $coinInfo = TradingSignal::getAvailableCoins()[$coin] ?? TradingSignal::getAvailableCoins()['BTCUSDT'];
 
         // UPDATED: Filter only accessible signals
+        // ── DITAMBAH: ->live() supaya signal yang scheduled_at-nya belum
+        //    tiba tidak muncul di daftar signal per-coin
         $openSignals = TradingSignal::forCoin($coin)
             ->open()
+            ->live()
             ->accessibleBy($user->id)
             ->with('creator')
             ->withCount('participants')

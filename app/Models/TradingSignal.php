@@ -23,10 +23,14 @@ class TradingSignal extends Model
         'admin_choice',
         'result',
         'rate_of_return',
+        'scheduled_at',
         'opened_at',
         'closed_at',
         'settled_at',
         'created_by',
+        'group_leader_id',
+        'group_depth',
+        'group_total_members',
     ];
 
     protected $casts = [
@@ -36,6 +40,7 @@ class TradingSignal extends Model
         'bet_value' => 'decimal:2',
         'is_public' => 'boolean',
         'rate_of_return' => 'decimal:2',
+        'scheduled_at' => 'datetime',
         'opened_at' => 'datetime',
         'closed_at' => 'datetime',
         'settled_at' => 'datetime',
@@ -251,6 +256,11 @@ class TradingSignal extends Model
         return $this->hasMany(SignalAllowedUser::class, 'signal_id');
     }
 
+    public function groupLeader()
+    {
+        return $this->belongsTo(User::class, 'group_leader_id');
+    }
+
     // ==================== SCOPES ====================
 
     public function scopeOpen($query)
@@ -289,12 +299,31 @@ class TradingSignal extends Model
     public function scopeAccessibleBy($query, $userId)
     {
         return $query->where(function ($q) use ($userId) {
-            // Public signals ATAU private signals yang user ada di allowed list
             $q->where('is_public', true)
                 ->orWhereHas('allowedUsers', function ($subQuery) use ($userId) {
                     $subQuery->where('user_id', $userId);
                 });
         });
+    }
+
+    /**
+     * Scope: hanya signal yang sudah waktunya tayang (untuk ditampilkan ke user)
+     */
+    public function scopeLive($query)
+    {
+        return $query->where(function ($q) {
+            $q->whereNull('scheduled_at')
+              ->orWhere('scheduled_at', '<=', now());
+        });
+    }
+
+    /**
+     * Scope: signal yang masih terjadwal (belum tayang)
+     */
+    public function scopeUpcoming($query)
+    {
+        return $query->whereNotNull('scheduled_at')
+            ->where('scheduled_at', '>', now());
     }
 
     // ==================== HELPER METHODS ====================
@@ -314,6 +343,22 @@ class TradingSignal extends Model
         return $this->status === 'settled';
     }
 
+    /**
+     * Apakah signal ini sudah waktunya tayang ke user?
+     */
+    public function isLive()
+    {
+        return is_null($this->scheduled_at) || $this->scheduled_at->lte(now());
+    }
+
+    /**
+     * Apakah signal ini masih dijadwalkan (belum tayang)?
+     */
+    public function isScheduled()
+    {
+        return !is_null($this->scheduled_at) && $this->scheduled_at->gt(now());
+    }
+
     public function getTotalParticipantsAttribute()
     {
         return $this->participants()->count();
@@ -329,12 +374,10 @@ class TradingSignal extends Model
      */
     public function isUserAllowed($userId)
     {
-        // Jika public, semua user bisa akses
         if ($this->is_public) {
             return true;
         }
 
-        // Jika private, cek di allowed users
         return SignalAllowedUser::isUserAllowed($this->id, $userId);
     }
 
@@ -344,10 +387,8 @@ class TradingSignal extends Model
     public function calculateUserBetAmount($user)
     {
         if ($this->bet_type === 'percentage') {
-            // Percentage dari trade balance
             return $user->trade_balance * ($this->bet_value / 100);
         } else {
-            // Fixed amount
             return $this->bet_value;
         }
     }
@@ -372,9 +413,6 @@ class TradingSignal extends Model
         return $this->allowedUsers()->pluck('user_id')->toArray();
     }
 
-    /**
-     * Close signal - set opened_at saat status closed
-     */
     /**
      * Close signal - set opened_at saat status closed
      */
